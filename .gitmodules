@@ -1,6 +1,6 @@
 [submodule "Toolkit/UnityToolkit"]
 	path = Toolkit/UnityToolkit
 	url = https://github.com/NicoIer/UnityToolkit.git
-[submodule "GameCore/StateSyncGameCore"]
-	path = GameCore/StateSyncGameCore
-	url = https://github.com/NicoIer/StateSyncGameCore.git
+[submodule "GameCore/GameCore"]
+	path = GameCore/GameCore
+	url = https://github.com/NicoIer/GameCore.git

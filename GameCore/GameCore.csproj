@@ -7,6 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="MagicOnion.Abstractions" Version="6.1.4" />
+      <PackageReference Include="MagicOnion.GeneratorCore" Version="5.1.8" />
+      <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.4-preview" />
       <PackageReference Include="MagicOnion.Shared" Version="6.1.4" />
       <PackageReference Include="MemoryPack.Generator" Version="1.21.1">
         <PrivateAssets>all</PrivateAssets>
@@ -16,11 +19,16 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Luban\Luban.csproj" />
       <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
       <PackageReference Include="MagicOnion" Version="6.1.4" />
+      <PackageReference Include="MagicOnion.Server" Version="6.1.4" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
     </ItemGroup>
 
 </Project>

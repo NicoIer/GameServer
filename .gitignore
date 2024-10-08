@@ -4,3 +4,6 @@
 obj
 bin
 */log/*.txt
+
+log/
+db/

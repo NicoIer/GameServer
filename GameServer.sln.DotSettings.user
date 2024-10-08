@@ -1,0 +1,11 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2fb12d37_002D9aa5_002D4934_002Dbb72_002Dcbf576da1541/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GlobalHubTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::3447883B-1771-4970-AACB-B7478ADE48EB::net8.0::FishGameTest.GlobalHubTests&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=90ed5a6a_002Da3a8_002D410a_002Dbfc9_002D5f9995b42665/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GlobalHubTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::3447883B-1771-4970-AACB-B7478ADE48EB::net8.0::FishGameTest.GlobalHubTests&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
