@@ -6,16 +6,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCore", "GameCore\GameCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dummy", "Dummy\Dummy.csproj", "{5A89A612-825F-4F3B-B178-24054E920EC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateSyncDemoServer", "StateSyncDemoServer\StateSyncDemoServer.csproj", "{E7A30A40-4D5E-484D-B242-4E58C7FBA2CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{E7A30A40-4D5E-484D-B242-4E58C7FBA2CD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3B520D17-8961-4147-97CE-077EDABFD468}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectZeroServer", "ProjectZeroServer\ProjectZeroServer.csproj", "{DFA92263-FDEE-482A-B08D-0F96EE50ACE4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectZero", "ProjectZero\ProjectZero.csproj", "{DFA92263-FDEE-482A-B08D-0F96EE50ACE4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Luban", "Luban\Luban.csproj", "{4A5BCC08-A5BE-4A98-A361-37F86DB4AE3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat", "Chat\Chat.csproj", "{E9FC348A-F46D-47EF-9D89-30B5199948DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,5 +49,9 @@ Global
 		{4A5BCC08-A5BE-4A98-A361-37F86DB4AE3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A5BCC08-A5BE-4A98-A361-37F86DB4AE3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A5BCC08-A5BE-4A98-A361-37F86DB4AE3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9FC348A-F46D-47EF-9D89-30B5199948DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9FC348A-F46D-47EF-9D89-30B5199948DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9FC348A-F46D-47EF-9D89-30B5199948DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9FC348A-F46D-47EF-9D89-30B5199948DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

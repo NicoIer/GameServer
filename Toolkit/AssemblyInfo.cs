@@ -1,4 +1,4 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ProjectZeroServer")]
-[assembly: InternalsVisibleTo("StateSyncDemoServer")]
+[assembly: InternalsVisibleTo("ProjectZero")]
+[assembly: InternalsVisibleTo("Demo")]

@@ -10,3 +10,9 @@
     build:
       context: .
       dockerfile: ProjectZeroServer/Dockerfile
+
+  chat:
+    image: chat
+    build:
+      context: .
+      dockerfile: Chat/Dockerfile

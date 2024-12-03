@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>ProjectZero</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+      <Content Update="appsettings.json">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Update="appsettings.Development.json">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MagicOnion.Server" Version="6.1.6" />
+      <PackageReference Include="Serilog" Version="4.0.1" />
+      <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="db\" />
+      <Folder Include="Game\" />
+      <Folder Include="log\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Properties\launchSettings.json">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </None>
+    </ItemGroup>
+
+</Project>
