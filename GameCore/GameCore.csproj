@@ -22,6 +22,7 @@
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
       <PackageReference Include="MagicOnion" Version="6.1.4" />
+      <PackageReference Include="MagicOnion.Server" Version="6.1.4" />
     </ItemGroup>
 
 </Project>

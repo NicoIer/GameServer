@@ -1,10 +1,13 @@
+using MagicOnion.Serialization;
+using MagicOnion.Serialization.MemoryPack;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using UnityToolkit;
 
-namespace ProjectZero.RPC
+namespace FishGame
 {
     public class GameRPC : ITaskSystem
     {
@@ -14,8 +17,16 @@ namespace ProjectZero.RPC
 
         public GameRPC(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
 
+            var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.UseKestrel(options =>
+            {
+                options.ConfigureEndpointDefaults(listenOptions =>
+                {
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                });
+            });
             builder.Services.AddSerilog(); // Add this line(Serilog)
             builder.Services.AddGrpc(); // Add this line(Grpc.AspNetCore)
             builder.Services.AddMagicOnion(); // Add this line(MagicOnion.Server)

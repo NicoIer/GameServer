@@ -1,4 +1,4 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ProjectOne")]
+[assembly: InternalsVisibleTo("FishGame")]
 [assembly: InternalsVisibleTo("Demo")]

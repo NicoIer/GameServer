@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Text;
-using ProjectZero;
-using ProjectZero.RPC;
+using FishGame;
+using FishGame.Service;
 using Serilog;
 using Serilog.Events;
 using UnityToolkit;
@@ -29,6 +29,6 @@ var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
 Log.Logger = loggerConfig.CreateLogger();
 
 
-Global.Singleton.AddSystem(new GameRPC(args));
+Global.Singleton.AddTask(new GameRPC(args));
 
 await Global.Singleton.Run();
