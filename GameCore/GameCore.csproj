@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Luban\Luban.csproj" />
       <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 

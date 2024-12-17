@@ -16,3 +16,21 @@
     build:
       context: .
       dockerfile: Chat/Dockerfile
+
+  projectone:
+    image: projectone
+    build:
+      context: .
+      dockerfile: ProjectOne/Dockerfile
+
+  p2p:
+    image: p2p
+    build:
+      context: .
+      dockerfile: P2P/Dockerfile
+
+  broadcastserver:
+    image: broadcastserver
+    build:
+      context: .
+      dockerfile: BroadcastServer/Dockerfile
