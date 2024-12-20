@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>ProjectZero</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,21 +30,31 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="LiteDB" Version="5.0.21" />
       <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="7.0.0-preview.9-preview" />
       <PackageReference Include="MagicOnion.Server" Version="6.1.6" />
-      <PackageReference Include="MasterMemory" Version="2.4.4" />
+      <PackageReference Include="MagicOnion.Server.HttpGateway" Version="6.1.6" />
+      <PackageReference Include="MasterMemory.MSBuild.Tasks" Version="2.4.4" PrivateAssets="All"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Serilog" Version="4.0.1" />
       <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Database\" />
-      <Folder Include="db\" />
-      <Folder Include="log\" />
-    </ItemGroup>
+    
+<!--    &lt;!&ndash; Call code generator before-build. &ndash;&gt;-->
+<!--    <Target Name="MasterMemoryGen" BeforeTargets="BeforeBuild">-->
+<!--        &lt;!&ndash; Configuration of Code-Generator, `UsingNamespace`, `InputDirectory`, `OutputDirectory` and `AddImmutableConstructor`. &ndash;&gt;-->
+<!--        <MasterMemoryGenerator UsingNamespace="$(ProjectName)" InputDirectory="$(ProjectDir)" OutputDirectory="$(ProjectDir)MasterMemory" />-->
+<!--    </Target>-->
 
     <ItemGroup>
       <None Update="Properties\launchSettings.json">
@@ -54,5 +63,4 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       </None>
     </ItemGroup>
-
 </Project>

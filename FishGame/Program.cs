@@ -1,4 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
+
+using System;
 using System.Text;
 using FishGame;
 using FishGame.Service;
@@ -29,6 +31,8 @@ var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
 Log.Logger = loggerConfig.CreateLogger();
 
 
+
+Global.Singleton.Add(new GameDatabase());
 Global.Singleton.AddTask(new GameRPC(args));
 
 await Global.Singleton.Run();

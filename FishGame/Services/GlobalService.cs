@@ -1,18 +1,19 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using GameCore.FishGame;
-using MagicOnion;
-using MagicOnion.Server;
 using MagicOnion.Server.Hubs;
+using Microsoft.EntityFrameworkCore;
 
 namespace FishGame.Service;
 
-public class GlobalService : StreamingHubBase<IGlobalService, IGlobalServiceReceiver>, IGlobalService
+public class GlobalServiceHud : StreamingHubBase<IGlobalServiceHud, IGlobalServiceHubReceiver>, IGlobalServiceHud
 {
-    private Dictionary<uint, User> _users;
+    private GameDatabase _database;
 
-
-    public IGlobalService FireAndForget()
+    public IGlobalServiceHud FireAndForget()
     {
-        _users = new Dictionary<uint, User>();
+        _database = Global.Singleton.Get<GameDatabase>();
         return this;
     }
 
@@ -25,11 +26,29 @@ public class GlobalService : StreamingHubBase<IGlobalService, IGlobalServiceRece
     {
         return Task.CompletedTask;
     }
-    //
-    // public ValueTask<RegisterResult> Register(string nickName)
-    // {
-    //     throw new NotImplementedException();
-    // }
+
+
+
+    public async ValueTask<RegisterResponse> Register(string nickName)
+    {
+        bool contains = await _database.fishGameDbContext.users.ContainsAsync(new User { nickname = nickName });
+        if (contains)
+        {
+            return new RegisterResponse { code = StatusCode.Failed, msg = "昵称已存在" };
+        }
+
+        var user = new User { nickname = nickName };
+        long uid = Interlocked.Increment(ref _database.uidCounter);
+        if (uid > uint.MaxValue)
+        {
+            throw new Exception("uid limit reached: " + uid);
+        }
+
+        user.uid = (uint)uid;
+        await _database.fishGameDbContext.users.AddAsync(user);
+        await _database.fishGameDbContext.SaveChangesAsync();
+        return new RegisterResponse { userId = (uint)user.id, code = StatusCode.Success };
+    }
 
     public ValueTask<UserState> GetState(uint userId)
     {
@@ -42,6 +61,11 @@ public class GlobalService : StreamingHubBase<IGlobalService, IGlobalServiceRece
     }
 
     public ValueTask<StatusCode> Logout(uint userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SendHeartbeat(uint userId)
     {
         throw new NotImplementedException();
     }

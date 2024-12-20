@@ -1,5 +1,9 @@
+using System.Threading.Tasks;
+using Grpc.Net.Client;
 using MagicOnion.Serialization;
 using MagicOnion.Serialization.MemoryPack;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +23,9 @@ namespace FishGame
         {
             MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
 
+            MessagePackSerializer.DefaultOptions = MessagePackSerializer.DefaultOptions
+                .WithResolver(StaticCompositeResolver.Instance);
+            
             var builder = WebApplication.CreateBuilder(args);
             builder.WebHost.UseKestrel(options =>
             {
@@ -39,13 +46,13 @@ namespace FishGame
                 _application.UseExceptionHandler("/Error", createScopeForErrors: true);
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 _application.UseHsts();
-            }
+            }     
 
             _application.UseHttpsRedirection();
 
             _application.UseSerilogRequestLogging(); // Add this line(Serilog)
-
-            _application.MapMagicOnionService(); // Add this line(MagicOnion.Server)
+            
+            
         }
 
         public Task Run()
