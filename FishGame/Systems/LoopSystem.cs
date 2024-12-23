@@ -9,7 +9,7 @@ public class LoopSystem : ISystem, IOnInit
 
     public delegate void FrameAction(in TimeSpan elapsedTimeFromPreviousFrame);
 
-    private event FrameAction OnOnUpdate;
+    private event FrameAction OnOnUpdate = delegate { };
 
     public LoopSystem(int frameRate)
     {

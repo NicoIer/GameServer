@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FishGame.Migrations
 {
     [DbContext(typeof(FishGameContext))]
-    [Migration("20241223115822_InitialCreate")]
+    [Migration("20241223154936_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
