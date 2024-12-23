@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FishGame.Migrations
 {
     [DbContext(typeof(FishGameContext))]
-    [Migration("20241220100350_InitialCreate2")]
-    partial class InitialCreate2
+    [Migration("20241223115822_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,9 @@ namespace FishGame.Migrations
                 {
                     b.Property<string>("id")
                         .HasColumnType("TEXT");
+
+                    b.Property<long>("value")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("id");
 
@@ -38,6 +41,9 @@ namespace FishGame.Migrations
                     b.Property<string>("nickname")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("online")
+                        .HasColumnType("INTEGER");
 
                     b.Property<uint>("uid")
                         .HasColumnType("INTEGER");

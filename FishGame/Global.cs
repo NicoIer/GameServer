@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Serilog;
 using UnityToolkit;
 
 namespace FishGame
@@ -12,7 +9,6 @@ namespace FishGame
 
         private readonly Dictionary<int, ITaskSystem> _taskSystems;
         private readonly List<Task> _tasks;
-
         private SystemLocator _systemLocator;
 
 

@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FishGame.Service;
 
-public class GlobalServiceHud : StreamingHubBase<IGlobalServiceHud, IGlobalServiceHubReceiver>, IGlobalServiceHud
+public class GlobalHud : StreamingHubBase<IGlobalHud, IGlobalServiceHubReceiver>, IGlobalHud
 {
     private GameDatabase _database;
 
-    public IGlobalServiceHud FireAndForget()
+    public IGlobalHud FireAndForget()
     {
         _database = Global.Singleton.Get<GameDatabase>();
         return this;
@@ -28,13 +28,19 @@ public class GlobalServiceHud : StreamingHubBase<IGlobalServiceHud, IGlobalServi
     }
 
 
-
     public async ValueTask<RegisterResponse> Register(string nickName)
     {
         bool contains = await _database.fishGameDbContext.users.ContainsAsync(new User { nickname = nickName });
         if (contains)
         {
-            return new RegisterResponse { code = StatusCode.Failed, msg = "昵称已存在" };
+            return new RegisterResponse
+            {
+                error = new Error()
+                {
+                    code = StatusCode.Failed,
+                    msg = "昵称已存在"
+                }
+            };
         }
 
         var user = new User { nickname = nickName };
@@ -47,7 +53,7 @@ public class GlobalServiceHud : StreamingHubBase<IGlobalServiceHud, IGlobalServi
         user.uid = (uint)uid;
         await _database.fishGameDbContext.users.AddAsync(user);
         await _database.fishGameDbContext.SaveChangesAsync();
-        return new RegisterResponse { userId = (uint)user.id, code = StatusCode.Success };
+        return new RegisterResponse { userId = (uint)user.id, error = Error.Success };
     }
 
     public ValueTask<UserState> GetState(uint userId)
