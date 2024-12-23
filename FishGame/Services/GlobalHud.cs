@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GameCore.FishGame;
 using MagicOnion.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace FishGame.Service;
 
@@ -13,6 +14,7 @@ public class GlobalHud : StreamingHubBase<IGlobalHud, IGlobalServiceHubReceiver>
 
     public IGlobalHud FireAndForget()
     {
+        Log.Information("{0} FireAndForget", nameof(GlobalHud));
         _database = Global.Singleton.Get<GameDatabase>();
         return this;
     }
@@ -25,6 +27,12 @@ public class GlobalHud : StreamingHubBase<IGlobalHud, IGlobalServiceHubReceiver>
     public Task WaitForDisconnect()
     {
         return Task.CompletedTask;
+    }
+
+    protected override ValueTask OnConnected()
+    {
+        Log.Information("{0} OnConnected", nameof(GlobalHud));
+        return base.OnConnected();
     }
 
 
@@ -71,7 +79,7 @@ public class GlobalHud : StreamingHubBase<IGlobalHud, IGlobalServiceHubReceiver>
         throw new NotImplementedException();
     }
 
-    public void SendHeartbeat(uint userId)
+    public ValueTask SendHeartbeat(uint userId)
     {
         throw new NotImplementedException();
     }

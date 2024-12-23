@@ -22,7 +22,7 @@ namespace FishGame
         public GameRPC(string[] args)
         {
             MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
-
+            
             MessagePackSerializer.DefaultOptions = MessagePackSerializer.DefaultOptions
                 .WithResolver(StaticCompositeResolver.Instance);
             
@@ -47,7 +47,8 @@ namespace FishGame
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 _application.UseHsts();
             }     
-
+            _application.MapMagicOnionService();
+            _application.UseRouting();
             _application.UseHttpsRedirection();
 
             _application.UseSerilogRequestLogging(); // Add this line(Serilog)

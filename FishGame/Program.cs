@@ -30,6 +30,10 @@ var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
 
 Log.Logger = loggerConfig.CreateLogger();
 
+
+string fullLogPath = System.IO.Path.GetFullPath(logPath);
+Log.Information("Log file path: {fullLogPath}, logPath: {logPath}", fullLogPath, logPath);
+
 //
 //
 // string path1 = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;

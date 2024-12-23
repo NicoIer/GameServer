@@ -31,7 +31,7 @@
 
     <ItemGroup>
       <PackageReference Include="LogicLooper" Version="1.6.0" />
-      <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="7.0.0-preview.9-preview" />
+      <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.6-preview" />
       <PackageReference Include="MagicOnion.Server" Version="6.1.6" />
       <PackageReference Include="MagicOnion.Server.HttpGateway" Version="6.1.6" />
       <PackageReference Include="MasterMemory.MSBuild.Tasks" Version="2.4.4" PrivateAssets="All"/>
