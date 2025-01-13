@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BroadcastServer", "Broadcas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FishGameTest", "FishGameTest\FishGameTest.csproj", "{3447883B-1771-4970-AACB-B7478ADE48EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolkitTest", "ToolkitTest\ToolkitTest.csproj", "{CEB0E01A-36DD-440D-87DB-B9B72812BCB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicPhysX", "MagicPhysX\MagicPhysX.csproj", "{669241D0-9E2B-4014-A46A-8F680E3A8220}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicPhysX.Toolkit", "MagicPhysX.Toolkit\MagicPhysX.Toolkit.csproj", "{805691AB-EC32-43D1-B2BD-35D972841878}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,5 +65,17 @@ Global
 		{3447883B-1771-4970-AACB-B7478ADE48EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3447883B-1771-4970-AACB-B7478ADE48EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3447883B-1771-4970-AACB-B7478ADE48EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB0E01A-36DD-440D-87DB-B9B72812BCB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB0E01A-36DD-440D-87DB-B9B72812BCB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB0E01A-36DD-440D-87DB-B9B72812BCB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB0E01A-36DD-440D-87DB-B9B72812BCB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{669241D0-9E2B-4014-A46A-8F680E3A8220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{669241D0-9E2B-4014-A46A-8F680E3A8220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{669241D0-9E2B-4014-A46A-8F680E3A8220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{669241D0-9E2B-4014-A46A-8F680E3A8220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{805691AB-EC32-43D1-B2BD-35D972841878}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{805691AB-EC32-43D1-B2BD-35D972841878}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{805691AB-EC32-43D1-B2BD-35D972841878}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{805691AB-EC32-43D1-B2BD-35D972841878}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

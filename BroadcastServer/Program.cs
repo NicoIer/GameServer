@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using Network;
+using Network.Server;
 using Serilog;
 using Serilog.Events;
 using UnityToolkit;
@@ -30,4 +32,16 @@ string fullLogPath = System.IO.Path.GetFullPath(logPath);
 Log.Information("Log file path: {fullLogPath}, logPath: {logPath}", fullLogPath, logPath);
 
 
+IServerSocket serverSocket = new TelepathyServerSocket()
+{
+    port = 23333,
+};
+NetworkServer server = new NetworkServer(serverSocket);
 
+server.AddMsgHandler((int connectionId, BrodcastMessage msg) =>
+{
+    Log.Information("Receive message from {connectionId}: {msg}", connectionId, msg);
+    server.SendToAll(msg);
+});
+
+await server.Run();
