@@ -8,16 +8,15 @@ using UnityToolkit;
 
 namespace FishGame.Service;
 
-public class FishGameHub : StreamingHubBase<IFishGameHud, IFishGameHudReceiver>, IFishGameHud
+public class FishGameHub : StreamingHubBase<IFishGameHub, IGameHudReceiver>, IFishGameHub
 {
     public required IGroup _room = null!;
     private GameDatabase _database = null!;
-    public IInMemoryStorage<GameWorld> _storage;
     private GameWorld _gameWorld = null!;
     private static uint _currentWorldId;
     private static readonly ConcurrentBag<uint> _worldIds = new ConcurrentBag<uint>();
 
-    public IFishGameHud FireAndForget()
+    public IFishGameHub FireAndForget()
     {
         _database = Global.Singleton.Get<GameDatabase>();
         return this;
@@ -28,14 +27,14 @@ public class FishGameHub : StreamingHubBase<IFishGameHud, IFishGameHudReceiver>,
         await _room.RemoveAsync(Context);
     }
 
-    public async ValueTask<MatchRoomResponse> MatchRoom(uint userId)
+    public async ValueTask<MatchRoomResponse> MatchRoom(string macToken)
     {
-        Log.Information("MatchRoom: {userId}", userId);
-        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.uid == userId);
+        Log.Information("MatchRoom: {userId}", macToken);
+        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.macToken == macToken);
         if (user == null)
         {
-            Log.Information("User not found: {userId}", userId);
-            return new MatchRoomResponse { error = Error.UserNotFound };
+            Log.Information("User not found: {macToken}", macToken);
+            return new MatchRoomResponse { error = Error.userNotFound };
         }
 
         IGroup? targetGroup = null;
@@ -46,7 +45,7 @@ public class FishGameHub : StreamingHubBase<IFishGameHud, IFishGameHudReceiver>,
             int memberCount = await group.GetMemberCountAsync();
             if (memberCount < 2)
             {
-                Log.Information("MatchRoom: {userId} find one room: {roomId}", userId, id);
+                Log.Information("MatchRoom: {macToken} find one room: {roomId}", macToken, id);
                 targetGroup = group;
                 targetId = id;
             }
@@ -56,62 +55,66 @@ public class FishGameHub : StreamingHubBase<IFishGameHud, IFishGameHudReceiver>,
 
         if (targetGroup != null)
         {
-            return new MatchRoomResponse { roomId = targetId, error = Error.Success };
+            return new MatchRoomResponse { roomId = targetId, error = Error.success };
         }
 
-        Log.Information("Create new room for user: {userId}", userId);
+        Log.Information("Create new room for user: {macToken}", macToken);
         uint worldId = Interlocked.Increment(ref _currentWorldId);
         _gameWorld = new GameWorld(worldId);
         await Group.AddAsync(worldId.ToString(), _gameWorld);
-        return new MatchRoomResponse { roomId = worldId, error = Error.Success };
+        return new MatchRoomResponse { roomId = worldId, error = Error.success };
     }
 
-    public async ValueTask<Error> JoinAsync(uint userId, uint roomId)
+    public async ValueTask<Error> JoinAsync(string macToken, uint roomId)
     {
-        Log.Information("JoinAsync: {userId} {roomId}", userId, roomId);
-        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.uid == userId);
+        Log.Information("JoinAsync: {userId} {roomId}", macToken, roomId);
+        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.macToken == macToken);
         if (user == null)
         {
-            Log.Information("User not found: {userId}", userId);
-            return Error.UserNotFound;
+            Log.Information("User not found: {macToken}", macToken);
+            return Error.userNotFound;
         }
 
         if (!Group.RawGroupRepository.TryGet(roomId.ToString(), out var targetRoom))
         {
             Log.Information("Room not found: {roomId}", roomId);
-            return Error.RoomNotFound;
+            return Error.roomNotFound;
         }
-        
+
         _room = targetRoom;
-        _storage = _room.GetInMemoryStorage<GameWorld>();
-        
-        Log.Information("JoinAsync: {userId} {roomId}", userId, roomId);
-        
+
+        Log.Information("JoinRoom: {macToken} {roomId}", macToken, roomId);
+
         Global.Singleton.Get<LoopSystem>().AddOnUpdate(OnUpdate);
-        
-        return Error.Success;
+
+        return Error.success;
     }
 
     private void OnUpdate(in TimeSpan timeSpan)
     {
         // 推送游戏世界状态
-        BroadcastToSelf(_room).PushGame(_storage.Get(ConnectionId));
+        BroadcastToSelf(_room).PushGame(_gameWorld);
     }
 
 
-    public async ValueTask<Error> ReadyAsync(uint userId)
+    public async ValueTask<Error> ReadyAsync(string macToken)
     {
         throw new NotImplementedException();
     }
 
-    public async ValueTask LeaveAsync(uint userId)
+    public async ValueTask LeaveAsync(string macToken)
     {
-        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.uid == userId);
+        Log.Information("LeaveAsync: {macToken}", macToken);
+        var user = await _database.fishGameDbContext.users.FirstOrDefaultAsync(u => u.macToken == macToken);
         if (user == null)
         {
+            Log.Information("User not found: {macToken}", macToken);
             return;
         }
 
+        // 从房间移除当前用户
+        await _room.RemoveAsync(Context);
+        Log.Information("Remove user[{macToken}] from room[{name}] ", macToken, _room.GroupName);
         Global.Singleton.Get<LoopSystem>().RemoveOnUpdate(OnUpdate);
     }
 }

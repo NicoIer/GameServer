@@ -22,9 +22,9 @@ namespace FishGame
         public GameRPC(string[] args)
         {
             MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
-            
-            MessagePackSerializer.DefaultOptions = MessagePackSerializer.DefaultOptions
-                .WithResolver(StaticCompositeResolver.Instance);
+            Log.Information("Start GameRPC,SetMagicOnionSerializerProvider={0}", MagicOnionSerializerProvider.Default);
+            // MessagePackSerializer.DefaultOptions = MessagePackSerializer.DefaultOptions
+                // .WithResolver(StaticCompositeResolver.Instance);
             
             var builder = WebApplication.CreateBuilder(args);
             builder.WebHost.UseKestrel(options =>
@@ -36,7 +36,10 @@ namespace FishGame
             });
             builder.Services.AddSerilog(); // Add this line(Serilog)
             builder.Services.AddGrpc(); // Add this line(Grpc.AspNetCore)
-            builder.Services.AddMagicOnion(); // Add this line(MagicOnion.Server)
+            builder.Services.AddMagicOnion(x =>
+            {
+                x.MessageSerializer = MemoryPackMagicOnionSerializerProvider.Instance;
+            }); // Add this line(MagicOnion.Server)
 
             _application = builder.Build();
 

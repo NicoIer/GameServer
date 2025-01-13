@@ -7,7 +7,7 @@ namespace FishGame;
 public class FishGameContext : DbContext
 {
     public DbSet<User> users { get; set; }
-    public DbSet<LongConfig> configs { get; set; }
+    public DbSet<UintConfig> configs { get; set; }
 
     public string DbPath { get; }
 
@@ -23,4 +23,14 @@ public class FishGameContext : DbContext
     // special "local" folder for your platform.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}"); //TODO 正式环境用MongoDB
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(m =>
+        {
+            m.HasKey(u => u.id);
+            m.HasIndex(u => u.macToken).IsUnique();
+            m.HasIndex(u => u.nickname).IsUnique();
+        });
+    }
 }

@@ -1,2 +1,0 @@
-﻿2024-09-27 11:39-28.918 [INF] [Network.Telepathy.TelepathyServer]: Start port=8080
-2024-09-27 11:39-28.942 [INF] [Network.Telepathy.TelepathyServer]: listening port=8080

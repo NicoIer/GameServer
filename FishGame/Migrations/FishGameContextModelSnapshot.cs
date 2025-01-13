@@ -16,12 +16,12 @@ namespace FishGame.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
-            modelBuilder.Entity("FishGame.LongConfig", b =>
+            modelBuilder.Entity("FishGame.UintConfig", b =>
                 {
                     b.Property<string>("id")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("value")
+                    b.Property<uint>("value")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("id");
@@ -35,22 +35,27 @@ namespace FishGame.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("nickname")
-                        .IsRequired()
+                    b.Property<byte>("gameState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte>("globalState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("lastActionTimeSeconds")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("macToken")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("online")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<uint>("uid")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("nickname")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("id");
 
-                    b.HasIndex("nickname")
+                    b.HasIndex("macToken")
                         .IsUnique();
 
-                    b.HasIndex("uid")
+                    b.HasIndex("nickname")
                         .IsUnique();
 
                     b.ToTable("users");
