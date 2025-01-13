@@ -38,10 +38,10 @@ IServerSocket serverSocket = new TelepathyServerSocket()
 };
 NetworkServer server = new NetworkServer(serverSocket);
 
-server.AddMsgHandler((int connectionId, BrodcastMessage msg) =>
-{
-    Log.Information("Receive message from {connectionId}: {msg}", connectionId, msg);
-    server.SendToAll(msg);
-});
+// server.AddMsgHandler((int connectionId, BrodcastMessage msg) =>
+// {
+//     Log.Information("Receive message from {connectionId}: {msg}", connectionId, msg);
+//     server.SendToAll(msg);
+// });
 
 await server.Run();
