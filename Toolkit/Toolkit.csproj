@@ -19,8 +19,7 @@
       <Folder Include="UnityToolkit\Core\BVH\" />
       <Folder Include="UnityToolkit\Core\PathFinding\" />
       <Folder Include="UnityToolkit\Editor\Python\" />
-      <Folder Include="UnityToolkit\Network\HTTP\" />
-      <Folder Include="UnityToolkit\Network\RPC\" />
+      <Folder Include="UnityToolkit\Network\Core\HTTP\" />
     </ItemGroup>
 
 </Project>

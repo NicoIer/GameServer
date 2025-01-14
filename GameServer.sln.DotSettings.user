@@ -1,6 +1,7 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
   &lt;Assembly Path="/Users/chenjun/.nuget/packages/magicphysx/1.0.0/lib/net6.0/MagicPhysX.dll" /&gt;
+  &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=379cac99_002D7a5b_002D487c_002D9fa0_002Ddc7dda911bce/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="StartupTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
