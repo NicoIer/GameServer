@@ -7,6 +7,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="MemoryPack" Version="1.21.1" />
       <PackageReference Include="MemoryPack.Generator" Version="1.21.1">
@@ -22,5 +26,20 @@
       <Folder Include="UnityToolkit\Network\Core\HTTP\" />
       <Folder Include="UnityToolkit\Network\Entity\" />
     </ItemGroup>
+    
+<!--&lt;!&ndash;    保留一些三方DLL &ndash;&gt;-->
+<!--    <ItemGroup>-->
+<!--        <None Include="UnityToolkit/Network/Core/Shared/Protocol/enet/Plugins/x86_64/enet.dll">-->
+<!--            <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
+<!--        </None>-->
+
+<!--        <None Include="UnityToolkit/Network/Core/Shared/Protocol/enet/Plugins/x86_64/libenet.bundle">-->
+<!--            <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
+<!--        </None>-->
+<!--        -->
+<!--        <None Include="UnityToolkit/Network/Core/Shared/Protocol/enet/Plugins/x86_64/libenet.so">-->
+<!--            <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
+<!--        </None>-->
+<!--    </ItemGroup>-->
 
 </Project>
