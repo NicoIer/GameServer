@@ -26,5 +26,7 @@
 //
 // await Task.WhenAny(t1, t2);
 
+using Network.Time;
 
-Console.WriteLine("Hello, World!");
+var server = new NetworkTimeServer();
+await server.Start(8848);

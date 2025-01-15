@@ -25,4 +25,13 @@
 //
 // await Task.WhenAny(t1, t2);
 
-Console.WriteLine("Hello, World!");
+using System.Net;
+using System.Net.Sockets;
+using MemoryPack;
+using Network;
+using Network.Time;
+
+
+var client = new NetworkTimeClient();
+
+await client.Run("127.0.0.1", 8848);
