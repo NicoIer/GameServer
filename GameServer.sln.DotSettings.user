@@ -3,9 +3,5 @@
   &lt;Assembly Path="/Users/chenjun/.nuget/packages/magicphysx/1.0.0/lib/net6.0/MagicPhysX.dll" /&gt;
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=379cac99_002D7a5b_002D487c_002D9fa0_002Ddc7dda911bce/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="StartupTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::CEB0E01A-36DD-440D-87DB-B9B72812BCB3::net8.0::ToolkitTest.PhysicsTests.StartupTests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String>
+	
 	</wpf:ResourceDictionary>

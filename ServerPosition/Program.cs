@@ -1,15 +1,24 @@
-﻿using MemoryPack;
-using Network;
-using UnityToolkit.MathTypes;
+﻿using Microsoft.AspNetCore.Builder;
+using Serilog;
+using UnityToolkit;
 
 namespace ServerPosition;
 
-class Program
+
+static class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
+        ToolkitLog.infoAction = Log.Information;
+        ToolkitLog.errorAction = Log.Error;
+        ToolkitLog.warningAction = Log.Warning;
+        
+        
+        Launch launch = new Launch(8848,8849);
+        await launch.Run();
+        
     }
 }
+
 
 

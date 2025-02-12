@@ -25,13 +25,36 @@
 //
 // await Task.WhenAny(t1, t2);
 
+using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using MemoryPack;
 using Network;
 using Network.Time;
+using Newtonsoft.Json;
+
+Console.WriteLine("Hello, World!");
 
 
-var client = new NetworkTimeClient();
 
-await client.Run("127.0.0.1", 8848);
+using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+{
+    socket.Connect("8.8.8.8", 65530);
+    var localEndPoint = socket.LocalEndPoint as IPEndPoint;
+    Debug.Assert(localEndPoint != null, "localEndPoint != null");
+    Console.WriteLine(localEndPoint.Address);
+}
+
+
+// var entry = Dns.GetHostEntry(Dns.GetHostName());
+//
+// foreach (var ipAddress in entry.AddressList)
+// {
+//     Console.WriteLine(ipAddress);
+// }
+
+//
+// var client = new NetworkTimeClient();
+//
+// await client.Run("127.0.0.1", 8848);

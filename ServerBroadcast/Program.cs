@@ -32,10 +32,7 @@ string fullLogPath = System.IO.Path.GetFullPath(logPath);
 Log.Information("Log file path: {fullLogPath}, logPath: {logPath}", fullLogPath, logPath);
 
 
-IServerSocket serverSocket = new TelepathyServerSocket()
-{
-    port = 23333,
-};
+IServerSocket serverSocket = new TelepathyServerSocket(23333);
 NetworkServer server = new NetworkServer(serverSocket);
 
 // server.AddMsgHandler((int connectionId, BrodcastMessage msg) =>
