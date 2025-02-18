@@ -64,9 +64,7 @@ public class PositionSystem : ISystem, IOnInit<NetworkServer>, IOnUpdate
     {
         world.timestamp = timeServer.timestampMs;
         // TODO 同步给客户端 世界信息
-        using (var snapshot = world.GetSnapshot())
-        {
-            _server.SendToAll(snapshot.message);
-        }
+        var snapshot = world.GetSnapshot();
+        _server.SendToAll(snapshot);
     }
 }

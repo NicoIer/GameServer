@@ -7,49 +7,45 @@ using UnityToolkit.MathTypes;
 
 namespace ServerPosition;
 
-
-
-public sealed class World : IPool<WorldSnapshot>
+public sealed class World
 {
     public long timestamp;
     public List<PositionEntity> entities { get; private set; }
+    private PositionEntity[] _entitiesArray;
 
     public World()
     {
         entities = new List<PositionEntity>();
+        _entitiesArray = [];
     }
 
     public void AddEntity(in int connectId, in uint entityId, in Vector3 spawnPoint)
     {
-        entities.Add(new PositionEntity(in connectId,in entityId,in spawnPoint,Quaternion.identity));
+        entities.Add(new PositionEntity(in connectId, in entityId, in spawnPoint, Quaternion.identity));
+        Array.Resize(ref _entitiesArray, entities.Count);
+        entities.CopyTo(_entitiesArray);
     }
 
 
     public void Remove(int connectId)
     {
         entities.RemoveAll(entity => entity.ownerId == connectId);
+        Array.Resize(ref _entitiesArray, entities.Count);
+        entities.CopyTo(_entitiesArray);
     }
 
-    public PooledObject<WorldSnapshot> GetSnapshot()
+    public WorldSnapshot GetSnapshot()
     {
         GetSnapshotInternal(out var snapshot);
-        return new PooledObject<WorldSnapshot>(in snapshot, this);
+        return snapshot;
     }
 
     private void GetSnapshotInternal(out WorldSnapshot snapshot)
     {
-        var array = ArrayPool<PositionEntity>.Shared.Rent(entities.Count);
-        entities.CopyTo(array);
-        snapshot = new WorldSnapshot()
+        snapshot = new WorldSnapshot
         {
             timestamp = timestamp,
-            entities = new ArraySegment<PositionEntity>(array, 0, entities.Count)
+            entities = new ArraySegment<PositionEntity>(_entitiesArray, 0, entities.Count)
         };
-    }
-
-    public void Return(in PooledObject<WorldSnapshot> pooledObject)
-    {
-        Log.Debug("Return WorldSnapshot");
-        ArrayPool<PositionEntity>.Shared.Return(pooledObject.message.entities.Array);
     }
 }
