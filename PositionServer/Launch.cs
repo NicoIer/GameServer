@@ -2,7 +2,7 @@ using Network.Server;
 using Network.Time;
 using UnityToolkit;
 
-namespace ServerPosition;
+namespace PositionServer;
 
 public class Launch
 {

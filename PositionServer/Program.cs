@@ -2,8 +2,7 @@
 using Serilog;
 using UnityToolkit;
 
-namespace ServerPosition;
-
+namespace PositionServer;
 
 static class Program
 {
@@ -16,9 +15,5 @@ static class Program
         
         Launch launch = new Launch(8848,8849);
         await launch.Run();
-        
     }
 }
-
-
-

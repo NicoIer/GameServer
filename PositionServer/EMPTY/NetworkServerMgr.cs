@@ -4,7 +4,7 @@
 // using GameCore.Position;
 // using Network.Server;
 //
-// namespace ServerPosition;
+// namespace PositionServer;
 //
 // public class NetworkServerMgr
 // {

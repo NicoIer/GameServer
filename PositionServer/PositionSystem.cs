@@ -5,19 +5,20 @@ using Network.Time;
 using UnityToolkit;
 using UnityToolkit.MathTypes;
 
-namespace ServerPosition;
+namespace PositionServer;
 
 public class PositionSystem : ISystem, IOnInit<NetworkServer>, IOnUpdate
 {
     public uint entityCounter;
     private NetworkServer _server;
-    public World world;
-    public List<Vector3> spawnPoints;
-    private NetworkTimeServer timeServer;
+    public readonly World world;
+    public readonly List<Vector3> spawnPoints;
+    private readonly NetworkTimeServer _timeServer;
+    private CommonCommand _disposeCommand;
 
     public PositionSystem(NetworkTimeServer timeServer)
     {
-        this.timeServer = timeServer;
+        this._timeServer = timeServer;
         _server = null!;
         world = new World();
 
@@ -35,9 +36,16 @@ public class PositionSystem : ISystem, IOnInit<NetworkServer>, IOnUpdate
 
     public void OnInit(NetworkServer t)
     {
+        _disposeCommand = new CommonCommand();
         _server = t;
-        t.socket.OnConnected += OnConnected;
-        t.socket.OnDisconnected += OnDisconnected;
+        _server.socket.OnConnected += OnConnected;
+        _server.socket.OnDisconnected += OnDisconnected;
+        // _server.socket.OnDataReceived += OnDataReceived;
+        _disposeCommand.Attach(_server.messageHandler.Add<CmdPositionEntity>(OnCmdPositionEntity));
+    }
+
+    private void OnCmdPositionEntity(in int connectionId, in CmdPositionEntity message)
+    {
     }
 
     private void OnConnected(int connectId)
@@ -58,11 +66,13 @@ public class PositionSystem : ISystem, IOnInit<NetworkServer>, IOnUpdate
     {
         _server.socket.OnConnected -= OnConnected;
         _server.socket.OnDisconnected -= OnDisconnected;
+        // _server.socket.OnDataReceived -= OnDataReceived;
+        _disposeCommand.Execute();
     }
 
     public void OnUpdate(float deltaTime)
     {
-        world.timestamp = timeServer.timestampMs;
+        world.timestamp = _timeServer.timestampMs;
         // TODO 同步给客户端 世界信息
         var snapshot = world.GetSnapshot();
         _server.SendToAll(snapshot);

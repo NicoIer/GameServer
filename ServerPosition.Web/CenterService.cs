@@ -3,7 +3,7 @@
 // using MagicOnion.Server;
 // using Network.Server;
 //
-// namespace ServerPosition.Web;
+// namespace PositionServer.Web;
 //
 // public class CenterService : ServiceBase<ICenterService>, ICenterService
 // {

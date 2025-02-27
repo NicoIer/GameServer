@@ -8,7 +8,7 @@
 // using Network.Server;
 // using UnityToolkit;
 //
-// namespace ServerPosition;
+// namespace PositionServer;
 //
 // public class NetworkRpc : ISystem, IOnInit<NetworkServer>
 // {

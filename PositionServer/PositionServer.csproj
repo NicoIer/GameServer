@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\GameCore\GameCore.csproj" />
+      <ProjectReference Include="..\GameCore\Position\Position.csproj" />
       <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 

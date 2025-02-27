@@ -5,7 +5,7 @@ using Serilog;
 using UnityToolkit;
 using UnityToolkit.MathTypes;
 
-namespace ServerPosition;
+namespace PositionServer;
 
 public sealed class World
 {
