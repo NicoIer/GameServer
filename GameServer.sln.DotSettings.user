@@ -5,4 +5,5 @@
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
 	
+	
 	</wpf:ResourceDictionary>

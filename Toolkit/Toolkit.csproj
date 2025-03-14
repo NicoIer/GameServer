@@ -22,6 +22,7 @@
     <ItemGroup>
       <Folder Include="UnityToolkit\Core\BVH\" />
       <Folder Include="UnityToolkit\Core\PathFinding\" />
+      <Folder Include="UnityToolkit\Culling\" />
       <Folder Include="UnityToolkit\Editor\Python\" />
       <Folder Include="UnityToolkit\Network\Core\HTTP\" />
       <Folder Include="UnityToolkit\Network\Entity\" />
