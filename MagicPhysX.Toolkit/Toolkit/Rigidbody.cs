@@ -152,6 +152,12 @@ public unsafe class Rigidbody : RigidActor
             RigidDynamic.GetRigidDynamicLockFlags() | PxRigidDynamicLockFlagsLockAngular :
             RigidDynamic.GetRigidDynamicLockFlags() & ~PxRigidDynamicLockFlagsLockAngular);
     }
+    //
+    // public PxRigidDynamicLockFlags freezeFlags
+    // {
+    //     get => RigidDynamic.GetRigidDynamicLockFlags();
+    //     set => RigidDynamic.SetRigidDynamicLockFlagsMut(value);
+    // }
 
     /// <summary>
     ///   <para>Controls which degrees of freedom are allowed for the simulation of this Rigidbody.</para>
