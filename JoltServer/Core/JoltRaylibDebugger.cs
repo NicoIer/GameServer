@@ -4,9 +4,10 @@ using Raylib_cs;
 
 namespace JoltServer;
 
-public class JoltVisualDebugger : JoltApplication.ISystem
+[Obsolete]
+public class JoltRaylibDebugger : JoltApplication.ISystem
 {
-    public JoltApplication application { get; private set; }
+    public JoltApplication JoltApplication { get; private set; }
 
     public Model planeModel;
     public Mesh boxMesh;
@@ -18,7 +19,7 @@ public class JoltVisualDebugger : JoltApplication.ISystem
     private int height;
     private string title;
 
-    public JoltVisualDebugger(int width, int height, string title, int fps)
+    public JoltRaylibDebugger(int width, int height, string title, int fps)
     {
         this.width = width;
         this.height = height;
@@ -58,7 +59,7 @@ public class JoltVisualDebugger : JoltApplication.ISystem
 
     public void OnAdded(JoltApplication app)
     {
-        application = app;
+        JoltApplication = app;
     }
 
     public void OnRemoved()
@@ -67,7 +68,7 @@ public class JoltVisualDebugger : JoltApplication.ISystem
 
     public void BeforeRun()
     {
-        application.CreateFloor(100, JoltApplication.Layers.NonMoving);
+        JoltApplication.CreateFloor(100, JoltApplication.Layers.NonMoving);
     }
 
     public void AfterRun()
@@ -75,40 +76,62 @@ public class JoltVisualDebugger : JoltApplication.ISystem
         Raylib.CloseWindow();
     }
 
-    public void BeforePhysicsUpdate(in JoltApplication.LoopContex ctx)
+    public unsafe void BeforeUpdate(in JoltApplication.LoopContex ctx)
     {
         // 如果点击了鼠标 就添加一个盒子
         if (Raylib.IsMouseButtonPressed(MouseButton.Left))
         {
             Vector2 mousePos = Raylib.GetMousePosition();
-            var ray = Raylib.GetMouseRay(mousePos, mainCamera);
-            var collision = Raylib.GetRayCollisionBox(ray,
-                new Raylib_cs.BoundingBox(new Vector3(-1, -1, -1), new Vector3(1, 1, 1)));
-            if (collision.Hit)
+            // Mouse To WorldData
+            var raylib = Raylib.GetScreenToWorldRay(mousePos, mainCamera);
+
+            var ray = new JoltPhysicsSharp.Ray(raylib.Position, raylib.Direction);
+            BroadPhaseLayerFilter broadPhaseLayerFilter = default;
+            ObjectLayerFilter objectLayerFilter = default;
+
+            // Span<RayCastResult> results = stackalloc RayCastResult[1] ;
+            var results = new RayCastResult[1];
+            if (JoltApplication.physicsSystem.NarrowPhaseQuery.CastRay(ray, default, CollisionCollectorType.AnyHit,
+                    results))
             {
-                _ = application.CreateBox(
+                var hitPos = ray.Position + ray.Direction * results[0].Fraction;
+                _ = JoltApplication.CreateBox(
                     new Vector3(0.5f),
-                    collision.Point,
+                    hitPos,
                     Quaternion.Identity,
                     MotionType.Dynamic,
                     JoltApplication.Layers.Moving);
-
-                // new Vector3(0.5f), hitPos, Quaternion.Identity, 1.0f);
             }
+
+            // var collision = Raylib.GetRayCollisionBox(ray,
+            //     new Raylib_cs.BoundingBox(new Vector3(-1, -1, -1), new Vector3(1, 1, 1)));
+            // if (collision.Hit)
+            // {
+            //     _ = JoltApplication.CreateBox(
+            //         new Vector3(0.5f),
+            //         collision.Point,
+            //         Quaternion.Identity,
+            //         MotionType.Dynamic,
+            //         JoltApplication.Layers.Moving);
+            //
+            //     // new Vector3(0.5f), hitPos, Quaternion.Identity, 1.0f);
+            // }
         }
     }
 
-    public void AfterPhysicsUpdate(in JoltApplication.LoopContex ctx)
+    private Dictionary<Vector3, Raylib_cs.Mesh> _cachedMeshes = new();
+
+    public void AfterUpdate(in JoltApplication.LoopContex ctx)
     {
         Raylib.BeginDrawing();
         Raylib.ClearBackground(Color.Blue);
         Raylib.BeginMode3D(mainCamera);
         // Raylib.DrawModel(planeModel, Vector3.Zero, 1.0f, Color.White);
 
-        foreach (BodyID bodyID in application.bodies)
+        foreach (BodyID bodyID in JoltApplication.bodies)
         {
-            if (application.ignoreDrawBodies.Contains(bodyID))
-                continue;
+            // if (JoltApplication.ignoreDrawBodies.Contains(bodyID))
+            //     continue;
 
             //Vector3 pos = BodyInterface.GetPosition(bodyID);
             //Quaternion rot = BodyInterface.GetRotation(bodyID);
@@ -120,9 +143,27 @@ public class JoltVisualDebugger : JoltApplication.ISystem
             //    0, 0, 0, 1.0f);
 
             // Raylib uses column major matrix
-            Matrix4x4 worldTransform = application.physicsSystem.BodyInterface.GetWorldTransform(bodyID);
-            Matrix4x4 drawTransform = Matrix4x4.Transpose(worldTransform);
-            Raylib.DrawMesh(boxMesh, boxMaterial, drawTransform);
+            Matrix4x4 worldTransform = JoltApplication.physicsSystem.BodyInterface.GetWorldTransform(bodyID);
+            var shape = JoltApplication.physicsSystem.BodyInterface.GetShape(bodyID);
+            if (shape is BoxShape boxShape)
+            {
+                Mesh mesh;
+                if (_cachedMeshes.TryGetValue(boxShape.HalfExtent, out var cachedMesh))
+                {
+                    mesh = cachedMesh;
+                }
+                else
+                {
+                    mesh = Raylib.GenMeshCube(boxShape.HalfExtent.X * 2, boxShape.HalfExtent.Y * 2,
+                        boxShape.HalfExtent.Z * 2);
+                    _cachedMeshes[boxShape.HalfExtent] = mesh;
+                }
+
+                Raylib.DrawMesh(mesh, boxMaterial, Matrix4x4.Transpose(worldTransform));
+            }
+
+            // Matrix4x4 drawTransform = Matrix4x4.Transpose(worldTransform);
+            // Raylib.DrawMesh(boxMesh, boxMaterial, drawTransform);
         }
 
         Raylib.EndMode3D();

@@ -1,0 +1,1 @@
+-  Dummy 是从Jolt CSharp源码中复制出来的类型

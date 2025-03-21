@@ -5,11 +5,18 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="JoltPhysicsSharp" Version="2.16.0" />
+      <PackageReference Include="LogicLooper" Version="1.6.0" />
       <PackageReference Include="Raylib-cs" Version="7.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Jolt\Jolt.csproj" />
+      <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 
 </Project>

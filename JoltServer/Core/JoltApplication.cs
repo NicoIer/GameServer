@@ -7,17 +7,19 @@ namespace JoltServer;
 
 public class JoltApplication : DisposableObject
 {
+    private static long _worldIdCounter;
+    public byte worldId { get; private set; }
     private PhysicsSystemSettings _settings;
 
     public IReadOnlyList<BodyID> bodies => _bodies;
-    public IReadOnlySet<BodyID> ignoreDrawBodies => _ignoreDrawBodies;
+    // public IReadOnlySet<BodyID> ignoreDrawBodies => _ignoreDrawBodies;
 
     protected readonly List<BodyID> _bodies = [];
-    protected readonly HashSet<BodyID> _ignoreDrawBodies = [];
-    public int targetFPS => TargetFPS;
-    public JobSystem jobSystem { get; set; }
-    public PhysicsSystem physicsSystem { get; private set; }
 
+    // protected readonly HashSet<BodyID> _ignoreDrawBodies = [];
+    public int targetFPS => TargetFPS;
+    protected JobSystem jobSystem;
+    public PhysicsSystem physicsSystem { get; private set; }
 
     protected const int TargetFPS = 60;
 
@@ -26,6 +28,7 @@ public class JoltApplication : DisposableObject
     private const int MaxContactConstraints = 65536;
     private const int NumBodyMutexes = 0;
 
+    // public long timestamp { get; private set; }
     internal static class Layers
     {
         public static readonly ObjectLayer NonMoving = 0;
@@ -42,6 +45,11 @@ public class JoltApplication : DisposableObject
     public JoltApplication()
     {
         if (!Foundation.Init(false)) return;
+
+        Interlocked.Increment(ref _worldIdCounter);
+        if (_worldIdCounter > byte.MaxValue) throw new Exception("WorldId overflow");
+        worldId = (byte)_worldIdCounter;
+
         systems = new List<ISystem>();
         Foundation.SetTraceHandler((message => Console.WriteLine(message)));
 #if DEBUG
@@ -100,7 +108,7 @@ public class JoltApplication : DisposableObject
         _settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
     }
 
-    internal BodyID CreateFloor(float size, ObjectLayer layer)
+    public BodyID CreateFloor(float size, ObjectLayer layer)
     {
         BoxShape shape = new(new Vector3(size, 5.0f, size));
         using BodyCreationSettings creationSettings =
@@ -111,7 +119,29 @@ public class JoltApplication : DisposableObject
         return body;
     }
 
-    internal BodyID CreateBox(in Vector3 halfExtent,
+    public BodyID Create(BodyCreationSettings settings, Activation activation = Activation.Activate)
+    {
+        var id = physicsSystem.BodyInterface.CreateAndAddBody(settings, activation);
+        return id;
+    }
+
+    public void Remove(in BodyID bodyID)
+    {
+        physicsSystem.BodyInterface.RemoveAndDestroyBody(bodyID);
+        _bodies.Remove(bodyID);
+    }
+
+    public void Activate(in BodyID bodyID)
+    {
+        physicsSystem.BodyInterface.ActivateBody(bodyID);
+    }
+
+    public void Deactivate(in BodyID bodyID)
+    {
+        physicsSystem.BodyInterface.DeactivateBody(bodyID);
+    }
+
+    public BodyID CreateBox(in Vector3 halfExtent,
         in Vector3 position,
         in Quaternion rotation,
         MotionType motionType,
@@ -125,7 +155,7 @@ public class JoltApplication : DisposableObject
         return body;
     }
 
-    protected BodyID CreateSphere(float radius,
+    public BodyID CreateSphere(float radius,
         in Vector3 position,
         in Quaternion rotation,
         MotionType motionType,
@@ -179,24 +209,31 @@ public class JoltApplication : DisposableObject
 
     #region Systems
 
-    public List<ISystem> systems { get; private set; }
+    protected List<ISystem> systems;
 
     public delegate void UpdateAction(in LoopContex ctx);
 
-    public interface ISystem : IDisposable
+    public event Action BeforeRun = delegate { };
+    public event Action AfterRun = delegate { };
+
+
+    public interface ISystem
     {
-        public JoltApplication application { get; }
         public void OnAdded(JoltApplication app);
+
+
         void OnRemoved();
         public void BeforeRun();
-        public void BeforePhysicsUpdate(in LoopContex ctx);
-        public void AfterPhysicsUpdate(in LoopContex ctx);
+        public void BeforeUpdate(in LoopContex ctx);
+        public void AfterUpdate(in LoopContex ctx);
         public void AfterRun();
 
         public bool NeedShutdown()
         {
             return false;
         }
+
+        public void Dispose();
     }
 
 
@@ -210,83 +247,97 @@ public class JoltApplication : DisposableObject
         system.OnAdded(this);
     }
 
-    public void RemoveSystem(ISystem system)
-    {
-        systems.Remove(system);
-        system.OnRemoved();
-    }
-
-    public bool GetSystem<T>(out T system) where T : ISystem
-    {
-        foreach (var s in systems)
-        {
-            if (s is T t)
-            {
-                system = t;
-                return true;
-            }
-        }
-
-        system = default!;
-        return false;
-    }
+    // public void RemoveSystem(ISystem system)
+    // {
+    //     systems.Remove(system);
+    //     system.OnRemoved();
+    // }
+    //
+    // public bool GetSystem<T>(out T system) where T : ISystem
+    // {
+    //     foreach (var s in systems)
+    //     {
+    //         if (s is T t)
+    //         {
+    //             system = t;
+    //             return true;
+    //         }
+    //     }
+    //
+    //     system = default!;
+    //     return false;
+    // }
 
     #endregion
 
     public bool running { get; private set; }
 
-    public struct LoopContex
+    public class LoopContex
     {
         public long CurrentFrame;
         public TimeSpan FrameBeginTimestamp;
-        public long timeBetweenFrames;
         public TimeSpan ElapsedTimeFromPreviousFrame;
     }
+
+    public LoopContex ctx { get; private set; }
 
     public void Run()
     {
         physicsSystem.OptimizeBroadPhase();
         const int collisionSteps = 1;
         float deltaTime = 1.0f / TargetFPS;
+        TimeSpan deltaMs = TimeSpan.FromMilliseconds(1000 / TargetFPS);
         // using var looper = new LogicLooper(TargetFPS);
+
+
+        BeforeRun();
 
         foreach (var system in systems)
         {
             system.BeforeRun();
         }
 
+
         running = true;
         Stopwatch stopwatch = new Stopwatch();
-        LoopContex ctx = new LoopContex();
+
+        ctx = new LoopContex();
+
         stopwatch.Start();
         while (true)
         {
             ctx.CurrentFrame++;
             ctx.FrameBeginTimestamp = stopwatch.Elapsed;
-            foreach (var system in systems)
-            {
-                system.BeforePhysicsUpdate(ctx);
-            }
 
             BeforePhysicsUpdate(ctx);
-            PhysicsUpdateError error = physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
-            Debug.Assert(error == PhysicsUpdateError.None);
-            AfterPhysicsUpdate(ctx);
 
             foreach (var system in systems)
             {
-                system.AfterPhysicsUpdate(ctx);
+                system.BeforeUpdate(ctx);
             }
+
+
+            PhysicsUpdateError error = physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+            Debug.Assert(error == PhysicsUpdateError.None);
+
+
+            foreach (var system in systems)
+            {
+                system.AfterUpdate(ctx);
+            }
+
+            AfterPhysicsUpdate(ctx);
 
             bool needShutdown = systems.Any(s => s.NeedShutdown());
 
             ctx.ElapsedTimeFromPreviousFrame = stopwatch.Elapsed - ctx.FrameBeginTimestamp;
 
-            TimeSpan sleepTime = TimeSpan.FromMilliseconds(1000 / TargetFPS) - ctx.ElapsedTimeFromPreviousFrame;
+            TimeSpan sleepTime = deltaMs - ctx.ElapsedTimeFromPreviousFrame;
             if (sleepTime > TimeSpan.Zero)
             {
-                Thread.Sleep(TimeSpan.FromMilliseconds(1000 / TargetFPS) - ctx.ElapsedTimeFromPreviousFrame);
+                Thread.Sleep(sleepTime);
             }
+
             if (needShutdown) break;
         }
 
@@ -297,6 +348,8 @@ public class JoltApplication : DisposableObject
         {
             system.AfterRun();
         }
+
+        AfterRun();
     }
 
 
