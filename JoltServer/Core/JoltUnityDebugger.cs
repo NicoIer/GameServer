@@ -106,8 +106,7 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                     Debug.Assert(body != null);
 
                     var shape = body.Shape;
-                    IShapeData shapeData = null!;
-
+                    ShapeData shapeData = default;
                     switch (shape)
                     {
                         case MutableCompoundShape mutableCompoundShape:
@@ -119,7 +118,8 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                         case CapsuleShape capsuleShape:
                             break;
                         case BoxShape boxShape:
-                            shapeData = new BoxShapeData(boxShape.HalfExtent);
+                            var box = new BoxShapeData(boxShape.HalfExtent);
+                            ShapeData.Create(box, out shapeData);
                             break;
                         case ConvexHullShape convexHullShape:
                             break;
@@ -128,7 +128,8 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                         case OffsetCenterOfMassShape offsetCenterOfMassShape:
                             break;
                         case SphereShape sphereShape:
-                            shapeData = new SphereShapeData(sphereShape.Radius);
+                            var sphere = new SphereShapeData(sphereShape.Radius);
+                            ShapeData.Create(sphere, out shapeData);
                             break;
                         case TaperedCapsuleShape taperedCapsuleShape:
                             break;
@@ -155,6 +156,8 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                         default:
                             throw new ArgumentOutOfRangeException(nameof(shape));
                     }
+
+                    Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
 
                     bodies[i] = new BodyData()
                     {

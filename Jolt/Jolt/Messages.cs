@@ -1,10 +1,13 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using MemoryPack;
 using Network;
+using UnityToolkit;
 
 
 namespace GameCore.Jolt
@@ -74,12 +77,21 @@ namespace GameCore.Jolt
         public Vector3 linearVelocity;
         public Vector3 angularVelocity;
 
-        public IShapeData shapeData;
+        // public IShapeData shapeData;
+        public ShapeData shapeData;
     }
 
+    // <!-- output memorypack serialization info to directory -->
+    //     <ItemGroup>
+    //     <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
+    //     </ItemGroup>
+    //     <PropertyGroup>
+    //     <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)\MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
+    //     </PropertyGroup>
 
-    [MemoryPackable]
-    [MemoryPackUnion(0, typeof(BoxShapeData))]
+    // [MemoryPackable]
+    // [MemoryPackUnion(0, typeof(BoxShapeData))]
+    // [MemoryPackUnion(1, typeof(SphereShapeData))]
     public partial interface IShapeData
     {
         // public ShapeType type;
@@ -92,6 +104,60 @@ namespace GameCore.Jolt
         // public Vector3 centerOfMass;
         // public BoundingBox boundingBox;
         // public ArraySegment<byte> data;
+    }
+
+    [MemoryPackable]
+    public partial struct ShapeData
+    {
+        public ushort id;
+        public ArraySegment<byte> payload;
+
+
+        private static readonly Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>> _deserializers =
+            new Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>>();
+
+        public static void RegisterAll()
+        {
+            // 通过反射 找到本程序集下所有的 IShapeData 类型
+            var types = typeof(IShapeData).Assembly.GetTypes();
+            foreach (var type in types)
+            {
+                if (type.IsInterface || type.IsAbstract) continue;
+                if (type.GetInterface(nameof(IShapeData)) == null) continue;
+                RegisterType(type);
+            }
+        }
+
+        private static void RegisterType(Type type)
+        {
+            var method = typeof(ShapeData).GetMethod(nameof(Register));
+            method = method!.MakeGenericMethod(type);
+            method.Invoke(null, null);
+        }
+
+        public static void Register<T>() where T : IShapeData
+        {
+            if (_deserializers.ContainsKey(TypeId<T>.stableId16))
+            {
+                ToolkitLog.Warning($"ShapeData Register {typeof(T)} Failed, Already Registered");
+                return;
+            }
+
+            ToolkitLog.Info($"Register ShapeData {typeof(T)}");
+            _deserializers.Add(TypeId<T>.stableId16,
+                payload => { return MemoryPackSerializer.Deserialize<T>(payload)!; });
+        }
+
+        public IShapeData Revert()
+        {
+            return _deserializers[id](payload);
+        }
+
+        public static void Create<T>(T shapeData, out ShapeData data) where T : IShapeData
+        {
+            data.id = TypeId<T>.stableId16;
+            data.payload = MemoryPackSerializer.Serialize(shapeData);
+        }
     }
 
     [MemoryPackable]
@@ -113,6 +179,15 @@ namespace GameCore.Jolt
         public SphereShapeData(float radius)
         {
             this.radius = radius;
+        }
+    }
+
+    public static class ShapeDataExtensions
+    {
+        public static ShapeData ToShapeData<T>(this T shapeData) where T : IShapeData
+        {
+            ShapeData.Create(shapeData, out var data);
+            return data;
         }
     }
 }

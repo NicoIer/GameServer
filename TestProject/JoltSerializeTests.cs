@@ -7,12 +7,14 @@ namespace TestProject;
 public class JoltSerializeTests
 {
     [Test]
-    public void BoundingBox()
+    public void ShapeDataTest()
     {
-        BoundingBox boundingBox = new BoundingBox();
-        var result = MemoryPackSerializer.Serialize(boundingBox);
-        // boundingBox只有2个Vector3 -> 6个float -> 24个byte 
-        int count = sizeof(float) * 3 * 2 / sizeof(byte);
-        Assert.That(result.Length, Is.EqualTo(count));
+        ShapeData.RegisterAll();
+        BoxShapeData shapeData = new BoxShapeData(Vector3.One);
+        ShapeData.Create(shapeData, out ShapeData data);
+        IShapeData reverted = data.Revert();
+        Assert.That(reverted, Is.TypeOf<BoxShapeData>());
+        Assert.That(((BoxShapeData)reverted).halfExtents, Is.EqualTo(Vector3.One));
+        
     }
 }
