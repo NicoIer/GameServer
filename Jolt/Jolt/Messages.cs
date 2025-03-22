@@ -148,9 +148,9 @@ namespace GameCore.Jolt
                 payload => { return MemoryPackSerializer.Deserialize<T>(payload)!; });
         }
 
-        public IShapeData Revert()
+        public static IShapeData Revert(in ShapeData data)
         {
-            return _deserializers[id](payload);
+            return _deserializers[data.id](data.payload);
         }
 
         public static void Create<T>(T shapeData, out ShapeData data) where T : IShapeData

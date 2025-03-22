@@ -1,0 +1,18 @@
+{
+    "name": "Jolt.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:4c7e7a50850c44bcf81d22214c6c2364",
+        "GUID:9baea0ba6357e4d09ba61789a936bcc7",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

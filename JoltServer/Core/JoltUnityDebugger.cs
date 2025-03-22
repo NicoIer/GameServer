@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Cysharp.Threading;
@@ -6,6 +7,7 @@ using JoltPhysicsSharp;
 using Network;
 using Network.Server;
 using Network.Telepathy;
+using Serilog;
 using UnityToolkit;
 
 namespace JoltServer;
@@ -13,31 +15,60 @@ namespace JoltServer;
 // TODO 将复制物理世界 网络传输部分 在另一个线程执行
 public class JoltUnityDebugger : JoltApplication.ISystem
 {
+    public const int ServerId = 0;
+
     private JoltApplication _app;
 
     private readonly LogicLooper _networkLooper;
 
-    public int targeFrameRate { get; private set; }
+    public int targetFrameRate { get; private set; }
 
-    private WorldData _worldData;
-    public NetworkServer _server;
-    private int _port;
-    public const int MaxMessageSize = 16 * 1024;
+    private readonly NetworkServer _server;
 
-    // private CircularBuffer<WorldData> snapshotBuffer;
+    /// <summary>
+    /// 上一次发送的世界帧
+    /// </summary>
+    private long _lastSendWorldFrame = -1;
+
+    /// <summary>
+    /// 世界信息快照
+    /// </summary>
+    private readonly CircularBuffer<WorldData> _worldSnapshot;
+
 
     public JoltUnityDebugger(int targetFrameRate, int port, int bufferSize = 10)
     {
-        // snapshotBuffer = new CircularBuffer<WorldData>(bufferSize);
+        _worldSnapshot = new CircularBuffer<WorldData>(bufferSize);
+        _worldSnapshot.OnRemove += (in WorldData data) =>
+        {
+            // Log.Information($"Remove WorldData {data.frameCount} Return Bodies Array");
+            Debug.Assert(data.bodies.Array != null);
+            ArrayPool<BodyData>.Shared.Return(data.bodies.Array);
+        };
         if (port > ushort.MaxValue)
         {
             throw new ArgumentException("Port must be less than or equal to 65535");
         }
 
-        _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)targetFrameRate, true);
-        _port = port;
-        targeFrameRate = targetFrameRate;
+        this.targetFrameRate = targetFrameRate;
         _networkLooper = new LogicLooper(targetFrameRate);
+        _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)targetFrameRate, true);
+
+        _server.messageHandler.Add<CmdSpawnBox>(OnCmdSpawnBox);
+    }
+
+    private void OnCmdSpawnBox(in int connectionid, in CmdSpawnBox message)
+    {
+        Log.Information($"客户端{connectionid}请求生成Box");
+        var bodyId = _app.CreateBox(
+            message.halfExtents,
+            message.position,
+            message.rotation,
+            (JoltPhysicsSharp.MotionType)message.motionType,
+            (ushort)message.objectLayer,
+            (JoltPhysicsSharp.Activation)message.activation
+        );
+        Log.Information($"生成Box成功:{bodyId}");
     }
 
     public void OnAdded(JoltApplication app)
@@ -49,28 +80,19 @@ public class JoltUnityDebugger : JoltApplication.ISystem
     {
     }
 
-    private long _lastWorldTimeStamp;
 
     public void BeforeRun()
     {
-        Console.WriteLine($"JoltUnityDebugger Start {_port}");
+        Log.Information($"JoltUnityDebugger Start {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         _server.Run();
         _networkLooper.RegisterActionAsync((in LogicLooperActionContext ctx) =>
         {
-            Console.WriteLine("JoltUnityDebugger Update");
-            // lock (snapshotBuffer)
-            // {
-            //     var worldData = snapshotBuffer.Back(); // TODO Using ref to void copy
-            //     if (worldData.timeStamp == _lastWorldTimeStamp)
-            //     {
-            //         return true;
-            //     }
-            //
-            ref var worldData = ref _data;
-            _server.SendToAll(worldData);
-            Console.WriteLine($"Send WorldData {worldData.worldId} {worldData.frameCount} {worldData.timeStamp}");
-            _lastWorldTimeStamp = worldData.timeStamp;
-            // }
+            ref var worldData = ref _worldSnapshot.buffer[_worldSnapshot.backIndex];
+            if (worldData.frameCount != _lastSendWorldFrame)
+            {
+                _server.SendToAll(worldData);
+                _lastSendWorldFrame = worldData.frameCount;
+            }
 
             return true;
         });
@@ -81,12 +103,11 @@ public class JoltUnityDebugger : JoltApplication.ISystem
     {
     }
 
-    public const int ServerId = 0;
-
     public unsafe void AfterUpdate(in JoltApplication.LoopContex ctx)
     {
         // Console.WriteLine($"AfterUpdate {ctx.CurrentFrame}");
-        BodyData[] bodies = new BodyData[_app.bodies.Count];
+        BodyData[] array = ArrayPool<BodyData>.Shared.Rent(_app.bodies.Count);
+        var bodies = new ArraySegment<BodyData>(array, 0, _app.bodies.Count);
         WorldData worldData;
         worldData.bodies = bodies;
         worldData.worldId = _app.worldId;
@@ -188,12 +209,9 @@ public class JoltUnityDebugger : JoltApplication.ISystem
             }
         }
 
-        // Console.WriteLine($"Push WorldData {worldData.worldId} {worldData.frameCount} {worldData.timeStamp}");
-        // snapshotBuffer.PushBack(worldData);
-        _data = worldData;
+        _worldSnapshot.PushBack(worldData);
     }
 
-    private WorldData _data;
 
     public void AfterRun()
     {

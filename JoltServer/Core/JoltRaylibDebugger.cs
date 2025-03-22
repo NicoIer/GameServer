@@ -1,6 +1,8 @@
 using System.Numerics;
+using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Raylib_cs;
+using MotionType = JoltPhysicsSharp.MotionType;
 
 namespace JoltServer;
 
@@ -68,7 +70,7 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
 
     public void BeforeRun()
     {
-        JoltApplication.CreateFloor(100, JoltApplication.Layers.NonMoving);
+        JoltApplication.CreateFloor(100, (ushort)ObjectLayers.NonMoving);
     }
 
     public void AfterRun()
@@ -100,7 +102,7 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
                     hitPos,
                     Quaternion.Identity,
                     MotionType.Dynamic,
-                    JoltApplication.Layers.Moving);
+                    (ushort)ObjectLayers.Moving);
             }
 
             // var collision = Raylib.GetRayCollisionBox(ray,

@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.Numerics;
+using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Raylib_cs;
+using Activation = JoltPhysicsSharp.Activation;
+using MotionType = JoltPhysicsSharp.MotionType;
 
 namespace JoltServer;
 
@@ -29,17 +32,17 @@ public class JoltApplication : DisposableObject
     private const int NumBodyMutexes = 0;
 
     // public long timestamp { get; private set; }
-    internal static class Layers
-    {
-        public static readonly ObjectLayer NonMoving = 0;
-        public static readonly ObjectLayer Moving = 1;
-    }
+    // internal static class Layers
+    // {
+    //     public static readonly ObjectLayer NonMoving = 0;
+    //     public static readonly ObjectLayer Moving = 1;
+    // }
 
-    internal static class BroadPhaseLayers
-    {
-        public static readonly BroadPhaseLayer NonMoving = 0;
-        public static readonly BroadPhaseLayer Moving = 1;
-    }
+    // internal static class BroadPhaseLayers
+    // {
+    //     public static readonly BroadPhaseLayer NonMoving = 0;
+    //     public static readonly BroadPhaseLayer Moving = 1;
+    // }
 
 
     public JoltApplication()
@@ -92,13 +95,14 @@ public class JoltApplication : DisposableObject
     {
         // We use only 2 layers: one for non-moving objects and one for moving objects
         ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
-        objectLayerPairFilter.EnableCollision(Layers.NonMoving, Layers.Moving);
-        objectLayerPairFilter.EnableCollision(Layers.Moving, Layers.Moving);
+        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.NonMoving, (byte)ObjectLayers.Moving);
+        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.Moving, (byte)ObjectLayers.Moving);
 
         // We use a 1-to-1 mapping between object layers and broadphase layers
         BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
-        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer(Layers.NonMoving, BroadPhaseLayers.NonMoving);
-        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer(Layers.Moving, BroadPhaseLayers.Moving);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.NonMoving,
+            (byte)BroadPhaseLayers.NonMoving);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.Moving, (byte)BroadPhaseLayers.Moving);
 
         ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter =
             new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
