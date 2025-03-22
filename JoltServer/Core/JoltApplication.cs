@@ -3,6 +3,7 @@ using System.Numerics;
 using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Raylib_cs;
+using Serilog;
 using Activation = JoltPhysicsSharp.Activation;
 using MotionType = JoltPhysicsSharp.MotionType;
 
@@ -129,7 +130,7 @@ public class JoltApplication : DisposableObject
         return id;
     }
 
-    public void Remove(in BodyID bodyID)
+    public void RemoveAndDestroy(in BodyID bodyID)
     {
         physicsSystem.BodyInterface.RemoveAndDestroyBody(bodyID);
         _bodies.Remove(bodyID);
@@ -173,10 +174,30 @@ public class JoltApplication : DisposableObject
         return body;
     }
 
+
+    public BodyID CreatePlane(
+        in Vector3 position,
+        in Quaternion rotation,
+        in Vector3 normal,
+        float distance,
+        float halfExtent,
+        MotionType motionType,
+        ObjectLayer layer,
+        PhysicsMaterial? material = null,
+        Activation activation = Activation.Activate)
+    {
+        Plane plane = new Plane(normal, distance);
+        PlaneShape shape = new(plane, material, halfExtent);
+        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+        BodyID body = physicsSystem.BodyInterface.CreateAndAddBody(creationSettings, activation);
+        _bodies.Add(body);
+        return body;
+    }
+
     protected virtual ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2,
         Double3 baseOffset, in CollideShapeResult collisionResult)
     {
-        // TraceLog(TraceLogLevel.Debug, "Contact validate callback");
+        Log.Information("Contact validate callback");
 
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult.AcceptAllContactsForThisBodyPair;

@@ -12,9 +12,8 @@ public class JoltSerializeTests
         ShapeData.RegisterAll();
         BoxShapeData shapeData = new BoxShapeData(Vector3.One);
         ShapeData.Create(shapeData, out ShapeData data);
-        IShapeData reverted = data.Revert();
+        IShapeData reverted = ShapeData.Revert(data);
         Assert.That(reverted, Is.TypeOf<BoxShapeData>());
         Assert.That(((BoxShapeData)reverted).halfExtents, Is.EqualTo(Vector3.One));
-        
     }
 }

@@ -50,9 +50,11 @@ namespace GameCore.Jolt
         [MemoryPackIgnore] public bool isSoft => bodyType == BodyType.Soft;
 
         public bool isActive;
-        public bool isStatic;
-        public bool isKinematic;
-        public bool isDynamic;
+        // public bool isStatic;
+        // public bool isKinematic;
+        // public bool isDynamic;
+        
+        public MotionType motionType;
 
         /// <summary>
         /// Same To PhysX isTrigger
@@ -62,9 +64,8 @@ namespace GameCore.Jolt
         [MemoryPackIgnore] public bool isTrigger => isSensor;
 
         public ushort objectLayer;
-        public byte broadPhaseLayer;
 
-        public bool allowSleeping;
+        // public bool allowSleeping;
 
         public float friction;
         public float restitution;
@@ -115,7 +116,8 @@ namespace GameCore.Jolt
 
         private static readonly Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>> _deserializers =
             new Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>>();
-
+        
+        public static bool registered => _deserializers.Count > 0;
         public static void RegisterAll()
         {
             // 通过反射 找到本程序集下所有的 IShapeData 类型
@@ -181,6 +183,15 @@ namespace GameCore.Jolt
             this.radius = radius;
         }
     }
+    
+    public partial struct PlaneShapeData : IShapeData
+    {
+        public float halfExtent;
+        public Vector3 normal;
+        public float distance;
+    }
+    
+    
 
     public static class ShapeDataExtensions
     {

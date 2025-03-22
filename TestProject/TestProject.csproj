@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\JoltServer\JoltServer.csproj" />
       <ProjectReference Include="..\Jolt\Jolt.csproj" />
     </ItemGroup>
 
