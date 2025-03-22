@@ -113,16 +113,14 @@
 
     public enum MotionType
     {
-        Static,
-        Kinematic,
-        Dynamic,
+        Static = 0,
+        Kinematic = 1,
+        Dynamic = 2,
     }
 
     public enum Activation
     {
-        Activate,
-        DontActivate,
+        Activate = 0,
+        DontActivate = 1,
     }
-
-
 }

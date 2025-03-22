@@ -331,6 +331,15 @@ public class JoltUnityDebugger : JoltApplication.ISystem
             Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
             Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
             Log.Information($"position:{position} rotation:{rotation}");
+            
+            // Any NAN break the world
+            if (float.IsNaN(position.X) || float.IsNaN(position.Y) || float.IsNaN(position.Z) ||
+                float.IsNaN(rotation.X) || float.IsNaN(rotation.Y) || float.IsNaN(rotation.Z) || float.IsNaN(rotation.W))
+            {
+                Log.Error($"NAN {position} {rotation}");
+                continue;
+            }
+            
             bodies[i] = new BodyData()
             {
                 ownerId = ownerId,

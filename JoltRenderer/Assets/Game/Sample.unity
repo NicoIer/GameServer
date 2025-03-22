@@ -634,6 +634,7 @@ MonoBehaviour:
   boxPrefab: {fileID: 785709536}
   planePrefab: {fileID: 493017010}
   spherePrefab: {fileID: 0}
+  continueConnect: 1
 --- !u!4 &1960514041
 Transform:
   m_ObjectHideFlags: 0
