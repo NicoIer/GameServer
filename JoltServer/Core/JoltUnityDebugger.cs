@@ -233,14 +233,6 @@ public class JoltUnityDebugger : JoltApplication.ISystem
         {
             var id = _app.bodies[i];
             Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
-            // _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
-            // if (@lock.Succeeded)
-            // {
-            // var body = @lock.Body;
-
-            // Debug.Assert(body != null);
-
-            // var shape = body.Shape;
             var shape = _app.physicsSystem.BodyInterface.GetShape(id);
             ShapeData shapeData = default;
             switch (shape)
@@ -307,39 +299,20 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                 ownerId = ServerId;
             }
 
-            // bodies[i] = new BodyData()
-            // {
-            //     ownerId = ownerId,
-            //     entityId = id.ID,
-            //     bodyType = (GameCore.Jolt.BodyType)body.BodyType,
-            //     isActive = body.IsActive,
-            //     motionType = (GameCore.Jolt.MotionType)body.MotionType,
-            //     isSensor = body.IsSensor,
-            //     objectLayer = body.ObjectLayer,
-            //     friction = body.Friction,
-            //     restitution = body.Restitution,
-            //     position = body.Position,
-            //     rotation = body.Rotation,
-            //     centerOfMass = body.CenterOfMassPosition,
-            //     linearVelocity = body.GetLinearVelocity(),
-            //     angularVelocity = body.GetAngularVelocity(),
-            //     shapeData = shapeData
-            // };
-
-            // TODO NAN
-
             Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
             Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
-            Log.Information($"position:{position} rotation:{rotation}");
-            
-            // Any NAN break the world
-            if (float.IsNaN(position.X) || float.IsNaN(position.Y) || float.IsNaN(position.Z) ||
-                float.IsNaN(rotation.X) || float.IsNaN(rotation.Y) || float.IsNaN(rotation.Z) || float.IsNaN(rotation.W))
+
+
+            _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
+
+            bool isSensor = false;
+            if (@lock.Succeeded)
             {
-                Log.Error($"NAN {position} {rotation}");
-                continue;
+                Debug.Assert(@lock.Body != null);
+                isSensor = @lock.Body.IsSensor;
             }
-            
+
+
             bodies[i] = new BodyData()
             {
                 ownerId = ownerId,
@@ -347,8 +320,7 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                 bodyType = (GameCore.Jolt.BodyType)_app.physicsSystem.BodyInterface.GetBodyType(id),
                 isActive = _app.physicsSystem.BodyInterface.IsActive(id),
                 motionType = (GameCore.Jolt.MotionType)_app.physicsSystem.BodyInterface.GetMotionType(id),
-                // isSensor = body.IsSensor,
-
+                isSensor = isSensor,
                 objectLayer = _app.physicsSystem.BodyInterface.GetObjectLayer(id),
                 friction = _app.physicsSystem.BodyInterface.GetFriction(id),
                 restitution = _app.physicsSystem.BodyInterface.GetRestitution(id),
@@ -360,30 +332,19 @@ public class JoltUnityDebugger : JoltApplication.ISystem
                 shapeData = shapeData
             };
 
-            // if(float.IsNaN(bodies[i].position.X) || float.IsNaN(bodies[i].position.Y) || float.IsNaN(bodies[i].position.Z) ||
-            //    float.IsNaN(bodies[i].rotation.X) || float.IsNaN(bodies[i].rotation.Y) || float.IsNaN(bodies[i].rotation.Z) || float.IsNaN(bodies[i].rotation.W))
-            //     Console.WriteLine($"NAN {bodies[i].position} {bodies[i].rotation}");
 
+            Debug.Assert(float.IsNaN(bodies[i].position.X) == false);
+            Debug.Assert(float.IsNaN(bodies[i].position.Y) == false);
+            Debug.Assert(float.IsNaN(bodies[i].position.Z) == false);
 
-            // Debug.Assert(float.IsNaN(bodies[i].position.X) == false);
-            // Debug.Assert(float.IsNaN(bodies[i].position.Y) == false);
-            // Debug.Assert(float.IsNaN(bodies[i].position.Z) == false);
-            //
-            // Debug.Assert(float.IsNaN(bodies[i].rotation.X) == false);
-            // Debug.Assert(float.IsNaN(bodies[i].rotation.Y) == false);
-            // Debug.Assert(float.IsNaN(bodies[i].rotation.Z) == false);
-            // Debug.Assert(float.IsNaN(bodies[i].rotation.W) == false);
-
-
-            // }
-
-            // _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+            Debug.Assert(float.IsNaN(bodies[i].rotation.X) == false);
+            Debug.Assert(float.IsNaN(bodies[i].rotation.Y) == false);
+            Debug.Assert(float.IsNaN(bodies[i].rotation.Z) == false);
+            Debug.Assert(float.IsNaN(bodies[i].rotation.W) == false);
         }
 
 
         _worldSnapshot.PushBack(worldData);
-
-        // _server.socket.TickOutgoing();
     }
 
 

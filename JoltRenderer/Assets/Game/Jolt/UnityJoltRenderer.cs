@@ -100,7 +100,7 @@ namespace Game.Jolt
             Debug.Log("Connected to server!");
         }
 
-        [Sirenix.OdinInspector.ShowInInspector,Sirenix.OdinInspector.ReadOnly]
+        [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
         private Dictionary<Transform, BodyData> body2Data = new Dictionary<Transform, BodyData>();
 
         private void OnWorldData(in WorldData data)
@@ -182,7 +182,7 @@ namespace Game.Jolt
 
 
         [Sirenix.OdinInspector.Button]
-        private void CmdSpawnBox(System.Numerics.Vector3 halfExtents, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation,
+        private void CmdSpawnBox(System.Numerics.Vector3 halfExtents, System.Numerics.Vector3 position,
             MotionType motionType = MotionType.Dynamic,
             Activation activation = Activation.Activate,
             ObjectLayers objectLayer = ObjectLayers.Moving
@@ -192,7 +192,7 @@ namespace Game.Jolt
             {
                 halfExtents = halfExtents,
                 position = position,
-                rotation = rotation,
+                rotation = System.Numerics.Quaternion.Identity,
                 motionType = motionType,
                 activation = activation,
                 objectLayer = objectLayer
@@ -203,10 +203,8 @@ namespace Game.Jolt
         [Sirenix.OdinInspector.Button]
         private void CmdSpawnPlane(
             Vector3 position,
-            Quaternion rotation,
-            Vector3 normal,
-            float distance,
-            float halfExtent,
+            float distance = 0,
+            float halfExtent = 10,
             MotionType motionType = MotionType.Static,
             Activation activation = Activation.Activate,
             ObjectLayers objectLayer = ObjectLayers.NonMoving
@@ -215,8 +213,8 @@ namespace Game.Jolt
             CmdSpawnPlane cmd = new CmdSpawnPlane
             {
                 position = position.T(),
-                rotation = rotation.T(),
-                normal = normal.T(),
+                rotation = System.Numerics.Quaternion.Identity,
+                normal = new System.Numerics.Vector3(0, 1, 0),
                 distance = distance,
                 halfExtent = halfExtent,
                 motionType = motionType,
