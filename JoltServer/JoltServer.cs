@@ -76,8 +76,8 @@ public partial class JoltServer : JoltApplication.ISystem
     public void BeforeRun()
     {
         Log.Information($"JoltServer Start {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        // _server.Run(false);
-        _server.Run(true);
+        _server.Run(false);
+        // _server.Run(true);
         _networkLooper.RegisterActionAsync((in LogicLooperActionContext ctx) =>
         {
             ref var worldData = ref _worldSnapshot.buffer[_worldSnapshot.backIndex];
@@ -94,7 +94,7 @@ public partial class JoltServer : JoltApplication.ISystem
 
     public void BeforeUpdate(in JoltApplication.LoopContex ctx)
     {
-        // _server.socket.TickIncoming();
+        _server.socket.TickIncoming();
     }
 
     public void PackData(in BodyID id, out BodyData data)
@@ -333,6 +333,8 @@ public partial class JoltServer : JoltApplication.ISystem
 
 
         _worldSnapshot.PushBack(worldData);
+        
+        _server.socket.TickOutgoing();
     }
 
 
