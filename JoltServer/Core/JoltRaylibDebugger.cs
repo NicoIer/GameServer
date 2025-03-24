@@ -6,7 +6,7 @@ using MotionType = JoltPhysicsSharp.MotionType;
 
 namespace JoltServer;
 
-[Obsolete]
+
 public class JoltRaylibDebugger : JoltApplication.ISystem
 {
     public JoltApplication JoltApplication { get; private set; }
@@ -70,7 +70,7 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
 
     public void BeforeRun()
     {
-        JoltApplication.CreateFloor(100, (ushort)ObjectLayers.NonMoving);
+        // JoltApplication.CreateFloor(100, (ushort)ObjectLayers.NonMoving);
     }
 
     public void AfterRun()
@@ -81,29 +81,29 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
     public unsafe void BeforeUpdate(in JoltApplication.LoopContex ctx)
     {
         // 如果点击了鼠标 就添加一个盒子
-        if (Raylib.IsMouseButtonPressed(MouseButton.Left))
-        {
-            Vector2 mousePos = Raylib.GetMousePosition();
-            // Mouse To WorldData
-            var raylib = Raylib.GetScreenToWorldRay(mousePos, mainCamera);
-
-            var ray = new JoltPhysicsSharp.Ray(raylib.Position, raylib.Direction);
-            BroadPhaseLayerFilter broadPhaseLayerFilter = default;
-            ObjectLayerFilter objectLayerFilter = default;
-
-            // Span<RayCastResult> results = stackalloc RayCastResult[1] ;
-            var results = new RayCastResult[1];
-            if (JoltApplication.physicsSystem.NarrowPhaseQuery.CastRay(ray, default, CollisionCollectorType.AnyHit,
-                    results))
-            {
-                var hitPos = ray.Position + ray.Direction * results[0].Fraction;
-                _ = JoltApplication.CreateBox(
-                    new Vector3(0.5f),
-                    hitPos,
-                    Quaternion.Identity,
-                    MotionType.Dynamic,
-                    (ushort)ObjectLayers.Moving);
-            }
+        // if (Raylib.IsMouseButtonPressed(MouseButton.Left))
+        // {
+        //     Vector2 mousePos = Raylib.GetMousePosition();
+        //     // Mouse To WorldData
+        //     var raylib = Raylib.GetScreenToWorldRay(mousePos, mainCamera);
+        //
+        //     var ray = new JoltPhysicsSharp.Ray(raylib.Position, raylib.Direction);
+        //     BroadPhaseLayerFilter broadPhaseLayerFilter = default;
+        //     ObjectLayerFilter objectLayerFilter = default;
+        //
+        //     // Span<RayCastResult> results = stackalloc RayCastResult[1] ;
+        //     var results = new RayCastResult[1];
+        //     if (JoltApplication.physicsSystem.NarrowPhaseQuery.CastRay(ray, default, CollisionCollectorType.AnyHit,
+        //             results))
+        //     {
+        //         var hitPos = ray.Position + ray.Direction * results[0].Fraction;
+        //         _ = JoltApplication.CreateBox(
+        //             new Vector3(0.5f),
+        //             hitPos,
+        //             Quaternion.Identity,
+        //             MotionType.Dynamic,
+        //             (ushort)ObjectLayers.Moving);
+        //     }
 
             // var collision = Raylib.GetRayCollisionBox(ray,
             //     new Raylib_cs.BoundingBox(new Vector3(-1, -1, -1), new Vector3(1, 1, 1)));
@@ -118,7 +118,7 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
             //
             //     // new Vector3(0.5f), hitPos, Quaternion.Identity, 1.0f);
             // }
-        }
+        // }
     }
 
     private Dictionary<Vector3, Raylib_cs.Mesh> _cachedMeshes = new();
@@ -147,22 +147,69 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
             // Raylib uses column major matrix
             Matrix4x4 worldTransform = JoltApplication.physicsSystem.BodyInterface.GetWorldTransform(bodyID);
             var shape = JoltApplication.physicsSystem.BodyInterface.GetShape(bodyID);
-            if (shape is BoxShape boxShape)
-            {
-                Mesh mesh;
-                if (_cachedMeshes.TryGetValue(boxShape.HalfExtent, out var cachedMesh))
-                {
-                    mesh = cachedMesh;
-                }
-                else
-                {
-                    mesh = Raylib.GenMeshCube(boxShape.HalfExtent.X * 2, boxShape.HalfExtent.Y * 2,
-                        boxShape.HalfExtent.Z * 2);
-                    _cachedMeshes[boxShape.HalfExtent] = mesh;
-                }
 
-                Raylib.DrawMesh(mesh, boxMaterial, Matrix4x4.Transpose(worldTransform));
+            switch (shape)
+            {
+                case null:
+                    break;
+                case MutableCompoundShape mutableCompoundShape:
+                    break;
+                case StaticCompoundShape staticCompoundShape:
+                    break;
+                case CompoundShape compoundShape:
+                    break;
+                case CapsuleShape capsuleShape:
+                    break;
+                case BoxShape boxShape:
+                    Mesh mesh;
+                    if (_cachedMeshes.TryGetValue(boxShape.HalfExtent, out var cachedMesh))
+                    {
+                        mesh = cachedMesh;
+                    }
+                    else
+                    {
+                        mesh = Raylib.GenMeshCube(boxShape.HalfExtent.X * 2, boxShape.HalfExtent.Y * 2,
+                            boxShape.HalfExtent.Z * 2);
+                        _cachedMeshes[boxShape.HalfExtent] = mesh;
+                    }
+
+                    Raylib.DrawMesh(mesh, boxMaterial, Matrix4x4.Transpose(worldTransform));
+
+                    break;
+                case ConvexHullShape convexHullShape:
+                    break;
+                case CylinderShape cylinderShape:
+                    break;
+                case OffsetCenterOfMassShape offsetCenterOfMassShape:
+                    break;
+                case SphereShape sphereShape:
+                    break;
+                case TaperedCapsuleShape taperedCapsuleShape:
+                    break;
+                case TaperedCylinderShape taperedCylinderShape:
+                    break;
+                case TriangleShape triangleShape:
+                    break;
+                case ConvexShape convexShape:
+                    break;
+                case RotatedTranslatedShape rotatedTranslatedShape:
+                    break;
+                case ScaledShape scaledShape:
+                    break;
+                case DecoratedShape decoratedShape:
+                    break;
+                case EmptyShape emptyShape:
+                    break;
+                case HeightFieldShape heightFieldShape:
+                    break;
+                case MeshShape meshShape:
+                    break;
+                case PlaneShape planeShape:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(shape));
             }
+
 
             // Matrix4x4 drawTransform = Matrix4x4.Transpose(worldTransform);
             // Raylib.DrawMesh(boxMesh, boxMaterial, drawTransform);

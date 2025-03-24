@@ -16,4 +16,17 @@ public class JoltSerializeTests
         Assert.That(reverted, Is.TypeOf<BoxShapeData>());
         Assert.That(((BoxShapeData)reverted).halfExtents, Is.EqualTo(Vector3.One));
     }
+
+    [Test]
+    public void SerializeTest()
+    {
+        uint? nullObj = null;
+        uint uintObj = 0;
+
+        var s1 = MemoryPackSerializer.Serialize(nullObj);
+        TestContext.Out.WriteLine(s1.Length);
+
+        var s2 = MemoryPackSerializer.Serialize(uintObj);
+        TestContext.Out.WriteLine(s2.Length);
+    }
 }

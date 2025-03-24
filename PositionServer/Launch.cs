@@ -23,7 +23,7 @@ public class Launch
     public async Task Run()
     {
         var timeServerTask = _timeServer.Start(_timeServerPort);
-        var gameServer = _gameServer.Run();
+        var gameServer = _gameServer.Run(true);
         await Task.WhenAny(timeServerTask, gameServer);
         // 谁G了
         if (timeServerTask.IsFaulted)

@@ -41,4 +41,4 @@ NetworkServer server = new NetworkServer(serverSocket);
 //     server.SendToAll(msg);
 // });
 
-await server.Run();
+await server.Run(true);

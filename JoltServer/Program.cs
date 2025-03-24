@@ -2,7 +2,9 @@
 
 using System.Text;
 using GameCore.Jolt;
+using JoltPhysicsSharp;
 using JoltServer;
+using Network.Time;
 using Serilog;
 using Serilog.Events;
 using UnityToolkit;
@@ -40,7 +42,6 @@ ShapeData.RegisterAll();
 var app = new JoltApplication();
 // var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt Visual Debugger", app.targetFPS);
 // app.AddSystem(visualDebugger); 
-var unityDebugger = new JoltUnityDebugger(60, 24419);
-app.AddSystem(unityDebugger);
-// Console.WriteLine("Hello, World!");
+var joltServer = new JoltServer.JoltServer(60, 24419);
+app.AddSystem(joltServer);
 app.Run();
