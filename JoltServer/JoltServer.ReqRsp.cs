@@ -1,0 +1,64 @@
+using System.Diagnostics;
+using GameCore.Jolt;
+using JoltPhysicsSharp;
+using MemoryPack;
+using Network;
+using Serilog;
+using UnityToolkit;
+
+namespace JoltServer;
+
+public partial class JoltServer
+{
+    private readonly ReqRspCenter _reqRspCenter = new ReqRspCenter();
+
+    private void HandleReqRsp()
+    {
+        // Req Rsp
+        _server.messageHandler.Add<ReqHead>(OnReqBody);
+        _reqRspCenter.Register<ReqBodyInfo, RspBodyInfo>(OnReqBodyInfo);
+    }
+
+    private void OnReqBody(in int connectionid, in ReqHead message)
+    {
+        var rsp = _reqRspCenter.Handle(connectionid, message);
+        _server.Send(connectionid, rsp);
+    }
+
+    private void OnReqBodyInfo(in int connectionid, in ReqBodyInfo message, out RspBodyInfo rsp,
+        out ErrorCode errorcode, out string errorMsg)
+    {
+        rsp = default;
+        errorMsg = "";
+        var bodyId = message.entityId;
+        if (!_body2Owner.TryGetValue(bodyId, out var value))
+        {
+            errorcode = ErrorCode.InvalidArgument;
+            errorMsg = "Invalid body id";
+            return;
+        }
+
+        if (value != connectionid)
+        {
+            errorcode = ErrorCode.InvalidArgument;
+            errorMsg = "Invalid owner";
+            return;
+        }
+
+        _app.physicsSystem.BodyLockInterface.LockRead(message.entityId, out var @lock);
+
+        if (@lock.Succeeded)
+        {
+            errorcode = ErrorCode.Success;
+            PackData(bodyId, out var data);
+            rsp = new RspBodyInfo(bodyId, data);
+        }
+        else
+        {
+            errorcode = ErrorCode.InternalError;
+            errorMsg = "Internal Error LockRead Failed";
+        }
+
+        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+    }
+}

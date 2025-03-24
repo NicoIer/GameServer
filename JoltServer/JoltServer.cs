@@ -58,10 +58,9 @@ public partial class JoltServer : JoltApplication.ISystem
         _networkLooper = new LogicLooper(targetFrameRate);
         _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)targetFrameRate, true);
 
-        HandleMessageRegister();
+        HandleCmd();
+        HandleReqRsp();
     }
-
-
 
 
     public void OnAdded(JoltApplication app)
@@ -98,6 +97,109 @@ public partial class JoltServer : JoltApplication.ISystem
         // _server.socket.TickIncoming();
     }
 
+    public void PackData(in BodyID id, out BodyData data)
+    {
+        Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
+        var shape = _app.physicsSystem.BodyInterface.GetShape(id);
+        ShapeData shapeData = default;
+        switch (shape)
+        {
+            case MutableCompoundShape mutableCompoundShape:
+                break;
+            case StaticCompoundShape staticCompoundShape:
+                break;
+            case CompoundShape compoundShape:
+                break;
+            case CapsuleShape capsuleShape:
+                break;
+            case BoxShape boxShape:
+                var box = new BoxShapeData(boxShape.HalfExtent);
+                ShapeData.Create(box, out shapeData);
+                break;
+            case ConvexHullShape convexHullShape:
+                break;
+            case CylinderShape cylinderShape:
+                break;
+            case OffsetCenterOfMassShape offsetCenterOfMassShape:
+                break;
+            case SphereShape sphereShape:
+                var sphere = new SphereShapeData(sphereShape.Radius);
+                ShapeData.Create(sphere, out shapeData);
+                break;
+            case TaperedCapsuleShape taperedCapsuleShape:
+                break;
+            case TaperedCylinderShape taperedCylinderShape:
+                break;
+            case TriangleShape triangleShape:
+                break;
+            case ConvexShape convexShape:
+                break;
+            case RotatedTranslatedShape rotatedTranslatedShape:
+                break;
+            case ScaledShape scaledShape:
+                break;
+            case DecoratedShape decoratedShape:
+                break;
+            case EmptyShape emptyShape:
+                break;
+            case HeightFieldShape heightFieldShape:
+                break;
+            case MeshShape meshShape:
+                break;
+            case PlaneShape planeShape:
+                var plane = new PlaneShapeData
+                {
+                    halfExtent = planeShape.HalfExtent,
+                    normal = planeShape.Plane.Normal,
+                    distance = planeShape.Plane.D,
+                };
+                ShapeData.Create(plane, out shapeData);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(shape));
+        }
+
+        Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
+
+        if (!_body2Owner.TryGetValue(id, out var ownerId))
+        {
+            ownerId = ServerId;
+        }
+
+        Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
+        Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
+
+
+        _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
+
+        bool isSensor = false;
+        if (@lock.Succeeded)
+        {
+            Debug.Assert(@lock.Body != null);
+            isSensor = @lock.Body.IsSensor;
+        }
+
+        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+
+        data = new BodyData()
+        {
+            ownerId = ownerId,
+            entityId = id.ID,
+            bodyType = (GameCore.Jolt.BodyType)_app.physicsSystem.BodyInterface.GetBodyType(id),
+            isActive = _app.physicsSystem.BodyInterface.IsActive(id),
+            motionType = (GameCore.Jolt.MotionType)_app.physicsSystem.BodyInterface.GetMotionType(id),
+            isSensor = isSensor,
+            objectLayer = _app.physicsSystem.BodyInterface.GetObjectLayer(id),
+            friction = _app.physicsSystem.BodyInterface.GetFriction(id),
+            restitution = _app.physicsSystem.BodyInterface.GetRestitution(id),
+            position = position,
+            rotation = rotation,
+            centerOfMass = _app.physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
+            linearVelocity = _app.physicsSystem.BodyInterface.GetLinearVelocity(id),
+            angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
+            shapeData = shapeData
+        };
+    }
 
     public unsafe void AfterUpdate(in JoltApplication.LoopContex ctx)
     {
@@ -106,7 +208,7 @@ public partial class JoltServer : JoltApplication.ISystem
         var bodies = new ArraySegment<BodyData>(array, 0, _app.bodies.Count);
         WorldData worldData;
         worldData.bodies = bodies;
-        worldData.worldId = _app.worldId;
+        // worldData.worldId = _app.worldId;
         worldData.gravity = _app.physicsSystem.Gravity;
         worldData.timeStamp = (long)_app.ctx.FrameBeginTimestamp.TotalMicroseconds;
         worldData.frameCount = _app.ctx.CurrentFrame;
@@ -115,106 +217,108 @@ public partial class JoltServer : JoltApplication.ISystem
         for (var i = 0; i < _app.bodies.Count; i++)
         {
             var id = _app.bodies[i];
-            Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
-            var shape = _app.physicsSystem.BodyInterface.GetShape(id);
-            ShapeData shapeData = default;
-            switch (shape)
-            {
-                case MutableCompoundShape mutableCompoundShape:
-                    break;
-                case StaticCompoundShape staticCompoundShape:
-                    break;
-                case CompoundShape compoundShape:
-                    break;
-                case CapsuleShape capsuleShape:
-                    break;
-                case BoxShape boxShape:
-                    var box = new BoxShapeData(boxShape.HalfExtent);
-                    ShapeData.Create(box, out shapeData);
-                    break;
-                case ConvexHullShape convexHullShape:
-                    break;
-                case CylinderShape cylinderShape:
-                    break;
-                case OffsetCenterOfMassShape offsetCenterOfMassShape:
-                    break;
-                case SphereShape sphereShape:
-                    var sphere = new SphereShapeData(sphereShape.Radius);
-                    ShapeData.Create(sphere, out shapeData);
-                    break;
-                case TaperedCapsuleShape taperedCapsuleShape:
-                    break;
-                case TaperedCylinderShape taperedCylinderShape:
-                    break;
-                case TriangleShape triangleShape:
-                    break;
-                case ConvexShape convexShape:
-                    break;
-                case RotatedTranslatedShape rotatedTranslatedShape:
-                    break;
-                case ScaledShape scaledShape:
-                    break;
-                case DecoratedShape decoratedShape:
-                    break;
-                case EmptyShape emptyShape:
-                    break;
-                case HeightFieldShape heightFieldShape:
-                    break;
-                case MeshShape meshShape:
-                    break;
-                case PlaneShape planeShape:
-                    var plane = new PlaneShapeData
-                    {
-                        halfExtent = planeShape.HalfExtent,
-                        normal = planeShape.Plane.Normal,
-                        distance = planeShape.Plane.D,
-                    };
-                    ShapeData.Create(plane, out shapeData);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(shape));
-            }
+            // Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
+            // var shape = _app.physicsSystem.BodyInterface.GetShape(id);
+            // ShapeData shapeData = default;
+            // switch (shape)
+            // {
+            //     case MutableCompoundShape mutableCompoundShape:
+            //         break;
+            //     case StaticCompoundShape staticCompoundShape:
+            //         break;
+            //     case CompoundShape compoundShape:
+            //         break;
+            //     case CapsuleShape capsuleShape:
+            //         break;
+            //     case BoxShape boxShape:
+            //         var box = new BoxShapeData(boxShape.HalfExtent);
+            //         ShapeData.Create(box, out shapeData);
+            //         break;
+            //     case ConvexHullShape convexHullShape:
+            //         break;
+            //     case CylinderShape cylinderShape:
+            //         break;
+            //     case OffsetCenterOfMassShape offsetCenterOfMassShape:
+            //         break;
+            //     case SphereShape sphereShape:
+            //         var sphere = new SphereShapeData(sphereShape.Radius);
+            //         ShapeData.Create(sphere, out shapeData);
+            //         break;
+            //     case TaperedCapsuleShape taperedCapsuleShape:
+            //         break;
+            //     case TaperedCylinderShape taperedCylinderShape:
+            //         break;
+            //     case TriangleShape triangleShape:
+            //         break;
+            //     case ConvexShape convexShape:
+            //         break;
+            //     case RotatedTranslatedShape rotatedTranslatedShape:
+            //         break;
+            //     case ScaledShape scaledShape:
+            //         break;
+            //     case DecoratedShape decoratedShape:
+            //         break;
+            //     case EmptyShape emptyShape:
+            //         break;
+            //     case HeightFieldShape heightFieldShape:
+            //         break;
+            //     case MeshShape meshShape:
+            //         break;
+            //     case PlaneShape planeShape:
+            //         var plane = new PlaneShapeData
+            //         {
+            //             halfExtent = planeShape.HalfExtent,
+            //             normal = planeShape.Plane.Normal,
+            //             distance = planeShape.Plane.D,
+            //         };
+            //         ShapeData.Create(plane, out shapeData);
+            //         break;
+            //     default:
+            //         throw new ArgumentOutOfRangeException(nameof(shape));
+            // }
+            //
+            // Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
+            //
+            // if (!_body2Owner.TryGetValue(id, out var ownerId))
+            // {
+            //     ownerId = ServerId;
+            // }
+            //
+            // Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
+            // Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
+            //
+            //
+            // _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
+            //
+            // bool isSensor = false;
+            // if (@lock.Succeeded)
+            // {
+            //     Debug.Assert(@lock.Body != null);
+            //     isSensor = @lock.Body.IsSensor;
+            // }
+            //
+            // _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
 
-            Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
-
-            if (!_body2Owner.TryGetValue(id, out var ownerId))
-            {
-                ownerId = ServerId;
-            }
-
-            Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
-            Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
-
-
-            _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
-
-            bool isSensor = false;
-            if (@lock.Succeeded)
-            {
-                Debug.Assert(@lock.Body != null);
-                isSensor = @lock.Body.IsSensor;
-            }
-
-            _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
-
-            bodies[i] = new BodyData()
-            {
-                ownerId = ownerId,
-                entityId = id.ID,
-                bodyType = (GameCore.Jolt.BodyType)_app.physicsSystem.BodyInterface.GetBodyType(id),
-                isActive = _app.physicsSystem.BodyInterface.IsActive(id),
-                motionType = (GameCore.Jolt.MotionType)_app.physicsSystem.BodyInterface.GetMotionType(id),
-                isSensor = isSensor,
-                objectLayer = _app.physicsSystem.BodyInterface.GetObjectLayer(id),
-                friction = _app.physicsSystem.BodyInterface.GetFriction(id),
-                restitution = _app.physicsSystem.BodyInterface.GetRestitution(id),
-                position = position,
-                rotation = rotation,
-                centerOfMass = _app.physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
-                linearVelocity = _app.physicsSystem.BodyInterface.GetLinearVelocity(id),
-                angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
-                shapeData = shapeData
-            };
+            // bodies[i] = new BodyData()
+            // {
+            //     ownerId = ownerId,
+            //     entityId = id.ID,
+            //     bodyType = (GameCore.Jolt.BodyType)_app.physicsSystem.BodyInterface.GetBodyType(id),
+            //     isActive = _app.physicsSystem.BodyInterface.IsActive(id),
+            //     motionType = (GameCore.Jolt.MotionType)_app.physicsSystem.BodyInterface.GetMotionType(id),
+            //     isSensor = isSensor,
+            //     objectLayer = _app.physicsSystem.BodyInterface.GetObjectLayer(id),
+            //     friction = _app.physicsSystem.BodyInterface.GetFriction(id),
+            //     restitution = _app.physicsSystem.BodyInterface.GetRestitution(id),
+            //     position = position,
+            //     rotation = rotation,
+            //     centerOfMass = _app.physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
+            //     linearVelocity = _app.physicsSystem.BodyInterface.GetLinearVelocity(id),
+            //     angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
+            //     shapeData = shapeData
+            // };
+            PackData(id, out var data);
+            bodies[i] = data;
 
 
             Debug.Assert(float.IsNaN(bodies[i].position.X) == false);

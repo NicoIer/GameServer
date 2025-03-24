@@ -28,7 +28,7 @@ namespace GameCore.Jolt
     [MemoryPackable]
     public partial struct WorldData : INetworkMessage
     {
-        public byte worldId;
+        // public byte worldId;
         public long frameCount;
         public long timeStamp;
         public Vector3 gravity;

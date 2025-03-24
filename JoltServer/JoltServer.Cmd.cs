@@ -10,27 +10,19 @@ namespace JoltServer;
 
 public partial class JoltServer
 {
-    private void HandleMessageRegister()
+    private void HandleCmd()
     {
         // Cmd
         _server.messageHandler.Add<CmdSpawnBox>(OnCmdSpawnBox);
         _server.messageHandler.Add<CmdSpawnPlane>(OnCmdSpawnPlane);
         _server.messageHandler.Add<CmdDestroy>(OnCmdDestroy);
         _server.messageHandler.Add<CmdBodyState>(OnCmdBodyState);
-        
+
         // Rpc
-        
-        
-        // Req Rsp
-        _server.messageHandler.Add<ReqHead>(OnReqBody);
-        
+
+
     }
 
-    private void OnReqBody(in int connectionid, in ReqHead message)
-    {
-        var rsp = ReqRspCenter.Handle(connectionid, message);
-        _server.Send(connectionid, rsp);
-    }
 
     private void OnCmdBodyState(in int connectionid, in CmdBodyState message)
     {
