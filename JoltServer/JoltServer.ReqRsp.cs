@@ -10,18 +10,18 @@ namespace JoltServer;
 
 public partial class JoltServer
 {
-    private readonly ReqRspCenter _reqRspCenter = new ReqRspCenter();
+    private readonly ReqRspServerCenter _reqRspServerCenter = new ReqRspServerCenter();
 
     private void HandleReqRsp()
     {
         // Req Rsp
         _server.messageHandler.Add<ReqHead>(OnReqBody);
-        _reqRspCenter.Register<ReqBodyInfo, RspBodyInfo>(OnReqBodyInfo);
+        _reqRspServerCenter.Register<ReqBodyInfo, RspBodyInfo>(OnReqBodyInfo);
     }
 
     private void OnReqBody(in int connectionid, in ReqHead message)
     {
-        var rsp = _reqRspCenter.Handle(connectionid, message);
+        var rsp = _reqRspServerCenter.HandleRequest(connectionid, message);
         _server.Send(connectionid, rsp);
     }
 
@@ -30,7 +30,7 @@ public partial class JoltServer
     {
         rsp = default;
         errorMsg = "";
-        var bodyId = message.entityId;
+        var bodyId = message.bodyId;
         if (!_body2Owner.TryGetValue(bodyId, out var value))
         {
             errorcode = ErrorCode.InvalidArgument;
@@ -45,7 +45,7 @@ public partial class JoltServer
             return;
         }
 
-        _app.physicsSystem.BodyLockInterface.LockRead(message.entityId, out var @lock);
+        _app.physicsSystem.BodyLockInterface.LockRead(message.bodyId, out var @lock);
 
         if (@lock.Succeeded)
         {

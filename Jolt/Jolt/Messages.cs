@@ -20,7 +20,7 @@ namespace GameCore.Jolt
     //     /// </summary>
     //     public int ownerId { get; } // player id
     //
-    //     public uint entityId { get; } // entity id
+    //     public uint bodyId { get; } // entity id
     //     public byte worldId { get; } // world id
     // }
 

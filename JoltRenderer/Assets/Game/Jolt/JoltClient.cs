@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using GameCore.Jolt;
+using MemoryPack;
 using Network;
 using Network.Client;
 using UnityEngine;
@@ -11,7 +12,7 @@ using UnityToolkit;
 
 namespace Game.Jolt
 {
-    public class UnityJoltRenderer : MonoBehaviour, IJoltRenderer
+    public partial class JoltClient : MonoBehaviour, IJoltRenderer
     {
         private NetworkClient _client;
         public string serverHost = "localhost";
@@ -40,11 +41,15 @@ namespace Game.Jolt
             }
 
             var socket = new TelepathyClientSocket();
-            socket.OnDisconnected += OnDisConnected;
-            socket.OnConnected += OnConnected;
+            // socket.OnDisconnected += OnDisConnected;
+            // socket.OnConnected += OnConnected;
             _client = new NetworkClient(socket);
 
             _client.messageHandler.Add<WorldData>(OnWorldData);
+
+            AwakeReqRsp();
+
+
             UriBuilder uriBuilder = new UriBuilder
             {
                 Host = serverHost,
@@ -58,6 +63,7 @@ namespace Game.Jolt
             NetworkLoop.OnEarlyUpdate += OnEarlyUpdate;
             NetworkLoop.OnLateUpdate += OnLateUpdate;
         }
+
 
         private async UniTask ContinueConnect(Uri uri)
         {
@@ -80,32 +86,15 @@ namespace Game.Jolt
         }
 
 
-        private void OnDisConnected()
-        {
-            Debug.Log("Disconnected from server!");
-            // ++countDisconnectCount;
-            // if (countDisconnectCount == 1)
-            // {
-            //     UriBuilder uriBuilder = new UriBuilder
-            //     {
-            //         Host = serverHost,
-            //         Port = serverPort
-            //     };
-            //     ContinueConnect(uriBuilder.Uri).Forget();
-            // }
-        }
-
-        private void OnConnected()
-        {
-            Debug.Log("Connected to server!");
-        }
-
         [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
         private Dictionary<Transform, BodyData> body2Data = new Dictionary<Transform, BodyData>();
+
+        public WorldData? lastData;
 
         private void OnWorldData(in WorldData data)
         {
             // TODO Pooling
+            lastData = data;
             body2Data.Clear();
             HashSet<uint> allSet = HashSetPool<uint>.Get();
 
@@ -180,49 +169,13 @@ namespace Game.Jolt
             HashSetPool<uint>.Release(toRemove);
         }
 
-
-        [Sirenix.OdinInspector.Button]
-        private void CmdSpawnBox(System.Numerics.Vector3 halfExtents, System.Numerics.Vector3 position,
-            MotionType motionType = MotionType.Dynamic,
-            Activation activation = Activation.Activate,
-            ObjectLayers objectLayer = ObjectLayers.Moving
-        )
+        private void OnGUI()
         {
-            CmdSpawnBox cmd = new CmdSpawnBox
-            {
-                halfExtents = halfExtents,
-                position = position,
-                rotation = System.Numerics.Quaternion.Identity,
-                motionType = motionType,
-                activation = activation,
-                objectLayer = objectLayer
-            };
-            _client.Send(cmd);
+            if (lastData == null) return;
+            // 绘制文本
+            GUI.Label(new Rect(10, 10, 200, 20), $"Frame: {lastData.Value.frameCount}");
         }
 
-        [Sirenix.OdinInspector.Button]
-        private void CmdSpawnPlane(
-            Vector3 position,
-            float distance = 0,
-            float halfExtent = 10,
-            MotionType motionType = MotionType.Static,
-            Activation activation = Activation.Activate,
-            ObjectLayers objectLayer = ObjectLayers.NonMoving
-        )
-        {
-            CmdSpawnPlane cmd = new CmdSpawnPlane
-            {
-                position = position.T(),
-                rotation = System.Numerics.Quaternion.Identity,
-                normal = new System.Numerics.Vector3(0, 1, 0),
-                distance = distance,
-                halfExtent = halfExtent,
-                motionType = motionType,
-                activation = activation,
-                objectLayer = objectLayer
-            };
-            _client.Send(cmd);
-        }
 
         private void OnDestroy()
         {

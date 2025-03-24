@@ -7,18 +7,23 @@ namespace GameCore.Jolt
     [MemoryPackable]
     public partial struct ReqBodyInfo : INetworkReq
     {
-        public uint entityId;
+        public uint bodyId;
+
+        public ReqBodyInfo(in uint bodyId)
+        {
+            this.bodyId = bodyId;
+        }
     }
 
     [MemoryPackable]
     public partial struct RspBodyInfo : INetworkRsp
     {
-        public readonly uint entityId;
+        public readonly uint bodyId;
         public readonly BodyData bodyData;
 
-        public RspBodyInfo(in uint entityId, in BodyData bodyData)
+        public RspBodyInfo(in uint bodyId, in BodyData bodyData)
         {
-            this.entityId = entityId;
+            this.bodyId = bodyId;
             this.bodyData = bodyData;
         }
     }
