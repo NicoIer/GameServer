@@ -188,6 +188,7 @@ namespace Game.Jolt
 
             foreach (var (key, value) in bodyDict)
             {
+                if (value.gameObject == null) continue;// 退出Editor Play Mode 的时候 可能缓存的GameObject 已经被销毁了
                 GameObject.Destroy(value.gameObject);
             }
 

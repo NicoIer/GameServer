@@ -12,22 +12,22 @@
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8790866c_002D6419_002D4e5a_002D8ac3_002D9a1f52a6cdc5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ShapeDataTest #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.CircularBufferTests.ShapeDataTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8790866c_002D6419_002D4e5a_002D8ac3_002D9a1f52a6cdc5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ShapeDataTest #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.CircularBufferTests.ShapeDataTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d252d441_002D11d1_002D49d2_002Db6a2_002Dd497b17d6df1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ShapeDataTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltSerializeTests.ShapeDataTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d252d441_002D11d1_002D49d2_002Db6a2_002Dd497b17d6df1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ShapeDataTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltSerializeTests.ShapeDataTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f1c34c2c_002D5e69_002D428d_002Db092_002Dfb599e73e35e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ShapeDataTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltSerializeTests.ShapeDataTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.CircularBufferTests.ShapeDataTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f1c34c2c_002D5e69_002D428d_002Db092_002Dfb599e73e35e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ShapeDataTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltSerializeTests.ShapeDataTest&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.CircularBufferTests.ShapeDataTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	
 	
