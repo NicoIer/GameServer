@@ -29,4 +29,4 @@
 using Network.Time;
 
 var server = new NetworkTimeServer();
-await server.Start(8848);
+await server.Start(24420);

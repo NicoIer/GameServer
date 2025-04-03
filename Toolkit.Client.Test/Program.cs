@@ -33,18 +33,18 @@ using MemoryPack;
 using Network;
 using Network.Time;
 using Newtonsoft.Json;
-
-Console.WriteLine("Hello, World!");
-
-
-
-using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
-{
-    socket.Connect("8.8.8.8", 65530);
-    var localEndPoint = socket.LocalEndPoint as IPEndPoint;
-    Debug.Assert(localEndPoint != null, "localEndPoint != null");
-    Console.WriteLine(localEndPoint.Address);
-}
+//
+// Console.WriteLine("Hello, World!");
+//
+//
+//
+// using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+// {
+//     socket.Connect("8.8.8.8", 65530);
+//     var localEndPoint = socket.LocalEndPoint as IPEndPoint;
+//     Debug.Assert(localEndPoint != null, "localEndPoint != null");
+//     Console.WriteLine(localEndPoint.Address);
+// }
 
 
 // var entry = Dns.GetHostEntry(Dns.GetHostName());
@@ -54,7 +54,7 @@ using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 
 //     Console.WriteLine(ipAddress);
 // }
 
-//
-// var client = new NetworkTimeClient();
-//
-// await client.Run("127.0.0.1", 8848);
+
+var client = new NetworkTimeClient();
+
+await client.Run("127.0.0.1", 8848);

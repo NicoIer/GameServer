@@ -11,10 +11,14 @@ using UnityToolkit;
 
 namespace Game.Jolt
 {
-    public partial class JoltClient
+    [RequireComponent(typeof(JoltClient))]
+    public class JoltReqRsp : MonoBehaviour
     {
-        private void AwakeReqRsp()
+        private JoltClient _client;
+
+        private void Start()
         {
+            _client = GetComponent<JoltClient>();
             _client.messageHandler.Add<RspHead>(OnRspHead);
         }
 

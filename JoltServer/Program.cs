@@ -32,9 +32,9 @@ var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
 
 Log.Logger = loggerConfig.CreateLogger();
 
-ToolkitLog.infoAction = (msg) => Log.Information(msg);
-ToolkitLog.warningAction = (msg) => Log.Warning(msg);
-ToolkitLog.errorAction = (msg) => Log.Error(msg);
+ToolkitLog.infoAction = Log.Information;
+ToolkitLog.warningAction = Log.Warning;
+ToolkitLog.errorAction = Log.Error;
 
 ShapeData.RegisterAll();
 
@@ -44,4 +44,10 @@ var app = new JoltApplication();
 // app.AddSystem(visualDebugger); 
 var joltServer = new JoltServer.JoltServer(60, 24419);
 app.AddSystem(joltServer);
+
+NetworkTimeServer timeServer = new NetworkTimeServer();
+_ = timeServer.Start(24420);
+
 app.Run();
+
+timeServer.Stop();

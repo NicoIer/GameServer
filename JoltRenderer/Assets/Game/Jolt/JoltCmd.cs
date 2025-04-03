@@ -1,10 +1,23 @@
-using System.Numerics;
+using System;
 using GameCore.Jolt;
+using UnityEngine;
 
 namespace Game.Jolt
 {
-    public partial class JoltClient
+    [RequireComponent(typeof(JoltClient))]
+    public class JoltCmd : MonoBehaviour
     {
+        private JoltClient _client;
+        private void Start()
+        {
+            _client = GetComponent<JoltClient>();
+        }
+
+        private void OnDestroy()
+        {
+            
+        }
+        
         [Sirenix.OdinInspector.Button]
         private void CmdSpawnBox(System.Numerics.Vector3 halfExtents, System.Numerics.Vector3 position,
             MotionType motionType = MotionType.Dynamic,
@@ -26,7 +39,7 @@ namespace Game.Jolt
 
         [Sirenix.OdinInspector.Button]
         private void CmdSpawnPlane(
-            Vector3 position,
+            System.Numerics.Vector3 position,
             float distance = 0,
             float halfExtent = 10,
             MotionType motionType = MotionType.Static,
@@ -37,8 +50,8 @@ namespace Game.Jolt
             CmdSpawnPlane cmd = new CmdSpawnPlane
             {
                 position = position,
-                rotation = Quaternion.Identity,
-                normal = new Vector3(0, 1, 0),
+                rotation = System.Numerics.Quaternion.Identity,
+                normal = new System.Numerics.Vector3(0, 1, 0),
                 distance = distance,
                 halfExtent = halfExtent,
                 motionType = motionType,

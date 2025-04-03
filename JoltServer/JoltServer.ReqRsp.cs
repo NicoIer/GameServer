@@ -50,7 +50,7 @@ public partial class JoltServer
         if (@lock.Succeeded)
         {
             errorcode = ErrorCode.Success;
-            PackData(bodyId, out var data);
+            PackBodyData(bodyId, out var data);
             rsp = new RspBodyInfo(bodyId, data);
         }
         else

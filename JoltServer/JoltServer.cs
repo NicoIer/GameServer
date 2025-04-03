@@ -97,7 +97,7 @@ public partial class JoltServer : JoltApplication.ISystem
         _server.socket.TickIncoming();
     }
 
-    public void PackData(in BodyID id, out BodyData data)
+    public void PackBodyData(in BodyID id, out BodyData data)
     {
         Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
         var shape = _app.physicsSystem.BodyInterface.GetShape(id);
@@ -317,7 +317,7 @@ public partial class JoltServer : JoltApplication.ISystem
             //     angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
             //     shapeData = shapeData
             // };
-            PackData(id, out var data);
+            PackBodyData(id, out var data);
             bodies[i] = data;
 
 
