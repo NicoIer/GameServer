@@ -13,21 +13,22 @@ namespace Game.Jolt
         protected override bool DontDestroyOnLoad() => true;
 
         private NetworkTimeClient _client;
-        private Thread _worker;
+        // private Thread _worker;
         public string ip = "127.0.0.1";
         public int port = 24420;
 
         protected override void OnInit()
         {
             _client = new NetworkTimeClient();
-            _worker = new Thread(() => { _client.Run(ip, port).Wait(); });
-            _worker.Start();
+            _ = _client.Run(ip, port);
+            // _worker = new Thread(() => { _client.Run(ip, port).Wait(); });
+            // _worker.Start();
         }
 
 
         protected override void OnDispose()
         {
-            _worker.Abort();
+            // _worker.Abort();
             _client.Stop();
         }
 #if UNITY_EDITOR

@@ -57,4 +57,4 @@ using Newtonsoft.Json;
 
 var client = new NetworkTimeClient();
 
-await client.Run("127.0.0.1", 8848);
+await client.Run("127.0.0.1", 24420);
