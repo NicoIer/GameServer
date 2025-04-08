@@ -35,7 +35,9 @@ namespace GameCore.Jolt
         public ArraySegment<BodyData> bodies;
     }
 
-
+#if UNITY_EDITOR
+    [Serializable]
+#endif
     [MemoryPackable]
     public partial struct BodyData
         // : INetworkEntity

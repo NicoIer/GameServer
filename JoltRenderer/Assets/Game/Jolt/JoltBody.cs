@@ -6,10 +6,16 @@ namespace Game.Jolt
 {
     public class JoltBody : MonoBehaviour
     {
-        public BodyData data;
-        public void OnWorldUpdate(BodyData body)
+#if ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
+#endif
+        private BodyData _currentData;
+        
+        public BodyType bodyType;
+
+        public void OnWorldUpdate(in BodyData body)
         {
-            data = body;
+            _currentData = body;
             transform.position = body.position.T();
             transform.rotation = body.rotation.T();
         }

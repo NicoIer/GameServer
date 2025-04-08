@@ -156,7 +156,8 @@ public partial class JoltServer : JoltApplication.ISystem
                 NetworkShapeData.Create(plane, out shapeData);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(shape));
+                ToolkitLog.Error($"未知的Shape{nameof(shape)},{shape?.GetType()}");
+                break;
         }
 
         Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
@@ -333,7 +334,7 @@ public partial class JoltServer : JoltApplication.ISystem
 
 
         _worldSnapshot.PushBack(worldData);
-        
+
         _server.socket.TickOutgoing();
     }
 

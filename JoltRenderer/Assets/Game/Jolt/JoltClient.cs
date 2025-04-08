@@ -64,8 +64,7 @@ namespace Game.Jolt
             {
                 await Task.Delay(TimeSpan.FromSeconds(KEEP_ALIVE_INTERVAL));
                 if (!_client.socket.connected) continue; // 没连接上
-                if(Application.isFocused)continue;
-                ToolkitLog.Info("{nameof(JoltClient)}: 发送心跳包");
+                ToolkitLog.Debug($"{nameof(JoltClient)}: Send Heartbeat");
                 Send(HeartBeat.Default);
             }
         }
@@ -119,9 +118,9 @@ namespace Game.Jolt
             _client.socket.TickOutgoing();
         }
 
-        public void Send<T>(T msg) where T : INetworkMessage
+        public void Send<T>(in T msg) where T : INetworkMessage
         {
-            _client.Send(msg);
+            _client.Send(in msg);
         }
     }
 }

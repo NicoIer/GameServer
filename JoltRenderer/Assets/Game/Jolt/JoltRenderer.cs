@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GameCore.Jolt;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
@@ -17,7 +18,7 @@ namespace Game.Jolt
         [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
         // private Dictionary<JoltBody, BodyData> body2Data = new Dictionary<JoltBody, BodyData>();
         public readonly Dictionary<uint, JoltBody> bodyDict = new Dictionary<uint, JoltBody>();
-        
+
         public JoltBody boxPrefab; // 1 * 1 * 1
         public JoltBody planePrefab; // 10 * 0 * 10
         public JoltBody spherePrefab; // 半径0.5
@@ -36,7 +37,6 @@ namespace Game.Jolt
 
         protected virtual void OnWorldData(in WorldData data)
         {
-            // TODO Pooling
             snapshot.PushBack(data);
         }
 
@@ -60,7 +60,11 @@ namespace Game.Jolt
                 if (bodyDict.TryGetValue(body.entityId, out var existingBody))
                 {
                     // body2Data[existingBody] = body;
-                    existingBody.OnWorldUpdate(body);
+                    Assert.IsTrue(body.bodyType == existingBody.bodyType);
+                    if (body.motionType != MotionType.Static)
+                    {
+                        existingBody.OnWorldUpdate(body);
+                    }
                     continue;
                 }
 
@@ -74,13 +78,10 @@ namespace Game.Jolt
                         unityBody.transform.localScale = boxShapeData.halfExtents.T() * 2;
                         break;
                     case PlaneShapeData planeShapeData:
+                        Assert.IsTrue(body.motionType == MotionType.Static);
+                        ToolkitLog.Info(JsonConvert.SerializeObject(planeShapeData));
                         unityBody = Instantiate(planePrefab);
-                        // shapeTransform = plane.transform;
-                        // var normal = planeShapeData.normal.T();
-                        // 根据法线计算旋转
-                        // shapeTransform.rotation = Quaternion.LookRotation(normal, Vector3.up);
-                        // 根据distance计算位置
-                        // shapeTransform.position = normal * planeShapeData.distance;
+                        unityBody.OnWorldUpdate(body);
                         // 根据halfExtent计算缩放
                         unityBody.transform.localScale = new Vector3(planeShapeData.halfExtent * 2, 1,
                             planeShapeData.halfExtent * 2) / 10; // 10 是因为我们的默认模型大小是10*0*10的 要转换一下
@@ -93,9 +94,13 @@ namespace Game.Jolt
                         throw new ArgumentOutOfRangeException(nameof(iShape));
                 }
 
-                
+                unityBody.gameObject.SetActive(true); // must be active
                 Assert.IsNotNull(unityBody);
-                unityBody.OnWorldUpdate(body);
+                Assert.IsTrue(unityBody.bodyType == body.bodyType);
+                if (body.motionType != MotionType.Static)
+                {
+                    unityBody.OnWorldUpdate(body);
+                }
                 bodyDict[body.entityId] = unityBody;
             }
 
@@ -126,6 +131,7 @@ namespace Game.Jolt
 
             foreach (var (key, value) in bodyDict)
             {
+                if (value == null) continue;
                 if (value.gameObject == null) continue; // 退出Editor Play Mode 的时候 可能缓存的GameObject 已经被销毁了
                 Destroy(value.gameObject);
             }
