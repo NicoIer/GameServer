@@ -1,0 +1,40 @@
+﻿name: 'Submodules Sync'
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'  # Run every day at 00:00 UTC
+#    - cron: '0 */1 * * *' # 每间隔一小时运行一次
+
+jobs:  
+  sync:
+    name: 'Submodules Sync'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.NICO_TOKEN }}
+          submodules: recursive
+      
+      # Update references
+      - name: Git Submodule Update
+        run: |
+          git pull --recurse-submodules
+          git submodule update --remote --recursive
+
+      - name: Commit update
+        run: |
+          git config --global user.name 'Git bot'
+          git config --global user.email 'bot@noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.NICO_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am "[自动化流程]-更新所有子模块到最新" && git push || echo "No changes to commit"
