@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using GameCore.Jolt;
 using Network;
@@ -22,13 +24,16 @@ namespace Game.Jolt
 
         // public int countDisconnectCount;
         public bool continueConnect = true;
+        public bool keepAlive = true;
+
+        private const float KEEP_ALIVE_INTERVAL = 5f;
 
         protected async override void OnInit()
         {
             Application.runInBackground = true;
-            if (!ShapeData.registered)
+            if (!NetworkShapeData.registered)
             {
-                ShapeData.RegisterAll();
+                NetworkShapeData.RegisterAll();
             }
 
             var socket = new TelepathyClientSocket();
@@ -49,6 +54,20 @@ namespace Game.Jolt
 
             NetworkLoop.OnEarlyUpdate += OnEarlyUpdate;
             NetworkLoop.OnLateUpdate += OnLateUpdate;
+
+            KeepAlive().Forget();
+        }
+
+        private async UniTask KeepAlive()
+        {
+            while (Application.isPlaying && keepAlive)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(KEEP_ALIVE_INTERVAL));
+                if (!_client.socket.connected) continue; // 没连接上
+                if(Application.isFocused)continue;
+                ToolkitLog.Info("{nameof(JoltClient)}: 发送心跳包");
+                Send(HeartBeat.Default);
+            }
         }
 
 
@@ -66,6 +85,7 @@ namespace Game.Jolt
 
                 if (Time.time - lastTryConnectTime > retryDelay)
                 {
+                    ToolkitLog.Info($"{nameof(JoltClient)}: 连接断开 重试 {uri}");
                     _client.Stop();
                     lastTryConnectTime = Time.time;
                     await _client.Run(uri, false);
@@ -81,6 +101,7 @@ namespace Game.Jolt
             NetworkLoop.OnEarlyUpdate -= OnEarlyUpdate;
             NetworkLoop.OnLateUpdate -= OnLateUpdate;
             continueConnect = false;
+            // keepAlive = false;
             _client.messageHandler.Clear<WorldData>();
             _client.Stop();
             _client.Dispose();
@@ -88,11 +109,13 @@ namespace Game.Jolt
 
         private void OnEarlyUpdate()
         {
+            // ToolkitLog.Info("OnEarlyUpdate");
             _client.socket.TickIncoming();
         }
 
         private void OnLateUpdate()
         {
+            // ToolkitLog.Info("OnLateUpdate");
             _client.socket.TickOutgoing();
         }
 

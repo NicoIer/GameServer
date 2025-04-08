@@ -9,10 +9,10 @@ public class JoltSerializeTests
     [Test]
     public void ShapeDataTest()
     {
-        ShapeData.RegisterAll();
+        NetworkShapeData.RegisterAll();
         BoxShapeData shapeData = new BoxShapeData(Vector3.One);
-        ShapeData.Create(shapeData, out ShapeData data);
-        IShapeData reverted = ShapeData.Revert(data);
+        NetworkShapeData.Create(shapeData, out NetworkShapeData data);
+        IShapeData reverted = NetworkShapeData.Deserialize(data);
         Assert.That(reverted, Is.TypeOf<BoxShapeData>());
         Assert.That(((BoxShapeData)reverted).halfExtents, Is.EqualTo(Vector3.One));
     }

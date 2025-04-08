@@ -15,12 +15,12 @@ namespace Game.Jolt
 
 
         [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
-        private Dictionary<Transform, BodyData> body2Data = new Dictionary<Transform, BodyData>();
-
-        public readonly Dictionary<uint, Transform> bodyDict = new Dictionary<uint, Transform>();
-        public MeshRenderer boxPrefab; // 1 * 1 * 1
-        public MeshRenderer planePrefab; // 10 * 0 * 10
-        public MeshRenderer spherePrefab; // 半径0.5
+        // private Dictionary<JoltBody, BodyData> body2Data = new Dictionary<JoltBody, BodyData>();
+        public readonly Dictionary<uint, JoltBody> bodyDict = new Dictionary<uint, JoltBody>();
+        
+        public JoltBody boxPrefab; // 1 * 1 * 1
+        public JoltBody planePrefab; // 10 * 0 * 10
+        public JoltBody spherePrefab; // 半径0.5
 
         [NonSerialized] public CircularBuffer<WorldData> snapshot;
         public int snapshotCapacity = 16;
@@ -34,69 +34,69 @@ namespace Game.Jolt
             snapshot = new CircularBuffer<WorldData>(snapshotCapacity);
         }
 
-        private void OnWorldData(in WorldData data)
+        protected virtual void OnWorldData(in WorldData data)
         {
             // TODO Pooling
             snapshot.PushBack(data);
         }
 
 
-        private void Update()
+        protected virtual void Update()
         {
             ref var data = ref snapshot.backValue;
-            body2Data.Clear();
+            UpdateWorld(ref data);
+        }
+
+        protected void UpdateWorld(ref WorldData data)
+        {
+            currentWorld = data;
+            // body2Data.Clear();
             HashSet<uint> allSet = HashSetPool<uint>.Get();
 
             foreach (var body in data.bodies)
             {
                 allSet.Add(body.entityId);
                 // if (body.isStatic) continue; // 静态物体
-                if (bodyDict.TryGetValue(body.entityId, out var existingTransform))
+                if (bodyDict.TryGetValue(body.entityId, out var existingBody))
                 {
-                    body2Data[existingTransform] = body;
-                    existingTransform.position = body.position.T();
-                    existingTransform.rotation = body.rotation.T();
+                    // body2Data[existingBody] = body;
+                    existingBody.OnWorldUpdate(body);
                     continue;
                 }
 
-                var iShape = ShapeData.Revert(in body.shapeData);
-                Transform shapeTransform = null;
-
+                var iShape = NetworkShapeData.Deserialize(in body.networkShapeData);
+                JoltBody unityBody = null;
+                // Transform shapeTransform = null;
                 switch (iShape)
                 {
                     case BoxShapeData boxShapeData:
-                        var box = Instantiate(boxPrefab);
-                        shapeTransform = box.transform;
-                        shapeTransform.localScale = boxShapeData.halfExtents.T() * 2;
+                        unityBody = Instantiate(boxPrefab);
+                        unityBody.transform.localScale = boxShapeData.halfExtents.T() * 2;
                         break;
                     case PlaneShapeData planeShapeData:
-                        var plane = Instantiate(planePrefab);
-                        shapeTransform = plane.transform;
+                        unityBody = Instantiate(planePrefab);
+                        // shapeTransform = plane.transform;
                         // var normal = planeShapeData.normal.T();
                         // 根据法线计算旋转
                         // shapeTransform.rotation = Quaternion.LookRotation(normal, Vector3.up);
                         // 根据distance计算位置
                         // shapeTransform.position = normal * planeShapeData.distance;
                         // 根据halfExtent计算缩放
-                        shapeTransform.localScale = new Vector3(planeShapeData.halfExtent * 2, 1,
+                        unityBody.transform.localScale = new Vector3(planeShapeData.halfExtent * 2, 1,
                             planeShapeData.halfExtent * 2) / 10; // 10 是因为我们的默认模型大小是10*0*10的 要转换一下
                         break;
                     case SphereShapeData sphereShapeData:
-                        var sphere = Instantiate(spherePrefab);
-                        shapeTransform = sphere.transform;
-                        shapeTransform.localScale = Vector3.one * (sphereShapeData.radius * 2);
+                        unityBody = Instantiate(spherePrefab);
+                        unityBody.transform.localScale = Vector3.one * (sphereShapeData.radius * 2);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(iShape));
                 }
 
-                Assert.IsNotNull(shapeTransform);
-
-                shapeTransform.gameObject.SetActive(true);
-                shapeTransform.position = body.position.T();
-                shapeTransform.rotation = body.rotation.T();
-                bodyDict[body.entityId] = shapeTransform;
-                body2Data[shapeTransform] = body;
+                
+                Assert.IsNotNull(unityBody);
+                unityBody.OnWorldUpdate(body);
+                bodyDict[body.entityId] = unityBody;
             }
 
             HashSet<uint> toRemove = HashSetPool<uint>.Get();

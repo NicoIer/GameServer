@@ -101,7 +101,7 @@ public partial class JoltServer : JoltApplication.ISystem
     {
         Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
         var shape = _app.physicsSystem.BodyInterface.GetShape(id);
-        ShapeData shapeData = default;
+        NetworkShapeData shapeData = default;
         switch (shape)
         {
             case MutableCompoundShape mutableCompoundShape:
@@ -114,7 +114,7 @@ public partial class JoltServer : JoltApplication.ISystem
                 break;
             case BoxShape boxShape:
                 var box = new BoxShapeData(boxShape.HalfExtent);
-                ShapeData.Create(box, out shapeData);
+                NetworkShapeData.Create(box, out shapeData);
                 break;
             case ConvexHullShape convexHullShape:
                 break;
@@ -124,7 +124,7 @@ public partial class JoltServer : JoltApplication.ISystem
                 break;
             case SphereShape sphereShape:
                 var sphere = new SphereShapeData(sphereShape.Radius);
-                ShapeData.Create(sphere, out shapeData);
+                NetworkShapeData.Create(sphere, out shapeData);
                 break;
             case TaperedCapsuleShape taperedCapsuleShape:
                 break;
@@ -153,7 +153,7 @@ public partial class JoltServer : JoltApplication.ISystem
                     normal = planeShape.Plane.Normal,
                     distance = planeShape.Plane.D,
                 };
-                ShapeData.Create(plane, out shapeData);
+                NetworkShapeData.Create(plane, out shapeData);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(shape));
@@ -197,7 +197,7 @@ public partial class JoltServer : JoltApplication.ISystem
             centerOfMass = _app.physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
             linearVelocity = _app.physicsSystem.BodyInterface.GetLinearVelocity(id),
             angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
-            shapeData = shapeData
+            networkShapeData = shapeData
         };
     }
 

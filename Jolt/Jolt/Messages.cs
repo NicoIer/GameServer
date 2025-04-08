@@ -78,8 +78,8 @@ namespace GameCore.Jolt
         public Vector3 linearVelocity;
         public Vector3 angularVelocity;
 
-        // public IShapeData shapeData;
-        public ShapeData shapeData;
+        // public IShapeData networkShapeData;
+        public NetworkShapeData networkShapeData;
     }
 
     // <!-- output memorypack serialization info to directory -->
@@ -108,7 +108,7 @@ namespace GameCore.Jolt
     }
 
     [MemoryPackable]
-    public partial struct ShapeData
+    public partial struct NetworkShapeData
     {
         public ushort id;
         public ArraySegment<byte> payload;
@@ -132,7 +132,7 @@ namespace GameCore.Jolt
 
         private static void RegisterType(Type type)
         {
-            var method = typeof(ShapeData).GetMethod(nameof(Register));
+            var method = typeof(NetworkShapeData).GetMethod(nameof(Register));
             method = method!.MakeGenericMethod(type);
             method.Invoke(null, null);
         }
@@ -141,21 +141,21 @@ namespace GameCore.Jolt
         {
             if (_deserializers.ContainsKey(TypeId<T>.stableId16))
             {
-                ToolkitLog.Warning($"ShapeData Register {typeof(T)} Failed, Already Registered");
+                ToolkitLog.Warning($"NetworkShapeData Register {typeof(T)} Failed, Already Registered");
                 return;
             }
 
-            ToolkitLog.Info($"Register ShapeData {typeof(T)}");
+            ToolkitLog.Info($"Register NetworkShapeData {typeof(T)}");
             _deserializers.Add(TypeId<T>.stableId16,
                 payload => { return MemoryPackSerializer.Deserialize<T>(payload)!; });
         }
 
-        public static IShapeData Revert(in ShapeData data)
+        public static IShapeData Deserialize(in NetworkShapeData data)
         {
             return _deserializers[data.id](data.payload);
         }
 
-        public static void Create<T>(T shapeData, out ShapeData data) where T : IShapeData
+        public static void Create<T>(T shapeData, out NetworkShapeData data) where T : IShapeData
         {
             data.id = TypeId<T>.stableId16;
             data.payload = MemoryPackSerializer.Serialize(shapeData);
@@ -195,9 +195,9 @@ namespace GameCore.Jolt
 
     public static class ShapeDataExtensions
     {
-        public static ShapeData ToShapeData<T>(this T shapeData) where T : IShapeData
+        public static NetworkShapeData ToShapeData<T>(this T shapeData) where T : IShapeData
         {
-            ShapeData.Create(shapeData, out var data);
+            NetworkShapeData.Create(shapeData, out var data);
             return data;
         }
     }
