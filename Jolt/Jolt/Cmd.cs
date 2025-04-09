@@ -27,6 +27,17 @@ namespace GameCore.Jolt
         public Activation activation;
         public ObjectLayers objectLayer;
     }
+    
+    [MemoryPackable]
+    public partial struct CmdSpawnSphere : INetworkMessage
+    {
+        public Vector3 position;
+        public Quaternion rotation;
+        public MotionType motionType;
+        public Activation activation;
+        public ObjectLayers objectLayer;
+        public float radius;
+    }
 
     [MemoryPackable]
     public partial struct CmdDestroy : INetworkMessage

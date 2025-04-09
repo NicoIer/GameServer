@@ -101,7 +101,7 @@ public partial class JoltServer : JoltApplication.ISystem
     {
         Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
         var shape = _app.physicsSystem.BodyInterface.GetShape(id);
-        NetworkShapeData shapeData = default;
+        ShapeDataPacket shapeDataPacket = default;
         switch (shape)
         {
             case MutableCompoundShape mutableCompoundShape:
@@ -114,7 +114,7 @@ public partial class JoltServer : JoltApplication.ISystem
                 break;
             case BoxShape boxShape:
                 var box = new BoxShapeData(boxShape.HalfExtent);
-                NetworkShapeData.Create(box, out shapeData);
+                ShapeDataPacket.Create(box, out shapeDataPacket);
                 break;
             case ConvexHullShape convexHullShape:
                 break;
@@ -124,7 +124,7 @@ public partial class JoltServer : JoltApplication.ISystem
                 break;
             case SphereShape sphereShape:
                 var sphere = new SphereShapeData(sphereShape.Radius);
-                NetworkShapeData.Create(sphere, out shapeData);
+                ShapeDataPacket.Create(sphere, out shapeDataPacket);
                 break;
             case TaperedCapsuleShape taperedCapsuleShape:
                 break;
@@ -153,14 +153,14 @@ public partial class JoltServer : JoltApplication.ISystem
                     normal = planeShape.Plane.Normal,
                     distance = planeShape.Plane.D,
                 };
-                NetworkShapeData.Create(plane, out shapeData);
+                ShapeDataPacket.Create(plane, out shapeDataPacket);
                 break;
             default:
                 ToolkitLog.Error($"未知的Shape{nameof(shape)},{shape?.GetType()}");
                 break;
         }
 
-        Debug.Assert(shapeData.payload is { Array: not null, Count: > 0 });
+        Debug.Assert(shapeDataPacket.payload is { Array: not null, Count: > 0 });
 
         if (!_body2Owner.TryGetValue(id, out var ownerId))
         {
@@ -198,7 +198,7 @@ public partial class JoltServer : JoltApplication.ISystem
             centerOfMass = _app.physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
             linearVelocity = _app.physicsSystem.BodyInterface.GetLinearVelocity(id),
             angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
-            networkShapeData = shapeData
+            shapeDataPacket = shapeDataPacket
         };
     }
 

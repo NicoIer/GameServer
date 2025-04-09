@@ -35,9 +35,7 @@ namespace GameCore.Jolt
         public ArraySegment<BodyData> bodies;
     }
 
-#if UNITY_EDITOR
     [Serializable]
-#endif
     [MemoryPackable]
     public partial struct BodyData
         // : INetworkEntity
@@ -55,7 +53,7 @@ namespace GameCore.Jolt
         // public bool isStatic;
         // public bool isKinematic;
         // public bool isDynamic;
-        
+
         public MotionType motionType;
 
         /// <summary>
@@ -80,8 +78,20 @@ namespace GameCore.Jolt
         public Vector3 linearVelocity;
         public Vector3 angularVelocity;
 
+        // public MemberMask
+
         // public IShapeData networkShapeData;
-        public NetworkShapeData networkShapeData;
+        public ShapeDataPacket shapeDataPacket;
+
+
+        // TODO 有时候可以Mask掉shape的数据 因为大多数时候这个都没有变化
+        // [Flags]
+        // public enum MemberMask : byte
+        // {
+        //     WithoutShape = 1 << 0,
+        //     
+        //     All 
+        // }
     }
 
     // <!-- output memorypack serialization info to directory -->
@@ -110,7 +120,7 @@ namespace GameCore.Jolt
     }
 
     [MemoryPackable]
-    public partial struct NetworkShapeData
+    public partial struct ShapeDataPacket
     {
         public ushort id;
         public ArraySegment<byte> payload;
@@ -118,8 +128,9 @@ namespace GameCore.Jolt
 
         private static readonly Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>> _deserializers =
             new Dictionary<ushort, Func<ArraySegment<byte>, IShapeData>>();
-        
+
         public static bool registered => _deserializers.Count > 0;
+
         public static void RegisterAll()
         {
             // 通过反射 找到本程序集下所有的 IShapeData 类型
@@ -134,7 +145,7 @@ namespace GameCore.Jolt
 
         private static void RegisterType(Type type)
         {
-            var method = typeof(NetworkShapeData).GetMethod(nameof(Register));
+            var method = typeof(ShapeDataPacket).GetMethod(nameof(Register));
             method = method!.MakeGenericMethod(type);
             method.Invoke(null, null);
         }
@@ -152,15 +163,15 @@ namespace GameCore.Jolt
                 payload => { return MemoryPackSerializer.Deserialize<T>(payload)!; });
         }
 
-        public static IShapeData Deserialize(in NetworkShapeData data)
+        public static IShapeData Deserialize(in ShapeDataPacket dataPacket)
         {
-            return _deserializers[data.id](data.payload);
+            return _deserializers[dataPacket.id](dataPacket.payload);
         }
 
-        public static void Create<T>(T shapeData, out NetworkShapeData data) where T : IShapeData
+        public static void Create<T>(T shapeData, out ShapeDataPacket dataPacket) where T : IShapeData
         {
-            data.id = TypeId<T>.stableId16;
-            data.payload = MemoryPackSerializer.Serialize(shapeData);
+            dataPacket.id = TypeId<T>.stableId16;
+            dataPacket.payload = MemoryPackSerializer.Serialize(shapeData);
         }
     }
 
@@ -185,21 +196,20 @@ namespace GameCore.Jolt
             this.radius = radius;
         }
     }
-    
+
     public partial struct PlaneShapeData : IShapeData
     {
         public float halfExtent;
         public Vector3 normal;
         public float distance;
     }
-    
-    
+
 
     public static class ShapeDataExtensions
     {
-        public static NetworkShapeData ToShapeData<T>(this T shapeData) where T : IShapeData
+        public static ShapeDataPacket ToShapeData<T>(this T shapeData) where T : IShapeData
         {
-            NetworkShapeData.Create(shapeData, out var data);
+            ShapeDataPacket.Create(shapeData, out var data);
             return data;
         }
     }

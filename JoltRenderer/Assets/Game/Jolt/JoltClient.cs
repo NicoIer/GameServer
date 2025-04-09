@@ -31,9 +31,9 @@ namespace Game.Jolt
         protected async override void OnInit()
         {
             Application.runInBackground = true;
-            if (!NetworkShapeData.registered)
+            if (!ShapeDataPacket.registered)
             {
-                NetworkShapeData.RegisterAll();
+                ShapeDataPacket.RegisterAll();
             }
 
             var socket = new TelepathyClientSocket();

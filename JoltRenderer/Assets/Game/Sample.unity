@@ -476,6 +476,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06b94dd8228c42529337491c00b5b9e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bodyType: 0
+  isActive: 0
+  motionType: 0
+  isSensor: 0
+  objectLayer: 0
+  friction: 0
+  restitution: 0
+  position: {x: 0, y: 0, z: 0}
+  rotation: {x: 0, y: 0, z: 0, w: 0}
+  linearVelocity: {x: 0, y: 0, z: 0}
+  angularVelocity: {x: 0, y: 0, z: 0}
 --- !u!1 &785709534
 GameObject:
   m_ObjectHideFlags: 0
@@ -575,6 +586,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06b94dd8228c42529337491c00b5b9e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bodyType: 0
+  isActive: 0
+  motionType: 0
+  isSensor: 0
+  objectLayer: 0
+  friction: 0
+  restitution: 0
+  position: {x: 0, y: 0, z: 0}
+  rotation: {x: 0, y: 0, z: 0, w: 0}
+  linearVelocity: {x: 0, y: 0, z: 0}
+  angularVelocity: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,6 +724,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06b94dd8228c42529337491c00b5b9e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bodyType: 0
+  isActive: 0
+  motionType: 0
+  isSensor: 0
+  objectLayer: 0
+  friction: 0
+  restitution: 0
+  position: {x: 0, y: 0, z: 0}
+  rotation: {x: 0, y: 0, z: 0, w: 0}
+  linearVelocity: {x: 0, y: 0, z: 0}
+  angularVelocity: {x: 0, y: 0, z: 0}
 --- !u!23 &1690001064
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -808,6 +841,7 @@ MonoBehaviour:
   maxRetries: 2147483647
   retryDelay: 3
   continueConnect: 1
+  keepAlive: 1
 --- !u!4 &1960514041
 Transform:
   m_ObjectHideFlags: 0

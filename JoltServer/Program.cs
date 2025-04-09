@@ -36,7 +36,7 @@ ToolkitLog.infoAction = Log.Information;
 ToolkitLog.warningAction = Log.Warning;
 ToolkitLog.errorAction = Log.Error;
 
-NetworkShapeData.RegisterAll();
+ShapeDataPacket.RegisterAll();
 
 
 var app = new JoltApplication();

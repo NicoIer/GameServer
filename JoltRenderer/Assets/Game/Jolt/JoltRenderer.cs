@@ -10,7 +10,7 @@ using UnityToolkit;
 namespace Game.Jolt
 {
     [RequireComponent(typeof(JoltPush))]
-    public class JoltRenderer : MonoBehaviour
+    public sealed class JoltRenderer : MonoBehaviour
     {
         private JoltPush _push;
 
@@ -35,73 +35,50 @@ namespace Game.Jolt
             snapshot = new CircularBuffer<WorldData>(snapshotCapacity);
         }
 
-        protected virtual void OnWorldData(in WorldData data)
+        private void OnWorldData(in WorldData data)
         {
             snapshot.PushBack(data);
         }
 
 
-        protected virtual void Update()
+        private void Update()
         {
             ref var data = ref snapshot.backValue;
             UpdateWorld(ref data);
         }
 
-        protected void UpdateWorld(ref WorldData data)
+        private void UpdateWorld(ref WorldData data)
         {
             currentWorld = data;
             // body2Data.Clear();
             HashSet<uint> allSet = HashSetPool<uint>.Get();
 
-            foreach (var body in data.bodies)
+            foreach (var bodyData in data.bodies)
             {
-                allSet.Add(body.entityId);
-                // if (body.isStatic) continue; // 静态物体
-                if (bodyDict.TryGetValue(body.entityId, out var existingBody))
+                allSet.Add(bodyData.entityId);
+                if (bodyDict.TryGetValue(bodyData.entityId, out var existingBody))
                 {
-                    // body2Data[existingBody] = body;
-                    Assert.IsTrue(body.bodyType == existingBody.bodyType);
-                    if (body.motionType != MotionType.Static)
+                    Assert.IsTrue(bodyData.bodyType == existingBody.bodyType);
+                    if (bodyData.motionType != MotionType.Static)
                     {
-                        existingBody.OnWorldUpdate(body);
+                        existingBody.OnBodyDataUpdate(bodyData);
+                        existingBody.shape.OnShapeUpdate(in bodyData.shapeDataPacket);
                     }
                     continue;
                 }
 
-                var iShape = NetworkShapeData.Deserialize(in body.networkShapeData);
-                JoltBody unityBody = null;
-                // Transform shapeTransform = null;
-                switch (iShape)
-                {
-                    case BoxShapeData boxShapeData:
-                        unityBody = Instantiate(boxPrefab);
-                        unityBody.transform.localScale = boxShapeData.halfExtents.T() * 2;
-                        break;
-                    case PlaneShapeData planeShapeData:
-                        Assert.IsTrue(body.motionType == MotionType.Static);
-                        ToolkitLog.Info(JsonConvert.SerializeObject(planeShapeData));
-                        unityBody = Instantiate(planePrefab);
-                        unityBody.OnWorldUpdate(body);
-                        // 根据halfExtent计算缩放
-                        unityBody.transform.localScale = new Vector3(planeShapeData.halfExtent * 2, 1,
-                            planeShapeData.halfExtent * 2) / 10; // 10 是因为我们的默认模型大小是10*0*10的 要转换一下
-                        break;
-                    case SphereShapeData sphereShapeData:
-                        unityBody = Instantiate(spherePrefab);
-                        unityBody.transform.localScale = Vector3.one * (sphereShapeData.radius * 2);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(iShape));
-                }
 
-                unityBody.gameObject.SetActive(true); // must be active
+                JoltBody unityBody = CreateBodyFromData(in bodyData);
+                // more assert like ......
                 Assert.IsNotNull(unityBody);
-                Assert.IsTrue(unityBody.bodyType == body.bodyType);
-                if (body.motionType != MotionType.Static)
-                {
-                    unityBody.OnWorldUpdate(body);
-                }
-                bodyDict[body.entityId] = unityBody;
+                Assert.IsNotNull(unityBody.shape);
+                unityBody.OnBodyDataUpdate(bodyData); 
+                unityBody.shape.OnShapeUpdate(in bodyData.shapeDataPacket);
+                
+                Assert.IsTrue(unityBody.bodyType == bodyData.bodyType);
+                Assert.IsTrue(unityBody.motionType == bodyData.motionType);
+
+                bodyDict[bodyData.entityId] = unityBody;
             }
 
             HashSet<uint> toRemove = HashSetPool<uint>.Get();
@@ -123,12 +100,42 @@ namespace Game.Jolt
             HashSetPool<uint>.Release(toRemove);
         }
 
+        private JoltBody CreateBodyFromData(in BodyData bodyData)
+        {
+            var iShape = ShapeDataPacket.Deserialize(in bodyData.shapeDataPacket);
+            JoltBody unityBody;
+            switch (iShape)
+            {
+                case BoxShapeData boxShapeData:
+                    unityBody = Instantiate(boxPrefab);
+                    unityBody.CreateShape<BoxShapeData, JoltBoxShape>(in boxShapeData);
+                    unityBody.transform.localScale = boxShapeData.halfExtents.T() * 2;
+                    break;
+                case PlaneShapeData planeShapeData:
+                    Assert.IsTrue(bodyData.motionType == MotionType.Static);
+                    unityBody = Instantiate(planePrefab);
+                    unityBody.CreateShape<PlaneShapeData, JoltPlaneShape>(in planeShapeData);
+                    unityBody.transform.localScale = new Vector3(planeShapeData.halfExtent * 2, 1,
+                        planeShapeData.halfExtent * 2) / 10; // 10 是因为我们的默认模型大小是10*0*10的 要转换一下
+                    break;
+                case SphereShapeData sphereShapeData:
+                    unityBody = Instantiate(spherePrefab);
+                    unityBody.CreateShape<SphereShapeData,JoltSphereShape>(in sphereShapeData);
+                    unityBody.transform.localScale = Vector3.one * (sphereShapeData.radius * 2);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(iShape));
+            }
+
+            unityBody.gameObject.SetActive(true); // must be active
+            return unityBody;
+        }
+
 
         private void OnDestroy()
         {
             _push.OnPushWorldData -= OnWorldData;
-
-
+            
             foreach (var (key, value) in bodyDict)
             {
                 if (value == null) continue;
