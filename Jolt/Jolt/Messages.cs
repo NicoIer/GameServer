@@ -63,7 +63,7 @@ namespace GameCore.Jolt
 
         [MemoryPackIgnore] public bool isTrigger => isSensor;
 
-        public ushort objectLayer;
+        public uint objectLayer;
 
         // public bool allowSleeping;
 
@@ -81,7 +81,7 @@ namespace GameCore.Jolt
         // public MemberMask
 
         // public IShapeData networkShapeData;
-        public ShapeDataPacket shapeDataPacket;
+        public ShapeDataPacket? shapeDataPacket;
 
 
         // TODO 有时候可以Mask掉shape的数据 因为大多数时候这个都没有变化

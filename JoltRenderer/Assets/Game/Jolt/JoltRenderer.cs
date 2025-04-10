@@ -13,7 +13,7 @@ namespace Game.Jolt
     public sealed class JoltRenderer : MonoBehaviour
     {
         private JoltPush _push;
-
+        private JoltClient _client;
 
         [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
         // private Dictionary<JoltBody, BodyData> body2Data = new Dictionary<JoltBody, BodyData>();
@@ -31,6 +31,7 @@ namespace Game.Jolt
         private void Awake()
         {
             _push = GetComponent<JoltPush>();
+            _client = GetComponent<JoltClient>();
             _push.OnPushWorldData += OnWorldData;
             snapshot = new CircularBuffer<WorldData>(snapshotCapacity);
         }
@@ -44,7 +45,10 @@ namespace Game.Jolt
         private void Update()
         {
             ref var data = ref snapshot.backValue;
-            UpdateWorld(ref data);
+            if (data.bodies.Array is { Length: > 0 })
+            {
+                UpdateWorld(ref data);
+            }
         }
 
         private void UpdateWorld(ref WorldData data)
@@ -102,7 +106,12 @@ namespace Game.Jolt
 
         private JoltBody CreateBodyFromData(in BodyData bodyData)
         {
-            var iShape = ShapeDataPacket.Deserialize(in bodyData.shapeDataPacket);
+
+            if (bodyData.shapeDataPacket == null)
+            {
+                throw new NullReferenceException("shapeDataPacket is null");
+            }
+            var iShape = ShapeDataPacket.Deserialize(bodyData.shapeDataPacket.Value);
             JoltBody unityBody;
             switch (iShape)
             {

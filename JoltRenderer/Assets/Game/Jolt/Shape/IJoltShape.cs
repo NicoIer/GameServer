@@ -7,7 +7,7 @@ namespace Game.Jolt
 {
     public interface IJoltShape
     {
-        void OnShapeUpdate(in ShapeDataPacket bodyDataShapeDataPacket);
+        void OnShapeUpdate(in ShapeDataPacket? bodyDataShapeDataPacket);
     }
 
 
@@ -22,9 +22,14 @@ namespace Game.Jolt
             this.refBody = refBody;
         }
 
-        public virtual void OnShapeUpdate(in ShapeDataPacket bodyDataShapeDataPacket)
+        public virtual void OnShapeUpdate(in ShapeDataPacket? bodyDataShapeDataPacket)
         {
-            var newData = ShapeDataPacket.Deserialize(bodyDataShapeDataPacket);
+            if (bodyDataShapeDataPacket == null)
+            {
+                return;
+            }
+
+            var newData = ShapeDataPacket.Deserialize(bodyDataShapeDataPacket.Value);
             if (newData is TShapeData newShapeData)
             {
                 this.shapeData = newShapeData;

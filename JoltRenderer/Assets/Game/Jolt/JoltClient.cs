@@ -40,6 +40,8 @@ namespace Game.Jolt
             // socket.OnDisconnected += OnDisConnected;
             // socket.OnConnected += OnConnected;
             _client = new NetworkClient(socket);
+            _client.socket.OnConnected += OnConnected;
+            _client.socket.OnDisconnected += OnDisConnected;
 
 
             UriBuilder uriBuilder = new UriBuilder
@@ -56,6 +58,16 @@ namespace Game.Jolt
             NetworkLoop.OnLateUpdate += OnLateUpdate;
 
             KeepAlive().Forget();
+        }
+
+        private void OnDisConnected()
+        {
+            
+        }
+
+        private void OnConnected()
+        {
+            
         }
 
         private async UniTask KeepAlive()

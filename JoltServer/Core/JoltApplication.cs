@@ -4,6 +4,7 @@ using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Raylib_cs;
 using Serilog;
+using UnityToolkit;
 using Activation = JoltPhysicsSharp.Activation;
 using MotionType = JoltPhysicsSharp.MotionType;
 
@@ -19,6 +20,9 @@ public class JoltApplication : DisposableObject
     // public IReadOnlySet<BodyID> ignoreDrawBodies => _ignoreDrawBodies;
 
     protected readonly List<BodyID> _bodies = [];
+
+    // public HashSet<BodyID> activeBodies = [];
+    // public HashSet<BodyID> deactivatedBodies = [];
 
     // protected readonly HashSet<BodyID> _ignoreDrawBodies = [];
     public int targetFPS => TargetFPS;
@@ -197,7 +201,7 @@ public class JoltApplication : DisposableObject
     protected virtual ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2,
         Double3 baseOffset, in CollideShapeResult collisionResult)
     {
-        Log.Information("Contact validate callback");
+        // Log.Information("Contact validate callback");
 
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult.AcceptAllContactsForThisBodyPair;
@@ -222,12 +226,22 @@ public class JoltApplication : DisposableObject
 
     protected virtual void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
-        // TraceLog(TraceLogLevel.Debug, "A body got activated");
+        // ToolkitLog.Info($"A body{bodyID} got activated");
+        // activeBodies.Add(bodyID);
+        // if (deactivatedBodies.Contains(bodyID))
+        // {
+        //     deactivatedBodies.Remove(bodyID);
+        // }
     }
 
     protected virtual void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
-        // TraceLog(TraceLogLevel.Debug, "A body went to sleep");
+        // ToolkitLog.Info($"A body{bodyID} got deactivated");
+        // if (activeBodies.Contains(bodyID))
+        // {
+        //     activeBodies.Remove(bodyID);
+        // }
+        // deactivatedBodies.Add(bodyID);
     }
 
     #endregion
@@ -343,7 +357,10 @@ public class JoltApplication : DisposableObject
 
 
             PhysicsUpdateError error = physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
-            Debug.Assert(error == PhysicsUpdateError.None);
+            if (error != PhysicsUpdateError.None)
+            {
+                ToolkitLog.Warning($"Physics update error: {error}");
+            }
 
 
             foreach (var system in systems)
