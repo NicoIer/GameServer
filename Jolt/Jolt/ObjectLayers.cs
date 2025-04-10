@@ -1,6 +1,6 @@
 ﻿namespace GameCore.Jolt
 {
-    public enum ObjectLayers : ushort
+    public enum ObjectLayers : uint
     {
         NonMoving = 0,
         Moving = 1

@@ -398,9 +398,9 @@ public class JoltApplication : DisposableObject
     protected override void Dispose(bool disposing)
     {
         if (!disposing) return;
-        foreach (BodyID bodyID in _bodies)
+        foreach (BodyID bodyId in _bodies)
         {
-            physicsSystem.BodyInterface.RemoveAndDestroyBody(bodyID);
+            physicsSystem.BodyInterface.RemoveAndDestroyBody(bodyId);
         }
 
         _bodies.Clear();

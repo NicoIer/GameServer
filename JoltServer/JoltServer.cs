@@ -167,13 +167,25 @@ public partial class JoltServer : JoltApplication.ISystem
     public void PackBodyData(in BodyID id, out BodyData data)
     {
         Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
-        var shape = _app.physicsSystem.BodyInterface.GetShape(id);
-        Debug.Assert(shape != null);
+        
+        bool isSensor = false;
         ShapeDataPacket? shapeDataPacket = null;
-        if (PackShapeData(shape, out var packet))
+
+        _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
+        Debug.Assert(@lock.Succeeded);
+        if (@lock.Succeeded)
         {
-            shapeDataPacket = packet;
+            Debug.Assert(@lock.Body != null);
+            isSensor = @lock.Body.IsSensor;
+            if (PackShapeData(@lock.Body.Shape, out var packet))
+            {
+                shapeDataPacket = packet;
+            }
         }
+        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+        
+        // var shape = _app.physicsSystem.BodyInterface.GetShape(id);
+        // Debug.Assert(shape != null);
 
 
 
@@ -183,16 +195,8 @@ public partial class JoltServer : JoltApplication.ISystem
         Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
 
 
-        _app.physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
 
-        bool isSensor = false;
-        if (@lock.Succeeded)
-        {
-            Debug.Assert(@lock.Body != null);
-            isSensor = @lock.Body.IsSensor;
-        }
-
-        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+        
 
         data = new BodyData()
         {
@@ -216,7 +220,7 @@ public partial class JoltServer : JoltApplication.ISystem
         
         if (shapeDataPacket == null)
         {
-            ToolkitLog.Info($"获得了一个Null的ShapeDataPacket,id:{id},{JsonSerializer.Serialize(data)}");
+            ToolkitLog.Info($"got a null shape packet,id:{id},threadId:{Thread.CurrentThread.ManagedThreadId}");
         }
     }
 

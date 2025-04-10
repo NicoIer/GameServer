@@ -99,7 +99,7 @@ public partial class JoltServer
     }
 
 
-    private void OnCmdSpawnPlane(in int connectionid, in CmdSpawnPlane message)
+    public void OnCmdSpawnPlane(in int connectionid, in CmdSpawnPlane message)
     {
         Log.Information($"客户端{connectionid}请求生成Plane");
         var bodyId = _app.CreatePlane(
@@ -117,7 +117,7 @@ public partial class JoltServer
         Log.Information($"生成Plane成功:{bodyId}");
     }
 
-    private void OnCmdSpawnBox(in int connectionid, in CmdSpawnBox message)
+    public void OnCmdSpawnBox(in int connectionid, in CmdSpawnBox message)
     {
         Log.Information($"客户端{connectionid}请求生成Box");
         Debug.Assert(float.IsNaN(message.rotation.X) == false);
@@ -131,7 +131,7 @@ public partial class JoltServer
             message.position,
             message.rotation,
             (JoltPhysicsSharp.MotionType)message.motionType,
-            (ushort)message.objectLayer,
+            (uint)message.objectLayer,
             (JoltPhysicsSharp.Activation)message.activation
         );
         _body2Owner[bodyId.ID] = connectionid;
