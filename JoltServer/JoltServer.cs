@@ -15,6 +15,7 @@ using Serilog;
 using UnityToolkit;
 using MotionType = JoltPhysicsSharp.MotionType;
 using ShapeSubType = JoltPhysicsSharp.ShapeSubType;
+using ShapeType = JoltPhysicsSharp.ShapeType;
 
 namespace JoltServer;
 
@@ -158,6 +159,14 @@ public partial class JoltServer : JoltApplication.ISystem
                 ShapeDataPacket.Create(plane, out packet);
                 break;
             default:
+                // TODO 额外的处理逻辑
+                if (shape is { Type: ShapeType.Convex, SubType: ShapeSubType.Box })
+                {
+                    // Log.Warning("异常Shape进行额外处理，解析为BoxShape");
+                    ShapeDataPacket.Create(new BoxShapeData(shape.LocalBounds.Extent / 2), out packet);
+                    return true;
+                }
+                Log.Warning("Shape:{shape}序列化异常,{type},{subType}", shape, shape.Type, shape.SubType);
                 return false;
         }
 
@@ -167,7 +176,7 @@ public partial class JoltServer : JoltApplication.ISystem
     public void PackBodyData(in BodyID id, out BodyData data)
     {
         Debug.Assert(_app.physicsSystem.BodyInterface.IsAdded(id));
-        
+
         bool isSensor = false;
         ShapeDataPacket? shapeDataPacket = null;
 
@@ -182,11 +191,11 @@ public partial class JoltServer : JoltApplication.ISystem
                 shapeDataPacket = packet;
             }
         }
+
         _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
-        
+
         // var shape = _app.physicsSystem.BodyInterface.GetShape(id);
         // Debug.Assert(shape != null);
-
 
 
         var ownerId = _body2Owner.GetValueOrDefault(id, ServerId);
@@ -194,9 +203,6 @@ public partial class JoltServer : JoltApplication.ISystem
         Vector3 position = _app.physicsSystem.BodyInterface.GetPosition(id);
         Quaternion rotation = _app.physicsSystem.BodyInterface.GetRotation(id);
 
-
-
-        
 
         data = new BodyData()
         {
@@ -216,8 +222,8 @@ public partial class JoltServer : JoltApplication.ISystem
             angularVelocity = _app.physicsSystem.BodyInterface.GetAngularVelocity(id),
             shapeDataPacket = shapeDataPacket
         };
-        
-        
+
+
         if (shapeDataPacket == null)
         {
             ToolkitLog.Info($"got a null shape packet,id:{id},threadId:{Thread.CurrentThread.ManagedThreadId}");
