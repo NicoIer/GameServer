@@ -28,7 +28,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\JoltServer\JoltServer.csproj" />
-      <ProjectReference Include="..\Jolt\Jolt.csproj" />
+      <ProjectReference Include="..\Jolt.Shared\Jolt.Shared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@
     <PropertyGroup>
         <Nullable>enable</Nullable>
         <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
+        <RootNamespace>Jolt</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -4,3 +4,6 @@
 [submodule "GameCore"]
 	path = GameCore
 	url = https://github.com/NicoIer/GameCore.git
+[submodule "JoltRenderer/Packages/JoltPhysicsUnity"]
+	path = JoltRenderer/Packages/JoltPhysicsUnity
+	url = https://github.com/NicoIer/JoltPhysicsUnity.git

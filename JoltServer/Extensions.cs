@@ -38,9 +38,9 @@ public static class Extensions
     //     {
     //         ownerId = ownerId,
     //         entityId = body.ID,
-    //         bodyType = (GameCore.Jolt.BodyType)body.BodyType,
+    //         bodyType = (GameCore.Jolt.Shared.BodyType)body.BodyType,
     //         isActive = body.IsActive,
-    //         motionType = (GameCore.Jolt.MotionType)body.MotionType,
+    //         motionType = (GameCore.Jolt.Shared.MotionType)body.MotionType,
     //         isSensor = body.IsSensor,
     //         objectLayer = body.ObjectLayer,
     //         friction = body.Friction,
