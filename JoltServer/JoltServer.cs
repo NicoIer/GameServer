@@ -166,6 +166,7 @@ public partial class JoltServer : JoltApplication.ISystem
                     ShapeDataPacket.Create(new BoxShapeData(shape.LocalBounds.Extent / 2), out packet);
                     return true;
                 }
+
                 Log.Warning("Shape:{shape}序列化异常,{type},{subType}", shape, shape.Type, shape.SubType);
                 return false;
         }
@@ -186,16 +187,16 @@ public partial class JoltServer : JoltApplication.ISystem
         {
             Debug.Assert(@lock.Body != null);
             isSensor = @lock.Body.IsSensor;
-            if (PackShapeData(@lock.Body.Shape, out var packet))
-            {
-                shapeDataPacket = packet;
-            }
         }
 
         _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
 
-        // var shape = _app.physicsSystem.BodyInterface.GetShape(id);
-        // Debug.Assert(shape != null);
+        var shape = _app.physicsSystem.BodyInterface.GetShape(id);
+        Debug.Assert(shape != null);
+        if (PackShapeData(shape, out var packet))
+        {
+            shapeDataPacket = packet;
+        }
 
 
         var ownerId = _body2Owner.GetValueOrDefault(id, ServerId);

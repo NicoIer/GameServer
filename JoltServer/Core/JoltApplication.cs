@@ -355,7 +355,6 @@ public class JoltApplication : DisposableObject
                 system.BeforeUpdate(ctx);
             }
 
-
             PhysicsUpdateError error = physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
             if (error != PhysicsUpdateError.None)
             {

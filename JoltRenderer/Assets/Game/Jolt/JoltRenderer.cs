@@ -19,6 +19,7 @@ namespace Game.Jolt
         // private Dictionary<JoltBody, BodyData> body2Data = new Dictionary<JoltBody, BodyData>();
         public readonly Dictionary<uint, JoltBody> bodyDict = new Dictionary<uint, JoltBody>();
 
+        // TODO 临时使用 用来可视化
         public JoltBody boxPrefab; // 1 * 1 * 1
         public JoltBody planePrefab; // 10 * 0 * 10
         public JoltBody spherePrefab; // 半径0.5
@@ -51,6 +52,10 @@ namespace Game.Jolt
             }
         }
 
+        /// <summary>
+        /// 根据远程 修改本地
+        /// </summary>
+        /// <param name="data"></param>
         private void UpdateWorld(ref WorldData data)
         {
             currentWorld = data;

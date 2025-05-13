@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
@@ -37,8 +38,9 @@ namespace GameCore.Jolt
 
     [Serializable]
     [MemoryPackable]
-    public partial struct BodyData
-        // : INetworkEntity
+    public partial struct BodyData 
+        // : IPhysicsData
+    // : INetworkEntity
     {
         public int ownerId { get; set; } // player id
         public uint entityId { get; set; } // entity id -> jolt bodyId
@@ -82,6 +84,23 @@ namespace GameCore.Jolt
 
         // public IShapeData networkShapeData;
         public ShapeDataPacket? shapeDataPacket;
+
+        [MemoryPackIgnore] private IShapeData _shapeData;
+
+        [MemoryPackIgnore]
+        public IShapeData shapeData
+        {
+            get
+            {
+                if (_shapeData == null)
+                {
+                    Debug.Assert(shapeDataPacket.HasValue);
+                    _shapeData = ShapeDataPacket.Deserialize(shapeDataPacket.Value);
+                }
+
+                return _shapeData;
+            }
+        }
 
 
         // TODO 有时候可以Mask掉shape的数据 因为大多数时候这个都没有变化
