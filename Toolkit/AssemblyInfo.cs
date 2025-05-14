@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Demo")]
 [assembly: InternalsVisibleTo("JoltServer")]
 [assembly: InternalsVisibleTo("Jolt.Shared.Unity")]
+[assembly: InternalsVisibleTo("TestProject")]

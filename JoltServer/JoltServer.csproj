@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Jolt.Shared\Jolt.Shared.csproj" />
+      <ProjectReference Include="..\JoltServer.Core\JoltServer.Core.csproj" />
     </ItemGroup>
 
 </Project>

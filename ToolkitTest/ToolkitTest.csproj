@@ -24,8 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MagicPhysX.Toolkit\MagicPhysX.Toolkit.csproj" />
-      <ProjectReference Include="..\MagicPhysX\MagicPhysX.csproj" />
       <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 

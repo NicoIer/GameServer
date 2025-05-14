@@ -1,0 +1,301 @@
+using System.Diagnostics;
+using System.Numerics;
+using GameCore.Jolt;
+using JoltPhysicsSharp;
+using Serilog;
+using UnityToolkit;
+using Activation = JoltPhysicsSharp.Activation;
+using MotionType = JoltPhysicsSharp.MotionType;
+
+namespace JoltServer;
+
+public class JoltApplication : DisposableObject
+{
+    // public HashSet<BodyID> activeBodies = [];
+    // public HashSet<BodyID> deactivatedBodies = [];
+
+    // protected readonly HashSet<BodyID> _ignoreDrawBodies = [];
+    public int targetFPS => TargetFPS;
+    public JoltPhysicsWorld physicsWorld { get; private set; }
+    protected const int TargetFPS = 60;
+
+    // public long timestamp { get; private set; }
+    // internal static class Layers
+    // {
+    //     public static readonly ObjectLayer NonMoving = 0;
+    //     public static readonly ObjectLayer Moving = 1;
+    // }
+
+    // internal static class BroadPhaseLayers
+    // {
+    //     public static readonly BroadPhaseLayer NonMoving = 0;
+    //     public static readonly BroadPhaseLayer Moving = 1;
+    // }
+    
+
+    public JoltApplication()
+    {
+        if (!Foundation.Init(false)) return;
+        physicsWorld = new JoltPhysicsWorld(SetupCollisionFiltering);
+
+        systems = new List<ISystem>();
+        Foundation.SetTraceHandler((message => Console.WriteLine(message)));
+#if DEBUG
+        Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+        {
+            string message = inMessage ?? inExpression;
+
+            string outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
+
+            Debug.WriteLine(outMessage);
+
+            throw new Exception(outMessage);
+        });
+#endif
+    }
+
+    #region Physics
+
+    protected static void SetupCollisionFiltering(ref PhysicsSystemSettings settings)
+    {
+        // We use only 2 layers: one for non-moving objects and one for moving objects
+        ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
+        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.NonMoving, (byte)ObjectLayers.Moving);
+        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.Moving, (byte)ObjectLayers.Moving);
+
+        // We use a 1-to-1 mapping between object layers and broadphase layers
+        BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.NonMoving,
+            (byte)BroadPhaseLayers.NonMoving);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.Moving, (byte)BroadPhaseLayers.Moving);
+
+        ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter =
+            new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
+
+        settings.ObjectLayerPairFilter = objectLayerPairFilter;
+        settings.BroadPhaseLayerInterface = broadPhaseLayerInterface;
+        settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
+    }
+
+    public BodyID CreateFloor(float size, ObjectLayer layer)
+    {
+        BoxShape shape = new(new Vector3(size, 5.0f, size));
+        using BodyCreationSettings creationSettings =
+            new(shape, new Vector3(0, -5.0f, 0.0f), Quaternion.Identity, MotionType.Static, layer);
+        return Create(creationSettings, Activation.DontActivate);
+    }
+
+    public BodyID Create(BodyCreationSettings settings, Activation activation = Activation.Activate) =>
+        physicsWorld.Create(settings, activation);
+
+    public void RemoveAndDestroy(in BodyID bodyID) => physicsWorld.RemoveAndDestroy(bodyID);
+
+    public void Activate(in BodyID bodyID) => physicsWorld.Activete(bodyID);
+
+    public void Deactivate(in BodyID bodyID) => physicsWorld.Deactivete(bodyID);
+
+    public BodyID CreateBox(in Vector3 halfExtent,
+        in Vector3 position,
+        in Quaternion rotation,
+        MotionType motionType,
+        ObjectLayer layer,
+        Activation activation = Activation.Activate)
+    {
+        BoxShape shape = new(halfExtent);
+        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+        return Create(creationSettings, activation);
+    }
+
+    public BodyID CreateSphere(float radius,
+        in Vector3 position,
+        in Quaternion rotation,
+        MotionType motionType,
+        ObjectLayer layer,
+        Activation activation = Activation.Activate)
+    {
+        SphereShape shape = new(radius);
+        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+        return Create(creationSettings, activation);
+    }
+
+
+    public BodyID CreatePlane(
+        in Vector3 position,
+        in Quaternion rotation,
+        in Vector3 normal,
+        float distance,
+        float halfExtent,
+        MotionType motionType,
+        ObjectLayer layer,
+        PhysicsMaterial? material = null,
+        Activation activation = Activation.Activate)
+    {
+        Plane plane = new Plane(normal, distance);
+        PlaneShape shape = new(plane, material, halfExtent);
+        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+        return Create(creationSettings, activation);
+    }
+
+    #endregion
+
+    #region Systems
+
+    protected List<ISystem> systems;
+
+    public delegate void UpdateAction(in LoopContex ctx);
+
+    public event Action BeforeRun = delegate { };
+    public event Action AfterRun = delegate { };
+
+
+    public interface ISystem
+    {
+        public void OnAdded(JoltApplication app);
+
+
+        void OnRemoved();
+        public void BeforeRun();
+        public void BeforeUpdate(in LoopContex ctx);
+        public void AfterUpdate(in LoopContex ctx);
+        public void AfterRun();
+
+        public bool NeedShutdown()
+        {
+            return false;
+        }
+
+        public void Dispose();
+    }
+
+
+    public event UpdateAction BeforePhysicsUpdate = delegate { };
+    public event UpdateAction AfterPhysicsUpdate = delegate { };
+
+
+    public void AddSystem(ISystem system)
+    {
+        systems.Add(system);
+        system.OnAdded(this);
+    }
+
+    // public void RemoveSystem(ISystem system)
+    // {
+    //     systems.Remove(system);
+    //     system.OnRemoved();
+    // }
+    //
+    // public bool GetSystem<T>(out T system) where T : ISystem
+    // {
+    //     foreach (var s in systems)
+    //     {
+    //         if (s is T t)
+    //         {
+    //             system = t;
+    //             return true;
+    //         }
+    //     }
+    //
+    //     system = default!;
+    //     return false;
+    // }
+
+    #endregion
+
+    public bool running { get; private set; }
+
+    public class LoopContex
+    {
+        public long CurrentFrame;
+        public TimeSpan FrameBeginTimestamp;
+        public TimeSpan ElapsedTimeFromPreviousFrame;
+    }
+
+    public LoopContex ctx { get; private set; }
+
+    public void Run()
+    {
+        physicsWorld.physicsSystem.OptimizeBroadPhase();
+        const int collisionSteps = 1;
+        float deltaTime = 1.0f / TargetFPS;
+        TimeSpan deltaMs = TimeSpan.FromMilliseconds(1000 / TargetFPS);
+        // using var looper = new LogicLooper(TargetFPS);
+
+
+        BeforeRun();
+
+        foreach (var system in systems)
+        {
+            system.BeforeRun();
+        }
+
+
+        running = true;
+        Stopwatch stopwatch = new Stopwatch();
+
+        ctx = new LoopContex();
+
+        stopwatch.Start();
+        while (true)
+        {
+            ctx.CurrentFrame++;
+            ctx.FrameBeginTimestamp = stopwatch.Elapsed;
+
+            BeforePhysicsUpdate(ctx);
+
+            foreach (var system in systems)
+            {
+                system.BeforeUpdate(ctx);
+            }
+
+            var error = physicsWorld.Simulate(deltaTime, collisionSteps);
+            if (error != GameCore.Jolt.PhysicsUpdateError.None)
+            {
+                ToolkitLog.Warning($"Physics update error: {error}");
+            }
+
+
+            foreach (var system in systems)
+            {
+                system.AfterUpdate(ctx);
+            }
+
+            AfterPhysicsUpdate(ctx);
+
+            bool needShutdown = systems.Any(s => s.NeedShutdown());
+
+            ctx.ElapsedTimeFromPreviousFrame = stopwatch.Elapsed - ctx.FrameBeginTimestamp;
+
+            TimeSpan sleepTime = deltaMs - ctx.ElapsedTimeFromPreviousFrame;
+            if (sleepTime > TimeSpan.Zero)
+            {
+                Thread.Sleep(sleepTime);
+            }
+
+            if (needShutdown) break;
+        }
+
+        stopwatch.Stop();
+        running = false;
+
+        foreach (var system in systems)
+        {
+            system.AfterRun();
+        }
+
+        AfterRun();
+    }
+
+
+    protected override void Dispose(bool disposing)
+    {
+        if (!disposing) return;
+        physicsWorld.Dispose();
+        foreach (var system in systems)
+        {
+            system.Dispose();
+        }
+
+        systems.Clear();
+        Foundation.Shutdown();
+    }
+}
