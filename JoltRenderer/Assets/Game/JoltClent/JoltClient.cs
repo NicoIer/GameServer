@@ -10,7 +10,7 @@ using UnityToolkit;
 
 namespace Game.Jolt
 {
-    public partial class JoltClient : MonoSingleton<JoltClient>, IJoltRenderer
+    public partial class JoltClient : MonoSingleton<JoltClient>
     {
         private NetworkClient _client;
         public string serverHost = "localhost";

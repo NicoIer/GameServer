@@ -11,14 +11,5 @@ namespace Game.Jolt
     /// </summary>
     public class PhysicsWorld : MonoBehaviour
     {
-        public WorldData current;
-
-        public void Simulate(float deltaTime)
-        {
-        }
-
-        public void RollBack(in byte frameCount)
-        {
-        }
     }
 }

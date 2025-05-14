@@ -1,0 +1,17 @@
+{
+    "name": "JoltClient.Warpper",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cc666fbbf5a3d43e68096d6b8808f3f5",
+        "GUID:9baea0ba6357e4d09ba61789a936bcc7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
