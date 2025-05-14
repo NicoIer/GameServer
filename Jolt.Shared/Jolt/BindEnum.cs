@@ -1,5 +1,16 @@
-﻿namespace GameCore.Jolt
+﻿using System;
+
+namespace GameCore.Jolt
 {
+    [Flags]
+    public enum PhysicsUpdateError
+    {
+        None = 0,
+        ManifoldCacheFull = 1,
+        BodyPairCacheFull = 2,
+        ContactConstraintsFull = 4,
+    }
+    
     /// <summary>
     /// This enumerates all shapeData types, each shapeData can return its type through <see cref="ShapeData.SubType"/>
     /// </summary>

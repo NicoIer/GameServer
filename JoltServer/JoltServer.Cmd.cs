@@ -27,15 +27,15 @@ public partial class JoltServer
     private void OnCmdBodyState(in int connectionid, in CmdBodyState message)
     {
         Log.Information($"客户端{connectionid}请求更新Body:{message.entityId}");
-        if (!_body2Owner.ContainsKey(message.entityId))
+        if (!_app.physicsWorld.body2Owner.ContainsKey(message.entityId))
         {
             Log.Warning($"客户端{connectionid}请求更新不存在的Body:{message.entityId}");
             return;
         }
 
-        if (_body2Owner[message.entityId] != connectionid)
+        if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
         {
-            Log.Warning($"客户端{connectionid}请求更新不属于自己的Body:{message.entityId}由{_body2Owner[message.entityId]}所有");
+            Log.Warning($"客户端{connectionid}请求更新不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
             return;
         }
 
@@ -43,35 +43,35 @@ public partial class JoltServer
 
         if (message.position != null)
         {
-            _app.physicsSystem.BodyInterface.SetPosition(bodyId, message.position.Value,
+            _app.physicsWorld.physicsSystem.BodyInterface.SetPosition(bodyId, message.position.Value,
                 (JoltPhysicsSharp.Activation)message.activation);
         }
 
         if (message.rotation != null)
         {
-            _app.physicsSystem.BodyInterface.SetRotation(bodyId, message.rotation.Value,
+            _app.physicsWorld.physicsSystem.BodyInterface.SetRotation(bodyId, message.rotation.Value,
                 (JoltPhysicsSharp.Activation)message.activation);
         }
 
         if (message.linearVelocity != null)
         {
-            _app.physicsSystem.BodyInterface.SetLinearVelocity(bodyId, message.linearVelocity.Value);
+            _app.physicsWorld.physicsSystem.BodyInterface.SetLinearVelocity(bodyId, message.linearVelocity.Value);
         }
 
         if (message.angularVelocity != null)
         {
-            _app.physicsSystem.BodyInterface.SetAngularVelocity(bodyId, message.angularVelocity.Value);
+            _app.physicsWorld.physicsSystem.BodyInterface.SetAngularVelocity(bodyId, message.angularVelocity.Value);
         }
 
-        var active = _app.physicsSystem.BodyInterface.IsActive(bodyId);
+        var active = _app.physicsWorld.physicsSystem.BodyInterface.IsActive(bodyId);
         if (active == message.isActive) return;
         if (message.isActive)
         {
-            _app.physicsSystem.BodyInterface.ActivateBody(bodyId);
+            _app.physicsWorld.physicsSystem.BodyInterface.ActivateBody(bodyId);
         }
         else
         {
-            _app.physicsSystem.BodyInterface.DeactivateBody(bodyId);
+            _app.physicsWorld.physicsSystem.BodyInterface.DeactivateBody(bodyId);
         }
     }
 
@@ -79,20 +79,20 @@ public partial class JoltServer
     {
         Log.Information($"客户端{connectionid}请求销毁Body:{message.entityId}");
 
-        if (!_body2Owner.ContainsKey(message.entityId))
+        if (!_app.physicsWorld.body2Owner.ContainsKey(message.entityId))
         {
             Log.Warning($"客户端{connectionid}请求销毁不存在的Body:{message.entityId}");
             return;
         }
 
-        if (_body2Owner[message.entityId] != connectionid)
+        if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
         {
-            Log.Warning($"客户端{connectionid}请求销毁不属于自己的Body:{message.entityId}由{_body2Owner[message.entityId]}所有");
+            Log.Warning($"客户端{connectionid}请求销毁不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
             return;
         }
 
         _app.RemoveAndDestroy(message.entityId);
-        _body2Owner.Remove(message.entityId);
+        _app.physicsWorld.body2Owner.Remove(message.entityId);
 
 
         Log.Information($"销毁Body成功:{message.entityId}");
@@ -113,7 +113,7 @@ public partial class JoltServer
             null,
             (JoltPhysicsSharp.Activation)message.activation
         );
-        _body2Owner[bodyId.ID] = connectionid;
+        _app.physicsWorld.body2Owner[bodyId.ID] = connectionid;
         Log.Information($"生成Plane成功:{bodyId}");
     }
 
@@ -134,7 +134,7 @@ public partial class JoltServer
             (uint)message.objectLayer,
             (JoltPhysicsSharp.Activation)message.activation
         );
-        _body2Owner[bodyId.ID] = connectionid;
+        _app.physicsWorld.body2Owner[bodyId.ID] = connectionid;
         Log.Information($"生成Box成功:{bodyId}");
     }
 }

@@ -31,7 +31,7 @@ public partial class JoltServer
         rsp = default;
         errorMsg = "";
         var bodyId = message.bodyId;
-        if (!_body2Owner.TryGetValue(bodyId, out var value))
+        if (!_app.physicsWorld.body2Owner.TryGetValue(bodyId, out var value))
         {
             errorcode = ErrorCode.InvalidArgument;
             errorMsg = "Invalid body id";
@@ -45,7 +45,7 @@ public partial class JoltServer
             return;
         }
 
-        _app.physicsSystem.BodyLockInterface.LockRead(message.bodyId, out var @lock);
+        _app.physicsWorld.physicsSystem.BodyLockInterface.LockRead(message.bodyId, out var @lock);
 
         if (@lock.Succeeded)
         {
@@ -59,6 +59,6 @@ public partial class JoltServer
             errorMsg = "Internal Error LockRead Failed";
         }
 
-        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+        _app.physicsWorld.physicsSystem.BodyLockInterface.UnlockRead(@lock);
     }
 }

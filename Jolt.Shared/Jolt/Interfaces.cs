@@ -8,15 +8,19 @@ namespace GameCore.Jolt
     public interface IConnector
     {
     }
-    
+
 
     public interface IPhysicsWorld
     {
+        protected static long worldIdCounter;
+        public byte worldId { get; }
+
         /// <summary>
         /// 模拟一帧
         /// </summary>
         /// <param name="deltaTime"></param>
-        public void Simulate(double deltaTime);
+        /// <param name="collisionSteps"></param>
+        public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps);
 
         /// <summary>
         /// 回滚指定的模拟次数
@@ -61,5 +65,14 @@ namespace GameCore.Jolt
         /// </summary>
         /// <param name="worldData"></param>
         public void Deserialize(in WorldData worldData);
+
+
+        public void Activete(in uint id);
+
+        public void Deactivete(in uint id);
+
+        public void RemoveAndDestroy(in uint id);
+
+        public void Dispose();
     }
 }

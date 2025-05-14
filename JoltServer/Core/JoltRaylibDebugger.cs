@@ -130,7 +130,7 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
         Raylib.BeginMode3D(mainCamera);
         // Raylib.DrawModel(planeModel, Vector3.Zero, 1.0f, Color.White);
 
-        foreach (BodyID bodyID in JoltApplication.bodies)
+        foreach (BodyID bodyID in JoltApplication.physicsWorld.bodies)
         {
             // if (JoltApplication.ignoreDrawBodies.Contains(bodyID))
             //     continue;
@@ -145,8 +145,8 @@ public class JoltRaylibDebugger : JoltApplication.ISystem
             //    0, 0, 0, 1.0f);
 
             // Raylib uses column major matrix
-            Matrix4x4 worldTransform = JoltApplication.physicsSystem.BodyInterface.GetWorldTransform(bodyID);
-            var shape = JoltApplication.physicsSystem.BodyInterface.GetShape(bodyID);
+            Matrix4x4 worldTransform = JoltApplication.physicsWorld.physicsSystem.BodyInterface.GetWorldTransform(bodyID);
+            var shape = JoltApplication.physicsWorld.physicsSystem.BodyInterface.GetShape(bodyID);
 
             switch (shape)
             {
