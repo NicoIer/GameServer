@@ -21,14 +21,7 @@ namespace GameCore.Jolt
         /// <param name="deltaTime"></param>
         /// <param name="collisionSteps"></param>
         public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps);
-
-        /// <summary>
-        /// 回滚指定的模拟次数
-        /// </summary>
-        /// <param name="delta">必须 > 0</param>
-        public void Rollback(byte delta);
-
-
+        
         /// <summary>
         /// 获取一个实体的数据
         /// </summary>
@@ -67,9 +60,9 @@ namespace GameCore.Jolt
         public void Deserialize(in WorldData worldData);
 
 
-        public void Activete(in uint id);
+        public void Activate(in uint id);
 
-        public void Deactivete(in uint id);
+        public void Deactivate(in uint id);
 
         public void RemoveAndDestroy(in uint id);
 

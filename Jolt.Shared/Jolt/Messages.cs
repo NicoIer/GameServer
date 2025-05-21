@@ -232,4 +232,9 @@ namespace GameCore.Jolt
             return data;
         }
     }
+
+    public struct FrameInputData
+    {
+        
+    }
 }

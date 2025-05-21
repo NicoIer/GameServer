@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Serilog;
@@ -18,6 +19,7 @@ public class JoltApplication : DisposableObject
     public int targetFPS => TargetFPS;
     public JoltPhysicsWorld physicsWorld { get; private set; }
     protected const int TargetFPS = 60;
+    protected const int WorldHistoryLength = 128;
 
     // public long timestamp { get; private set; }
     // internal static class Layers
@@ -31,7 +33,7 @@ public class JoltApplication : DisposableObject
     //     public static readonly BroadPhaseLayer NonMoving = 0;
     //     public static readonly BroadPhaseLayer Moving = 1;
     // }
-    
+
 
     public JoltApplication()
     {
@@ -85,14 +87,18 @@ public class JoltApplication : DisposableObject
         return Create(creationSettings, Activation.DontActivate);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BodyID Create(BodyCreationSettings settings, Activation activation = Activation.Activate) =>
         physicsWorld.Create(settings, activation);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveAndDestroy(in BodyID bodyID) => physicsWorld.RemoveAndDestroy(bodyID);
 
-    public void Activate(in BodyID bodyID) => physicsWorld.Activete(bodyID);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Activate(in BodyID bodyID) => physicsWorld.Activate(bodyID);
 
-    public void Deactivate(in BodyID bodyID) => physicsWorld.Deactivete(bodyID);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deactivate(in BodyID bodyID) => physicsWorld.Deactivate(bodyID);
 
     public BodyID CreateBox(in Vector3 halfExtent,
         in Vector3 position,

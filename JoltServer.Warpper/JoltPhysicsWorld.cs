@@ -30,11 +30,17 @@ public class JoltPhysicsWorld : IPhysicsWorld
     private const int MaxContactConstraints = 65536;
     private const int NumBodyMutexes = 0;
 
+    // private LinkedList<WorldData> history = new LinkedList<WorldData>();
+    // private int historyBufferSize;
+
     public delegate void SetupCollisionFilteringDelegate(ref PhysicsSystemSettings settings);
 
     public JoltPhysicsWorld(SetupCollisionFilteringDelegate setup)
+        // , int historyBufferSize)
     {
         if (!Foundation.Init(false)) return;
+        // history = new LinkedList<WorldData>();
+        // this.historyBufferSize = historyBufferSize;
         Interlocked.Increment(ref IPhysicsWorld.worldIdCounter);
         if (IPhysicsWorld.worldIdCounter > byte.MaxValue) throw new Exception("WorldId overflow");
         worldId = (byte)IPhysicsWorld.worldIdCounter;
@@ -120,14 +126,18 @@ public class JoltPhysicsWorld : IPhysicsWorld
 
     public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps)
     {
+        // if (history.Count == historyBufferSize)
+        // {
+        //     // Remove Head
+        //     history.RemoveFirst();
+        // }
+        //
+        // Serialize(out var data);
+        // //Append Tail
+        // history.AddLast(data);
+
         return (PhysicsUpdateError)physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
     }
-
-    public void Rollback(byte delta)
-    {
-        throw new NotImplementedException();
-    }
-
 
     public bool QueryBody(in uint id, [UnscopedRef] out BodyData bodyData)
     {
@@ -280,12 +290,12 @@ public class JoltPhysicsWorld : IPhysicsWorld
         throw new NotImplementedException();
     }
 
-    public void Activete(in uint id)
+    public void Activate(in uint id)
     {
         physicsSystem.BodyInterface.ActivateBody(id);
     }
 
-    public void Deactivete(in uint id)
+    public void Deactivate(in uint id)
     {
         physicsSystem.BodyInterface.DeactivateBody(id);
     }

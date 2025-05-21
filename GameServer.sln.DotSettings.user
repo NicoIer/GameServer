@@ -24,16 +24,14 @@
   &lt;Assembly Path="/Users/chenjun/.nuget/packages/magicphysx/1.0.0/lib/net6.0/MagicPhysX.dll" /&gt;
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5a1396a5_002D6cb1_002D4ade_002Daa48_002D7c913d24595d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="NAN" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2bec34cc_002Deb61_002D4410_002D8cdb_002D4380b4503b6e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltPhysicsTests&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.InlineProfiler.Test1&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.FrameStepTests.Test1&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6c156ada_002Dcf52_002D4cd9_002Da271_002D990ea7e15d51/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="NAN #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltPhysicsTests.NAN&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String>
+	
+	
 	
 	
 	
