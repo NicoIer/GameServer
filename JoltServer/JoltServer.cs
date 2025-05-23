@@ -63,6 +63,7 @@ public partial class JoltServer : JoltApplication.ISystem
 
         HandleCmd();
         HandleReqRsp();
+        HandleRpc();
 
         if (cfg.lockStep)
         {

@@ -84,6 +84,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult.AcceptAllContactsForThisBodyPair;
     }
+    
 
     protected virtual void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2,
         in ContactManifold manifold, in ContactSettings settings)
