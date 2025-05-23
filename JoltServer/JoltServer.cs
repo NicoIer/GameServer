@@ -12,6 +12,7 @@ namespace JoltServer;
 // TODO 将复制物理世界 网络传输部分 在另一个线程执行
 public partial class JoltServer : JoltApplication.ISystem
 {
+
     private JoltApplication _app;
 
     private readonly LogicLooper _networkLooper;
@@ -36,8 +37,13 @@ public partial class JoltServer : JoltApplication.ISystem
     // private FrameStep _frameStep;
 
 
-    public JoltServer(int targetFrameRate, int port, int bufferSize = 1024)
+    public delegate void ContextDelegate(in JoltApplication.LoopContex ctx);
+    
+    private JoltConfig _config;
+
+    public JoltServer(int targetFrameRate, int port, int bufferSize, JoltConfig cfg)
     {
+        _config = cfg;
         // _frameStep = new FrameStep(bufferSize);
         _worldSnapshot = new CircularBuffer<WorldData>(bufferSize);
         _worldSnapshot.OnRemove += (in WorldData data) =>
@@ -57,6 +63,11 @@ public partial class JoltServer : JoltApplication.ISystem
 
         HandleCmd();
         HandleReqRsp();
+
+        if (cfg.lockStep)
+        {
+            HandleLockStep();
+        }
     }
 
 
@@ -74,6 +85,10 @@ public partial class JoltServer : JoltApplication.ISystem
     {
         Log.Information($"JoltServer Start {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         _server.Run(false);
+        if (_config.lockStep)
+        {
+            StartLockStep();
+        }
         // _server.Run(true);
         _networkLooper.RegisterActionAsync((in LogicLooperActionContext ctx) =>
         {
@@ -91,14 +106,11 @@ public partial class JoltServer : JoltApplication.ISystem
 
     public void BeforeUpdate(in JoltApplication.LoopContex ctx)
     {
+        if (_config.lockStep)
+        {
+            LockStep(ctx);
+        }
         _server.socket.TickIncoming();
-
-        // 阻塞 直到 所有玩家都有输入 
-        // while (true)
-        // {
-        //     _server.socket.TickIncoming();
-        //     if (_frameStep.current.Count != _server.ConnectionCount) continue;
-        // }
     }
 
 
@@ -107,31 +119,14 @@ public partial class JoltServer : JoltApplication.ISystem
         // Console.WriteLine($"AfterUpdate {ctx.CurrentFrame}");
         BodyData[] array = ArrayPool<BodyData>.Shared.Rent(_app.physicsWorld.bodies.Count);
         var bodies = new ArraySegment<BodyData>(array, 0, _app.physicsWorld.bodies.Count);
-        WorldData worldData;
-        worldData.bodies = bodies;
-        // worldData.worldId = _app.worldId;
-        worldData.gravity = _app.physicsWorld.physicsSystem.Gravity;
-        worldData.timeStamp = (long)_app.ctx.FrameBeginTimestamp.TotalMicroseconds;
-        worldData.frameCount = _app.ctx.CurrentFrame;
 
-
-        for (var i = 0; i < _app.physicsWorld.bodies.Count; i++)
+        WorldData worldData = new WorldData
         {
-            var id = _app.physicsWorld.bodies[i];
-            Debug.Assert(_app.physicsWorld.physicsSystem.BodyInterface.IsAdded(id));
-            PackBodyData(id, out var data);
-            bodies[i] = data;
-
-
-            Debug.Assert(float.IsNaN(bodies[i].position.X) == false);
-            Debug.Assert(float.IsNaN(bodies[i].position.Y) == false);
-            Debug.Assert(float.IsNaN(bodies[i].position.Z) == false);
-
-            Debug.Assert(float.IsNaN(bodies[i].rotation.X) == false);
-            Debug.Assert(float.IsNaN(bodies[i].rotation.Y) == false);
-            Debug.Assert(float.IsNaN(bodies[i].rotation.Z) == false);
-            Debug.Assert(float.IsNaN(bodies[i].rotation.W) == false);
-        }
+            bodies = bodies,
+            timeStamp = (long)_app.ctx.FrameBeginTimestamp.TotalMicroseconds,
+            frameCount = _app.ctx.CurrentFrame
+        };
+        _app.physicsWorld.Serialize(ref worldData);
 
 
         _worldSnapshot.PushBack(worldData);
@@ -145,6 +140,10 @@ public partial class JoltServer : JoltApplication.ISystem
     public void AfterRun()
     {
         _server.Stop();
+        if (_config.lockStep)
+        {
+            StopLockStep();
+        }
         _networkLooper.ShutdownAsync(TimeSpan.Zero).Wait();
     }
 
@@ -153,8 +152,6 @@ public partial class JoltServer : JoltApplication.ISystem
     {
     }
 
-
-    public void PackBodyData(in BodyID id, out BodyData data) => _app.physicsWorld.QueryBody(id, out data);
 
     public ref WorldData QueryHistoryWorld(int delta)
     {
@@ -170,6 +167,6 @@ public partial class JoltServer : JoltApplication.ISystem
             }
         }
 
-        throw new InvalidOperationException($"WorldData {targetFrame} not found");
+        throw new ArgumentException($"WorldData {targetFrame} not found delta={delta} out of range");
     }
 }

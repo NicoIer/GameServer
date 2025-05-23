@@ -51,7 +51,7 @@ namespace GameCore.Jolt
         /// 序列化物理世界
         /// </summary>
         /// <param name="worldData"></param>
-        public void Serialize(out WorldData worldData);
+        public void Serialize(ref WorldData worldData);
 
         /// <summary>
         /// 从数据中恢复物理世界

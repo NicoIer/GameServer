@@ -80,7 +80,7 @@ ShapeDataPacket.RegisterAll();
 var app = new JoltApplication();
 // var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt.Shared Visual Debugger", app.targetFPS);
 // app.AddSystem(visualDebugger); 
-var joltServer = new JoltServer.JoltServer(60, 24419);
+var joltServer = new JoltServer.JoltServer(60, 24419, 1024, JoltConfig.Default);
 app.AddSystem(joltServer);
 
 

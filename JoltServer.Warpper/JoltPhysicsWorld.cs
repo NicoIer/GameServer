@@ -280,9 +280,29 @@ public class JoltPhysicsWorld : IPhysicsWorld
         throw new NotImplementedException();
     }
 
-    public void Serialize([UnscopedRef] out WorldData worldData)
+    public void Serialize(ref WorldData worldData)
     {
-        throw new NotImplementedException();
+        Debug.Assert(worldData.bodies.Count >= bodies.Count);
+        worldData.gravity = physicsSystem.Gravity;
+
+
+        for (var i = 0; i < bodies.Count; i++)
+        {
+            var id = bodies[i];
+            Debug.Assert(physicsSystem.BodyInterface.IsAdded(id));
+            QueryBody(id, out var data);
+            worldData.bodies[i] = data;
+
+
+            Debug.Assert(float.IsNaN(worldData.bodies[i].position.X) == false);
+            Debug.Assert(float.IsNaN(worldData.bodies[i].position.Y) == false);
+            Debug.Assert(float.IsNaN(worldData.bodies[i].position.Z) == false);
+
+            Debug.Assert(float.IsNaN(worldData.bodies[i].rotation.X) == false);
+            Debug.Assert(float.IsNaN(worldData.bodies[i].rotation.Y) == false);
+            Debug.Assert(float.IsNaN(worldData.bodies[i].rotation.Z) == false);
+            Debug.Assert(float.IsNaN(worldData.bodies[i].rotation.W) == false);
+        }
     }
 
     public void Deserialize(in WorldData worldData)

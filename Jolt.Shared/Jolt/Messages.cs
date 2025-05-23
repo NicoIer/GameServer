@@ -233,8 +233,10 @@ namespace GameCore.Jolt
         }
     }
 
-    public struct FrameInputData
+    [MemoryPackable]
+    public partial struct LockStepData : INetworkMessage
     {
-        
+        public long frame;
+        public ArraySegment<byte> payload;
     }
 }

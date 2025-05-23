@@ -19,7 +19,7 @@ public class JoltApplication : DisposableObject
     public int targetFPS => TargetFPS;
     public JoltPhysicsWorld physicsWorld { get; private set; }
     protected const int TargetFPS = 60;
-    protected const int WorldHistoryLength = 128;
+    // protected const int WorldHistoryLength = 128;
 
     // public long timestamp { get; private set; }
     // internal static class Layers

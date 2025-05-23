@@ -42,7 +42,13 @@ ShapeDataPacket.RegisterAll();
 var app = new JoltApplication();
 // var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt.Shared Visual Debugger", app.targetFPS);
 // app.AddSystem(visualDebugger); 
-var joltServer = new JoltServer.JoltServer(60, 24419);
+
+var cfg = new JoltConfig
+{
+    // lockStep = true
+};
+
+var joltServer = new JoltServer.JoltServer(60, 24419, 2048, cfg);
 app.AddSystem(joltServer);
 
 NetworkTimeServer timeServer = new NetworkTimeServer();

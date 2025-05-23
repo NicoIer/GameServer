@@ -39,7 +39,7 @@ public class Tests
 
         stopwatch.Stop();
         // 写日志
-        Assert.Warn($"{stopwatch.ElapsedMilliseconds}ms");
+        TestContext.Out.WriteLine("Time taken: " + stopwatch.Elapsed);
 
         stopwatch.Restart();
         for (var i = 0; i < count; i++)
@@ -49,7 +49,6 @@ public class Tests
             data.lod = 0;
             test[i] = data;
         }
-
-        Assert.Warn($"{stopwatch.ElapsedMilliseconds}ms");
+        TestContext.Out.WriteLine("Time taken: " + stopwatch.Elapsed);
     }
 }
