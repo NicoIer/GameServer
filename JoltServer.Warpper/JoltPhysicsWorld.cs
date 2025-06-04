@@ -14,20 +14,17 @@ public class JoltPhysicsWorld : IPhysicsWorld
     public byte worldId { get; private set; }
 
     public readonly Dictionary<uint, int> body2Owner = new Dictionary<uint, int>();
-    public const int ServerId = 0;
 
-    public IReadOnlyList<BodyID> bodies => _bodies;
+
+    public IReadOnlyList<uint> bodies => _bodies;
     // public IReadOnlySet<BodyID> ignoreDrawBodies => _ignoreDrawBodies;
 
-    protected readonly List<BodyID> _bodies = [];
-    private PhysicsSystemSettings _settings;
-    protected readonly JobSystem jobSystem;
-    public PhysicsSystem physicsSystem { get; private set; }
+    protected readonly List<uint> _bodies = new();
+    protected readonly JobSystem jobSystem = null!;
+    public PhysicsSystem physicsSystem { get; private set; } = null!;
 
-    private const int MaxBodies = 65536;
-    private const int MaxBodyPairs = 65536;
-    private const int MaxContactConstraints = 65536;
-    private const int NumBodyMutexes = 0;
+    // public float time { get; private set; }
+    // public long frame { get; private set; }
 
     // private LinkedList<WorldData> history = new LinkedList<WorldData>();
     // private int historyBufferSize;
@@ -37,23 +34,23 @@ public class JoltPhysicsWorld : IPhysicsWorld
     public JoltPhysicsWorld(SetupCollisionFilteringDelegate setup)
         // , int historyBufferSize)
     {
-        if (!Foundation.Init(false)) return;
+        if (!Foundation.Init(false)) throw new NotImplementedException("Jolt Physics Not Initialized");
         // history = new LinkedList<WorldData>();
         // this.historyBufferSize = historyBufferSize;
         Interlocked.Increment(ref IPhysicsWorld.worldIdCounter);
         if (IPhysicsWorld.worldIdCounter > byte.MaxValue) throw new Exception("WorldId overflow");
         worldId = (byte)IPhysicsWorld.worldIdCounter;
 
-        _settings = new PhysicsSystemSettings()
+        var settings = new PhysicsSystemSettings()
         {
-            MaxBodies = MaxBodies,
-            MaxBodyPairs = MaxBodyPairs,
-            MaxContactConstraints = MaxContactConstraints,
-            NumBodyMutexes = NumBodyMutexes,
+            MaxBodies = IPhysicsWorld.MaxBodies,
+            MaxBodyPairs = IPhysicsWorld.MaxBodyPairs,
+            MaxContactConstraints = IPhysicsWorld.MaxContactConstraints,
+            NumBodyMutexes = IPhysicsWorld.NumBodyMutexes,
         };
         jobSystem = new JobSystemThreadPool();
-        setup(ref _settings);
-        physicsSystem = new PhysicsSystem(_settings);
+        setup(ref settings);
+        physicsSystem = new PhysicsSystem(settings);
 
         // ContactListener
         physicsSystem.OnContactValidate += OnContactValidate;
@@ -118,7 +115,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     #endregion
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GameCore.Jolt.PhysicsUpdateError Simulate(float deltaTime, int collisionSteps)
+    public GameCore.Jolt.PhysicsUpdateError Simulate(in float deltaTime, in int collisionSteps)
     {
         // if (history.Count == historyBufferSize)
         // {
@@ -174,7 +171,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
             new ObjectLayer((uint)layers)
         );
         var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation);
-        OnBodyCreated(body);
+        OnBodyCreated(body.ID);
         return body.ID;
     }
     // public uint Create(IShapeData shape, in Vector3 position, in Quaternion rotation,
@@ -216,7 +213,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     // }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void OnBodyCreated(in BodyID bodyId, int owner = ServerId)
+    private void OnBodyCreated(in uint bodyId, int owner = IPhysicsWorld.ServerId)
     {
         _bodies.Add(bodyId);
         body2Owner.Add(bodyId, owner);
@@ -225,7 +222,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
     public bool QueryBody(in uint id, [UnscopedRef] out BodyData bodyData)
     {
         Debug.Assert(physicsSystem.BodyInterface.IsAdded(id));
-
         bool isSensor = false;
         ShapeDataPacket? shapeDataPacket = null;
 
@@ -247,7 +243,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
         }
 
 
-        var ownerId = body2Owner.GetValueOrDefault(id, ServerId);
+        var ownerId = body2Owner.GetValueOrDefault(id, IPhysicsWorld.ServerId);
 
         Vector3 position = physicsSystem.BodyInterface.GetPosition(id);
         Quaternion rotation = physicsSystem.BodyInterface.GetRotation(id);

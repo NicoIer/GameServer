@@ -16,6 +16,12 @@ namespace GameCore.Jolt
 
     public interface IPhysicsWorld
     {
+        public const int ServerId = 0;
+        public const int MaxBodies = 65536;
+        public const int MaxBodyPairs = 65536;
+        public const int MaxContactConstraints = 65536;
+        public const int NumBodyMutexes = 0;
+        
         protected static long worldIdCounter;
         public byte worldId { get; }
 
@@ -24,7 +30,7 @@ namespace GameCore.Jolt
         /// </summary>
         /// <param name="deltaTime"></param>
         /// <param name="collisionSteps"></param>
-        public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps);
+        public PhysicsUpdateError Simulate(in float deltaTime, in int collisionSteps);
 
         /// <summary>
         /// 创建一个物理实体
