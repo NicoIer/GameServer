@@ -13,14 +13,32 @@ public partial class JoltServer
     private void HandleCmd()
     {
         // Cmd
-        _server.messageHandler.Add<CmdSpawnBox>(OnCmdSpawnBox);
-        _server.messageHandler.Add<CmdSpawnPlane>(OnCmdSpawnPlane);
+        _server.messageHandler.Add<CmdSpawnBody>(OnCmdSpawnBody);
+        // _server.messageHandler.Add<CmdSpawnBox>(OnCmdSpawnBox);
+        // _server.messageHandler.Add<CmdSpawnPlane>(OnCmdSpawnPlane);
+
+
         _server.messageHandler.Add<CmdDestroy>(OnCmdDestroy);
         _server.messageHandler.Add<CmdBodyState>(OnCmdBodyState);
+    }
 
-        // Rpc
-
-
+    private void OnCmdSpawnBody(in int connectionId, in CmdSpawnBody message)
+    {
+        Debug.Assert(float.IsNaN(message.rotation.X) == false);
+        Debug.Assert(float.IsNaN(message.rotation.Y) == false);
+        Debug.Assert(float.IsNaN(message.rotation.Z) == false);
+        Debug.Assert(float.IsNaN(message.rotation.W) == false);
+        Log.Information($"客户端{connectionId}请求生成Body,threadId:{Thread.CurrentThread.ManagedThreadId}");
+        var data = message.GetShapeData();
+        var bodyId = _app.physicsWorld.Create(
+            data,
+            message.position,
+            message.rotation,
+            message.motionType,
+            message.objectLayer,
+            message.activation);
+        _app.physicsWorld.body2Owner[bodyId] = connectionId;
+        Log.Information($"生成成功:{bodyId},threadId:{Thread.CurrentThread.ManagedThreadId}");
     }
 
 
@@ -35,7 +53,8 @@ public partial class JoltServer
 
         if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
         {
-            Log.Warning($"客户端{connectionid}请求更新不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
+            Log.Warning(
+                $"客户端{connectionid}请求更新不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
             return;
         }
 
@@ -87,7 +106,8 @@ public partial class JoltServer
 
         if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
         {
-            Log.Warning($"客户端{connectionid}请求销毁不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
+            Log.Warning(
+                $"客户端{connectionid}请求销毁不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
             return;
         }
 
@@ -96,45 +116,5 @@ public partial class JoltServer
 
 
         Log.Information($"销毁Body成功:{message.entityId}");
-    }
-
-
-    public void OnCmdSpawnPlane(in int connectionid, in CmdSpawnPlane message)
-    {
-        Log.Information($"客户端{connectionid}请求生成Plane");
-        var bodyId = _app.CreatePlane(
-            message.position,
-            message.rotation,
-            message.normal,
-            message.distance,
-            message.halfExtent,
-            (JoltPhysicsSharp.MotionType)message.motionType,
-            (ushort)message.objectLayer,
-            null,
-            (JoltPhysicsSharp.Activation)message.activation
-        );
-        _app.physicsWorld.body2Owner[bodyId.ID] = connectionid;
-        Log.Information($"生成Plane成功:{bodyId}");
-    }
-
-    public void OnCmdSpawnBox(in int connectionid, in CmdSpawnBox message)
-    {
-        Log.Information($"客户端{connectionid}请求生成Box");
-        Debug.Assert(float.IsNaN(message.rotation.X) == false);
-        Debug.Assert(float.IsNaN(message.rotation.Y) == false);
-        Debug.Assert(float.IsNaN(message.rotation.Z) == false);
-        Debug.Assert(float.IsNaN(message.rotation.W) == false);
-
-
-        var bodyId = _app.CreateBox(
-            message.halfExtents,
-            message.position,
-            message.rotation,
-            (JoltPhysicsSharp.MotionType)message.motionType,
-            (uint)message.objectLayer,
-            (JoltPhysicsSharp.Activation)message.activation
-        );
-        _app.physicsWorld.body2Owner[bodyId.ID] = connectionid;
-        Log.Information($"生成Box成功:{bodyId}");
     }
 }

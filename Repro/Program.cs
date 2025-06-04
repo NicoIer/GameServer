@@ -1,123 +1,212 @@
-﻿// // See https://aka.ms/new-console-template for more information
+﻿// // // See https://aka.ms/new-console-template for more information
+// // //
+// using System.Numerics;
+// using System.Text;
+// using GameCore.Jolt;
+// using JoltPhysicsSharp;
+// using JoltServer;
+// using Network.Time;
+// using Serilog;
+// using Serilog.Events;
+// using UnityToolkit;
+// using Activation = JoltPhysicsSharp.Activation;
+// using MotionType = JoltPhysicsSharp.MotionType;
+// // //
+// // //
+// // var app = new JoltApplication();
+// // app.AfterPhysicsUpdate += (in JoltApplication.LoopContex ctx) =>
+// // {
+// //     for (var i = 0; i < app.bodies.Count; i++)
+// //     {
+// //         var id = app.bodies[i];
+// //         var shape = app.physicsSystem.BodyInterface.GetShape(id);
+// //         if (shape is not PlaneShape && shape is not BoxShape)
+// //         {
+// //             Console.WriteLine("Error Catch");
+// //         }
+// //     }
+// // };
 // //
-using System.Numerics;
-using System.Text;
-using GameCore.Jolt;
-using JoltPhysicsSharp;
-using JoltServer;
-using Network.Time;
-using Serilog;
-using Serilog.Events;
-using UnityToolkit;
-using Activation = JoltPhysicsSharp.Activation;
-using MotionType = JoltPhysicsSharp.MotionType;
 // //
 // //
+// // // Thread.Sleep(1000);
+// //
+// // app.CreatePlane(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(0, 1, 0), 0, 10, MotionType.Static,
+// //     (uint)ObjectLayers.NonMoving);
+// //
+// // // Thread.Sleep(1000);
+// // for (int i = 0; i < 1000; i++)
+// // {
+// //     Thread.Sleep(16);
+// //     app.CreateBox(new Vector3(1, 1, 1), new Vector3(0, 8, 0), Quaternion.Identity, MotionType.Dynamic,
+// //         (uint)ObjectLayers.Moving);
+// //    
+// // }
+// //
+// // app.Run();
+// // Console.ReadLine();
+//
+//
+//
+// string logPath = $"./log/{DateTime.Now:yyyy-MM-dd}-.txt";
+// ToolkitLog.writeLog = false; // 取消ToolkitLog的日志写文件\
+// ToolkitLog.infoAction = Log.Information; // 用Serilog库的Information方法输出日志
+// ToolkitLog.warningAction = Log.Warning; // 用Serilog库的Warning方法输出日志
+// ToolkitLog.errorAction = Log.Error; // 用Serilog库的Error方法输出日志
+//
+//
+// // 使用Serilog库配置日志输出
+// var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
+//     .WriteTo.File(
+//         logPath,
+//         restrictedToMinimumLevel: LogEventLevel.Warning, // 日志输出最低级别
+//         outputTemplate: @"{Timestamp:yyyy-MM-dd HH:mm-ss.fff }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+//         rollingInterval: RollingInterval.Day, //日志按天保存
+//         rollOnFileSizeLimit: true, // 限制单个文件的最大长度
+//         fileSizeLimitBytes: 10 * 1024 * 1024, // 单个文件最大长度10M
+//         encoding: Encoding.UTF8, // 文件字符编码
+//         retainedFileCountLimit: 1024) // 最大保存文件数,超过最大文件数会自动覆盖原有文件
+//     .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information); // 控制台输出日志
+//
+// Log.Logger = loggerConfig.CreateLogger();
+//
+// ToolkitLog.infoAction = Log.Information;
+// ToolkitLog.warningAction = Log.Warning;
+// ToolkitLog.errorAction = Log.Error;
+//
+// ShapeDataPacket.RegisterAll();
+//
+//
 // var app = new JoltApplication();
-// app.AfterPhysicsUpdate += (in JoltApplication.LoopContex ctx) =>
+// // var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt.Shared Visual Debugger", app.targetFPS);
+// // app.AddSystem(visualDebugger); 
+// var joltServer = new JoltServer.JoltServer(60, 24419, 1024, JoltConfig.Default);
+// app.AddSystem(joltServer);
+//
+//
+// var clientThread = new Thread(() =>
 // {
-//     for (var i = 0; i < app.bodies.Count; i++)
-//     {
-//         var id = app.bodies[i];
-//         var shape = app.physicsSystem.BodyInterface.GetShape(id);
-//         if (shape is not PlaneShape && shape is not BoxShape)
-//         {
-//             Console.WriteLine("Error Catch");
-//         }
-//     }
-// };
+//     Thread.Sleep(2000);
+//     // joltServer.OnCmdSpawnPlane(0,new CmdSpawnPlane()
+//     // {
+//     //     position = Vector3.Zero,
+//     //     rotation = Quaternion.Identity,
+//     //     motionType = GameCore.Jolt.MotionType.Static,
+//     //     normal = Vector3.UnitY,
+//     //     distance = 0,
+//     //     halfExtent = 10,
+//     //     activation = GameCore.Jolt.Activation.Activate,
+//     //     objectLayer = ObjectLayers.NonMoving
+//     // });
+//     // for (int i = 0; i < 10; i++)
+//     // {
+//     //     joltServer.OnCmdSpawnBox(0, new CmdSpawnBox()
+//     //     {
+//     //         halfExtents = Vector3.One,
+//     //         position = new Vector3(0, 10, 0),
+//     //         rotation = Quaternion.Identity,
+//     //         motionType = GameCore.Jolt.MotionType.Static,
+//     //         activation = GameCore.Jolt.Activation.Activate,
+//     //         objectLayer = ObjectLayers.Moving,
+//     //     });
+//     // }
+// });
 //
-//
-//
-// // Thread.Sleep(1000);
-//
-// app.CreatePlane(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(0, 1, 0), 0, 10, MotionType.Static,
-//     (uint)ObjectLayers.NonMoving);
-//
-// // Thread.Sleep(1000);
-// for (int i = 0; i < 1000; i++)
-// {
-//     Thread.Sleep(16);
-//     app.CreateBox(new Vector3(1, 1, 1), new Vector3(0, 8, 0), Quaternion.Identity, MotionType.Dynamic,
-//         (uint)ObjectLayers.Moving);
-//    
-// }
+// clientThread.Start();
+// NetworkTimeServer timeServer = new NetworkTimeServer();
+// _ = timeServer.Start(24420);
 //
 // app.Run();
-// Console.ReadLine();
+//
+// timeServer.Stop();
+//
+//
+
+// Case
 
 
-
-string logPath = $"./log/{DateTime.Now:yyyy-MM-dd}-.txt";
-ToolkitLog.writeLog = false; // 取消ToolkitLog的日志写文件\
-ToolkitLog.infoAction = Log.Information; // 用Serilog库的Information方法输出日志
-ToolkitLog.warningAction = Log.Warning; // 用Serilog库的Warning方法输出日志
-ToolkitLog.errorAction = Log.Error; // 用Serilog库的Error方法输出日志
-
-
-// 使用Serilog库配置日志输出
-var loggerConfig = new LoggerConfiguration().MinimumLevel.Debug()
-    .WriteTo.File(
-        logPath,
-        restrictedToMinimumLevel: LogEventLevel.Warning, // 日志输出最低级别
-        outputTemplate: @"{Timestamp:yyyy-MM-dd HH:mm-ss.fff }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
-        rollingInterval: RollingInterval.Day, //日志按天保存
-        rollOnFileSizeLimit: true, // 限制单个文件的最大长度
-        fileSizeLimitBytes: 10 * 1024 * 1024, // 单个文件最大长度10M
-        encoding: Encoding.UTF8, // 文件字符编码
-        retainedFileCountLimit: 1024) // 最大保存文件数,超过最大文件数会自动覆盖原有文件
-    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information); // 控制台输出日志
-
-Log.Logger = loggerConfig.CreateLogger();
-
-ToolkitLog.infoAction = Log.Information;
-ToolkitLog.warningAction = Log.Warning;
-ToolkitLog.errorAction = Log.Error;
-
-ShapeDataPacket.RegisterAll();
+using System.Numerics;
+using GameCore.Jolt;
+using JoltPhysicsSharp;
+using Activation = JoltPhysicsSharp.Activation;
+using MotionType = JoltPhysicsSharp.MotionType;
 
 
-var app = new JoltApplication();
-// var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt.Shared Visual Debugger", app.targetFPS);
-// app.AddSystem(visualDebugger); 
-var joltServer = new JoltServer.JoltServer(60, 24419, 1024, JoltConfig.Default);
-app.AddSystem(joltServer);
+if (!Foundation.Init(false)) return;
+// history = new LinkedList<WorldData>();
+// this.historyBufferSize = historyBufferSize;
 
-
-var clientThread = new Thread(() =>
+static void SetupCollisionFiltering(ref PhysicsSystemSettings settings)
 {
-    Thread.Sleep(2000);
-    joltServer.OnCmdSpawnPlane(0,new CmdSpawnPlane()
-    {
-        position = Vector3.Zero,
-        rotation = Quaternion.Identity,
-        motionType = GameCore.Jolt.MotionType.Static,
-        normal = Vector3.UnitY,
-        distance = 0,
-        halfExtent = 10,
-        activation = GameCore.Jolt.Activation.Activate,
-        objectLayer = ObjectLayers.NonMoving
-    });
-    for (int i = 0; i < 10; i++)
-    {
-        joltServer.OnCmdSpawnBox(0, new CmdSpawnBox()
-        {
-            halfExtents = Vector3.One,
-            position = new Vector3(0, 10, 0),
-            rotation = Quaternion.Identity,
-            motionType = GameCore.Jolt.MotionType.Static,
-            activation = GameCore.Jolt.Activation.Activate,
-            objectLayer = ObjectLayers.Moving,
-        });
-    }
-});
+    // We use only 2 layers: one for non-moving objects and one for moving objects
+    ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
+    objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.NonMoving, (byte)ObjectLayers.Moving);
+    objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.Moving, (byte)ObjectLayers.Moving);
 
-clientThread.Start();
-NetworkTimeServer timeServer = new NetworkTimeServer();
-_ = timeServer.Start(24420);
+    // We use a 1-to-1 mapping between object layers and broadphase layers
+    BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
+    broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.NonMoving,
+        (byte)BroadPhaseLayers.NonMoving);
+    broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.Moving, (byte)BroadPhaseLayers.Moving);
 
-app.Run();
+    ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter =
+        new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
 
-timeServer.Stop();
+    settings.ObjectLayerPairFilter = objectLayerPairFilter;
+    settings.BroadPhaseLayerInterface = broadPhaseLayerInterface;
+    settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
+}
+
+const int MaxBodies = 65536;
+const int MaxBodyPairs = 65536;
+const int MaxContactConstraints = 65536;
+const int NumBodyMutexes = 0;
+
+var settings = new PhysicsSystemSettings()
+{
+    MaxBodies = MaxBodies,
+    MaxBodyPairs = MaxBodyPairs,
+    MaxContactConstraints = MaxContactConstraints,
+    NumBodyMutexes = NumBodyMutexes,
+};
+var jobSystem = new JobSystemThreadPool();
+SetupCollisionFiltering(ref settings);
+var physicsSystem = new PhysicsSystem(settings);
+
+const int TargetFPS = 60;
+float deltaTime = 1.0f / TargetFPS;
+const int collisionSteps = 1;
+
+var normal = new Vector3(0, 1, 0);
+var halfExtent = 10;
+Plane plane = new Plane(normal, 0);
+var shape = new PlaneShape(plane, null, halfExtent);
 
 
+// success case
+using var bodyCreate = new BodyCreationSettings(
+    shape,
+    new Vector3(0, 0, 0),
+    new Quaternion(0, 0, 0, 1),
+    MotionType.Static,
+    new ObjectLayer((uint)ObjectLayers.NonMoving)
+);
+var id1 = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, Activation.Activate);
+physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+var shape1 = physicsSystem.BodyInterface.GetShape(id1);
+Console.WriteLine($"Shape: {shape1}");
+
+// failed case
+
+var shapeSettings = new PlaneShapeSettings(plane, null, halfExtent);
+using var bodyCrete2 = new BodyCreationSettings(
+    shapeSettings,
+    new Vector3(0, 0, 0),
+    new Quaternion(0, 0, 0, 1),
+    MotionType.Static,
+    new ObjectLayer((uint)ObjectLayers.NonMoving)
+);
+var id2 = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, Activation.Activate);
+physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+var shape2 = physicsSystem.BodyInterface.GetShape(id2);
+Console.WriteLine($"Shape: {shape2}");

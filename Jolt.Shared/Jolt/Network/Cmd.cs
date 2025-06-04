@@ -4,39 +4,76 @@ using Network;
 
 namespace GameCore.Jolt
 {
-    [MemoryPackable]
-    public partial struct CmdSpawnBox : INetworkMessage
-    {
-        public Vector3 halfExtents;
-        public Vector3 position;
-        public Quaternion rotation;
-        public MotionType motionType;
-        public Activation activation;
-        public ObjectLayers objectLayer;
-    }
+    // public interface IBodySpawnCmd
+    // {
+    //     public IShapeData GetShapeData();
+    // }
+    //
+    // [MemoryPackable]
+    // public partial struct CmdSpawnBox : INetworkMessage, IBodySpawnCmd
+    // {
+    //     public Vector3 halfExtents;
+    //     public Vector3 position;
+    //     public Quaternion rotation;
+    //     public MotionType motionType;
+    //     public Activation activation;
+    //     public ObjectLayers objectLayer;
+    //
+    //     public readonly IShapeData GetShapeData()
+    //     {
+    //         return new BoxShapeData(halfExtents);
+    //     }
+    // }
+    //
+    // [MemoryPackable]
+    // public partial struct CmdSpawnPlane : INetworkMessage, IBodySpawnCmd
+    // {
+    //     public Vector3 position;
+    //     public Quaternion rotation;
+    //     public MotionType motionType;
+    //     public Vector3 normal;
+    //     public float distance;
+    //     public float halfExtent;
+    //     public Activation activation;
+    //     public ObjectLayers objectLayer;
+    //
+    //     public readonly IShapeData GetShapeData()
+    //     {
+    //         return new PlaneShapeData(halfExtent, normal, distance);
+    //     }
+    // }
+    //
+    // [MemoryPackable]
+    // public partial struct CmdSpawnSphere : INetworkMessage, IBodySpawnCmd
+    // {
+    //     public Vector3 position;
+    //     public Quaternion rotation;
+    //     public MotionType motionType;
+    //     public Activation activation;
+    //     public ObjectLayers objectLayer;
+    //     public float radius;
+    //
+    //     public readonly IShapeData GetShapeData()
+    //     {
+    //         return new SphereShapeData(radius);
+    //     }
+    // }
 
     [MemoryPackable]
-    public partial struct CmdSpawnPlane : INetworkMessage
+    public partial struct CmdSpawnBody : INetworkMessage
+        // , IBodySpawnCmd
     {
-        public Vector3 position;
-        public Quaternion rotation;
-        public MotionType motionType;
-        public Vector3 normal;
-        public float distance;
-        public float halfExtent;
-        public Activation activation;
-        public ObjectLayers objectLayer;
-    }
-    
-    [MemoryPackable]
-    public partial struct CmdSpawnSphere : INetworkMessage
-    {
+        public ShapeDataPacket shapeDataPacket;
         public Vector3 position;
         public Quaternion rotation;
         public MotionType motionType;
         public Activation activation;
         public ObjectLayers objectLayer;
-        public float radius;
+
+        public readonly IShapeData GetShapeData()
+        {
+            return ShapeDataPacket.Deserialize(shapeDataPacket);
+        }
     }
 
     [MemoryPackable]

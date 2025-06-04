@@ -8,6 +8,10 @@ public partial class JoltServer
     // TODO 添加一个兴趣机制 让客户端只关心自己想要关心的碰撞
     private void HandleRpc()
     {
+        _app.physicsWorld.physicsSystem.OnContactAdded -= OnContactAddedRpc;
+        _app.physicsWorld.physicsSystem.OnContactRemoved -= OnContactRemovedRpc;
+        _app.physicsWorld.physicsSystem.OnContactPersisted -= OnContactPersistedRpc;
+        
         _app.physicsWorld.physicsSystem.OnContactAdded += OnContactAddedRpc;
         _app.physicsWorld.physicsSystem.OnContactRemoved += OnContactRemovedRpc;
         _app.physicsWorld.physicsSystem.OnContactPersisted += OnContactPersistedRpc;
@@ -22,7 +26,7 @@ public partial class JoltServer
 
     private void OnContactRemovedRpc(PhysicsSystem system, ref SubShapeIDPair subShapePair)
     {
-        var rpc = new RpcContactRemoved(subShapePair.Body1ID.ID,subShapePair.Body2ID);
+        var rpc = new RpcContactRemoved(subShapePair.Body1ID.ID,subShapePair.Body2ID.ID);
         _server.SendToAll(rpc);
     }
 

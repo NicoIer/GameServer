@@ -1,3 +1,7 @@
+// TODO 使用自动生成工具生成这些枚举
+
+using System.Numerics;
+
 namespace GameCore.Jolt
 {
     public interface IRenderer
@@ -21,7 +25,20 @@ namespace GameCore.Jolt
         /// <param name="deltaTime"></param>
         /// <param name="collisionSteps"></param>
         public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps);
-        
+
+        /// <summary>
+        /// 创建一个物理实体
+        /// </summary>
+        /// <param name="shapeData"></param>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        /// <param name="motionType"></param>
+        /// <param name="layers"></param>
+        /// <param name="activation"></param>
+        /// <returns></returns>
+        public uint Create(IShapeData shapeData, in Vector3 position, in Quaternion rotation, MotionType motionType,
+            ObjectLayers layers, Activation activation);
+
         /// <summary>
         /// 获取一个实体的数据
         /// </summary>
@@ -38,14 +55,6 @@ namespace GameCore.Jolt
         /// <returns></returns>
         public bool UpdateBody(in uint id, in BodyData bodyData);
 
-
-        /// <summary>
-        /// 获取历史数据
-        /// </summary>
-        /// <param name="delta"></param>
-        /// <param name="worldData"></param>
-        /// <returns></returns>
-        public bool QueryHistoryData(byte delta, out WorldData worldData);
 
         /// <summary>
         /// 序列化物理世界

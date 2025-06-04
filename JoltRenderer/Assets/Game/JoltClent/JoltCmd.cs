@@ -22,17 +22,19 @@ namespace Game.Jolt
         }
 
         [Sirenix.OdinInspector.Button]
-        private void CmdSpawnBox(System.Numerics.Vector3 halfExtents, System.Numerics.Vector3 position,
+        private void CmdSpawnBox(Vector3 halfExtents, Vector3 position,
             MotionType motionType = MotionType.Dynamic,
             Activation activation = Activation.Activate,
             ObjectLayers objectLayer = ObjectLayers.Moving
         )
         {
-            CmdSpawnBox cmd = new CmdSpawnBox
+            var shape = new BoxShapeData(halfExtents);
+            ShapeDataPacket.Create(shape, out var packet);
+            CmdSpawnBody cmd = new CmdSpawnBody
             {
-                halfExtents = halfExtents,
+                shapeDataPacket = packet,
                 position = position,
-                rotation = System.Numerics.Quaternion.Identity,
+                rotation = Quaternion.Identity,
                 motionType = motionType,
                 activation = activation,
                 objectLayer = objectLayer
@@ -42,7 +44,6 @@ namespace Game.Jolt
 
         [Sirenix.OdinInspector.Button]
         private void CmdSpawnPlane(
-            // float distance = 0,
             Vector3 position,
             Vector3 rotation,
             float halfExtent = 10,
@@ -51,17 +52,13 @@ namespace Game.Jolt
             ObjectLayers objectLayer = ObjectLayers.NonMoving
         )
         {
-            // UnityEngine.Vector3 normal = new UnityEngine.Vector3(0, 1, 0);
-            // UnityEngine.Vector3 position = normal * distance;
-            // 根据法线计算旋转
-            // UnityEngine.Quaternion rotation = UnityEngine.Quaternion.FromToRotation(UnityEngine.Vector3.up, normal);
-            CmdSpawnPlane cmd = new CmdSpawnPlane
+            var shape = new PlaneShapeData(halfExtent, new Vector3(0, 1, 0), 0);
+            ShapeDataPacket.Create(shape, out var packet);
+            CmdSpawnBody cmd = new CmdSpawnBody
             {
+                shapeDataPacket = packet,
                 position = position,
                 rotation = UnityEngine.Quaternion.Euler(rotation.T()).T(),
-                normal = new Vector3(0,1,0),
-                distance = 0,
-                halfExtent = halfExtent,
                 motionType = motionType,
                 activation = activation,
                 objectLayer = objectLayer

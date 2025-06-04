@@ -12,7 +12,6 @@ namespace JoltServer;
 // TODO 将复制物理世界 网络传输部分 在另一个线程执行
 public partial class JoltServer : JoltApplication.ISystem
 {
-
     private JoltApplication _app;
 
     private readonly LogicLooper _networkLooper;
@@ -38,7 +37,7 @@ public partial class JoltServer : JoltApplication.ISystem
 
 
     public delegate void ContextDelegate(in JoltApplication.LoopContex ctx);
-    
+
     private JoltConfig _config;
 
     public JoltServer(int targetFrameRate, int port, int bufferSize, JoltConfig cfg)
@@ -63,7 +62,6 @@ public partial class JoltServer : JoltApplication.ISystem
 
         HandleCmd();
         HandleReqRsp();
-        HandleRpc();
 
         if (cfg.lockStep)
         {
@@ -84,17 +82,20 @@ public partial class JoltServer : JoltApplication.ISystem
 
     public void BeforeRun()
     {
+        HandleRpc();
         Log.Information($"JoltServer Start {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         _server.Run(false);
         if (_config.lockStep)
         {
             StartLockStep();
         }
+
         // _server.Run(true);
         _networkLooper.RegisterActionAsync((in LogicLooperActionContext ctx) =>
         {
+            if (_worldSnapshot.IsEmpty) return true;
             ref var worldData = ref _worldSnapshot.Back(); //.buffer[_worldSnapshot.backIndex];
-            if (worldData.frameCount != _lastSendWorldFrame)
+            if (worldData.frameCount != _lastSendWorldFrame && _server.ConnectionCount > 0)
             {
                 _server.SendToAll(worldData);
                 _lastSendWorldFrame = worldData.frameCount;
@@ -111,6 +112,7 @@ public partial class JoltServer : JoltApplication.ISystem
         {
             LockStep(ctx);
         }
+
         _server.socket.TickIncoming();
     }
 
@@ -145,6 +147,7 @@ public partial class JoltServer : JoltApplication.ISystem
         {
             StopLockStep();
         }
+
         _networkLooper.ShutdownAsync(TimeSpan.Zero).Wait();
     }
 

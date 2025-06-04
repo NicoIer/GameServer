@@ -187,7 +187,7 @@ namespace GameCore.Jolt
             return _deserializers[dataPacket.id](dataPacket.payload);
         }
 
-        public static void Create<T>(T shapeData, out ShapeDataPacket dataPacket) where T : IShapeData
+        public static void Create<T>(in T shapeData, out ShapeDataPacket dataPacket) where T : IShapeData
         {
             dataPacket.id = TypeId<T>.stableId16;
             dataPacket.payload = MemoryPackSerializer.Serialize(shapeData);
@@ -221,6 +221,13 @@ namespace GameCore.Jolt
         public float halfExtent;
         public Vector3 normal;
         public float distance;
+
+        public PlaneShapeData(float halfExtent, Vector3 normal, float distance)
+        {
+            this.halfExtent = halfExtent;
+            this.normal = normal;
+            this.distance = distance;
+        }
     }
 
 

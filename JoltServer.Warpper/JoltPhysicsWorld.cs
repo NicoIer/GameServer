@@ -1,12 +1,11 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using GameCore.Jolt;
 using JoltPhysicsSharp;
 using Serilog;
 using UnityToolkit;
-using Activation = JoltPhysicsSharp.Activation;
-using PhysicsUpdateError = GameCore.Jolt.PhysicsUpdateError;
 
 namespace JoltServer;
 
@@ -22,7 +21,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
 
     protected readonly List<BodyID> _bodies = [];
     private PhysicsSystemSettings _settings;
-    protected JobSystem jobSystem;
+    protected readonly JobSystem jobSystem;
     public PhysicsSystem physicsSystem { get; private set; }
 
     private const int MaxBodies = 65536;
@@ -66,13 +65,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
         physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
     }
 
-    public BodyID Create(BodyCreationSettings settings, Activation activation)
-    {
-        var id = physicsSystem.BodyInterface.CreateAndAddBody(settings, activation);
-        _bodies.Add(id);
-        body2Owner.Add(id, ServerId);
-        return id;
-    }
 
     #region Callback
 
@@ -84,7 +76,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult.AcceptAllContactsForThisBodyPair;
     }
-    
+
 
     protected virtual void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2,
         in ContactManifold manifold, in ContactSettings settings)
@@ -125,7 +117,8 @@ public class JoltPhysicsWorld : IPhysicsWorld
 
     #endregion
 
-    public PhysicsUpdateError Simulate(float deltaTime, int collisionSteps)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public GameCore.Jolt.PhysicsUpdateError Simulate(float deltaTime, int collisionSteps)
     {
         // if (history.Count == historyBufferSize)
         // {
@@ -137,7 +130,96 @@ public class JoltPhysicsWorld : IPhysicsWorld
         // //Append Tail
         // history.AddLast(data);
 
-        return (PhysicsUpdateError)physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+        return (GameCore.Jolt.PhysicsUpdateError)physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+    }
+
+
+    // internal BodyID Create(BodyCreationSettings settings, JoltPhysicsSharp.Activation activation)
+    // {
+    //     var body = physicsSystem.BodyInterface.CreateAndAddBody(settings, activation);
+    //     OnBodyCreated(body);
+    //     return body;
+    // }
+    public uint Create(IShapeData shapeData, in Vector3 position, in Quaternion rotation,
+        GameCore.Jolt.MotionType motionType,
+        ObjectLayers layers, GameCore.Jolt.Activation activation)
+    {
+        Shape? shape;
+        switch (shapeData)
+        {
+            case BoxShapeData boxShapeData:
+                shape = new BoxShape(boxShapeData.halfExtents);
+                break;
+            case PlaneShapeData planeShapeData:
+                Plane plane = new Plane(planeShapeData.normal, planeShapeData.distance);
+                shape = new PlaneShape(plane, null, planeShapeData.halfExtent);
+                break;
+            case SphereShapeData sphereShapeData:
+                shape = new SphereShape(sphereShapeData.radius);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(shapeData));
+        }
+
+        if (shape == null)
+        {
+            throw new ArgumentException($"cannot create shape settings from shape[{shapeData}] ");
+        }
+
+        using var bodyCreate = new BodyCreationSettings(
+            shape,
+            position,
+            rotation,
+            (JoltPhysicsSharp.MotionType)motionType,
+            new ObjectLayer((uint)layers)
+        );
+        var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation);
+        OnBodyCreated(body);
+        return body.ID;
+    }
+    // public uint Create(IShapeData shape, in Vector3 position, in Quaternion rotation,
+    //     GameCore.Jolt.MotionType motionType,
+    //     ObjectLayers layers, GameCore.Jolt.Activation activation)
+    // {
+    //     ShapeSettings? shapeSettings;
+    //     switch (shape)
+    //     {
+    //         case BoxShapeData boxShapeData:
+    //             shapeSettings = new BoxShapeSettings(boxShapeData.halfExtents);
+    //             break;
+    //         case PlaneShapeData planeShapeData:
+    //             Plane plane = new Plane(planeShapeData.normal, planeShapeData.distance);
+    //             shapeSettings = new PlaneShapeSettings(plane, null, planeShapeData.halfExtent);
+    //             break;
+    //         case SphereShapeData sphereShapeData:
+    //             shapeSettings = new SphereShapeSettings(sphereShapeData.radius);
+    //             break;
+    //         default:
+    //             throw new ArgumentOutOfRangeException(nameof(shape));
+    //     }
+    //
+    //     if (shapeSettings == null)
+    //     {
+    //         throw new ArgumentException($"cannot create shape settings from shape[{shape}] ");
+    //     }
+    //
+    //     var bodyCreate = new BodyCreationSettings(
+    //         shapeSettings,
+    //         position,
+    //         rotation,
+    //         (JoltPhysicsSharp.MotionType)motionType,
+    //         new ObjectLayer((uint)layers)
+    //     );
+    //     var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation);
+    //     OnBodyCreated(body);
+    //     return body.ID;
+    // }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void OnBodyCreated(in BodyID bodyId, int owner = ServerId)
+    {
+        _bodies.Add(bodyId);
+        body2Owner.Add(bodyId, owner);
     }
 
     public bool QueryBody(in uint id, [UnscopedRef] out BodyData bodyData)
@@ -257,6 +339,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
                 break;
             default:
                 // TODO 额外的处理逻辑
+                Log.Debug("Shape:{shape}进入异常序列化处理逻辑,{type},{subType}", shape, shape.Type, shape.SubType);
                 if (shape is { Type: JoltPhysicsSharp.ShapeType.Convex, SubType: JoltPhysicsSharp.ShapeSubType.Box })
                 {
                     // Log.Warning("异常Shape进行额外处理，解析为BoxShape");
@@ -276,10 +359,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
         throw new NotImplementedException();
     }
 
-    public bool QueryHistoryData(byte delta, [UnscopedRef] out WorldData worldData)
-    {
-        throw new NotImplementedException();
-    }
 
     public void Serialize(ref WorldData worldData)
     {

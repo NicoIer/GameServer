@@ -79,17 +79,17 @@ public class JoltApplication : DisposableObject
         settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
     }
 
-    public BodyID CreateFloor(float size, ObjectLayer layer)
-    {
-        BoxShape shape = new(new Vector3(size, 5.0f, size));
-        using BodyCreationSettings creationSettings =
-            new(shape, new Vector3(0, -5.0f, 0.0f), Quaternion.Identity, MotionType.Static, layer);
-        return Create(creationSettings, Activation.DontActivate);
-    }
+    // public BodyID CreateFloor(float size, ObjectLayer layer)
+    // {
+    //     BoxShape shape = new(new Vector3(size, 5.0f, size));
+    //     using BodyCreationSettings creationSettings =
+    //         new(shape, new Vector3(0, -5.0f, 0.0f), Quaternion.Identity, MotionType.Static, layer);
+    //     return Create(creationSettings, Activation.DontActivate);
+    // }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public BodyID Create(BodyCreationSettings settings, Activation activation = Activation.Activate) =>
-        physicsWorld.Create(settings, activation);
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public BodyID Create(BodyCreationSettings settings, Activation activation = Activation.Activate) =>
+    //     physicsWorld.Create(settings, activation);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveAndDestroy(in BodyID bodyID) => physicsWorld.RemoveAndDestroy(bodyID);
@@ -100,47 +100,47 @@ public class JoltApplication : DisposableObject
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deactivate(in BodyID bodyID) => physicsWorld.Deactivate(bodyID);
 
-    public BodyID CreateBox(in Vector3 halfExtent,
-        in Vector3 position,
-        in Quaternion rotation,
-        MotionType motionType,
-        ObjectLayer layer,
-        Activation activation = Activation.Activate)
-    {
-        BoxShape shape = new(halfExtent);
-        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
-        return Create(creationSettings, activation);
-    }
+    // public BodyID CreateBox(in Vector3 halfExtent,
+    //     in Vector3 position,
+    //     in Quaternion rotation,
+    //     MotionType motionType,
+    //     ObjectLayer layer,
+    //     Activation activation = Activation.Activate)
+    // {
+    //     BoxShape shape = new(halfExtent);
+    //     using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+    //     return Create(creationSettings, activation);
+    // }
 
-    public BodyID CreateSphere(float radius,
-        in Vector3 position,
-        in Quaternion rotation,
-        MotionType motionType,
-        ObjectLayer layer,
-        Activation activation = Activation.Activate)
-    {
-        SphereShape shape = new(radius);
-        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
-        return Create(creationSettings, activation);
-    }
+    // public BodyID CreateSphere(float radius,
+    //     in Vector3 position,
+    //     in Quaternion rotation,
+    //     MotionType motionType,
+    //     ObjectLayer layer,
+    //     Activation activation = Activation.Activate)
+    // {
+    //     SphereShape shape = new(radius);
+    //     using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+    //     return Create(creationSettings, activation);
+    // }
 
 
-    public BodyID CreatePlane(
-        in Vector3 position,
-        in Quaternion rotation,
-        in Vector3 normal,
-        float distance,
-        float halfExtent,
-        MotionType motionType,
-        ObjectLayer layer,
-        PhysicsMaterial? material = null,
-        Activation activation = Activation.Activate)
-    {
-        Plane plane = new Plane(normal, distance);
-        PlaneShape shape = new(plane, material, halfExtent);
-        using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
-        return Create(creationSettings, activation);
-    }
+    // public BodyID CreatePlane(
+    //     in Vector3 position,
+    //     in Quaternion rotation,
+    //     in Vector3 normal,
+    //     float distance,
+    //     float halfExtent,
+    //     MotionType motionType,
+    //     ObjectLayer layer,
+    //     PhysicsMaterial? material = null,
+    //     Activation activation = Activation.Activate)
+    // {
+    //     Plane plane = new Plane(normal, distance);
+    //     PlaneShape shape = new(plane, material, halfExtent);
+    //     using BodyCreationSettings creationSettings = new(shape, position, rotation, motionType, layer);
+    //     return Create(creationSettings, activation);
+    // }
 
     #endregion
 

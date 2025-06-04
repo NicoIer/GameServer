@@ -13,6 +13,7 @@ public partial class JoltServer
     private NetworkServer _networkServer;
 
     private Dictionary<int, LockStepData> _lockSteps;
+
     private void HandleLockStep()
     {
         Debug.Assert(_config.lockStep);
@@ -24,8 +25,7 @@ public partial class JoltServer
         _lockSteps = new Dictionary<int, LockStepData>();
     }
 
-    
-    
+
     private void OnLockStepData(in int connectionId, in LockStepData message)
     {
         _lockSteps[connectionId] = message;
@@ -46,18 +46,17 @@ public partial class JoltServer
     }
 
     private LogicLooper _lockStepLooper;
+
     private void StartLockStep()
     {
         _networkServer.Run(false);
         _lockStepLooper = new LogicLooper(_app.targetFPS);
-        _lockStepLooper.RegisterActionAsync(LockStepUpdate);
-    }
-
-    private bool LockStepUpdate(in LogicLooperActionContext ctx)
-    {
-        _networkServer.socket.TickIncoming();
-        _networkServer.socket.TickOutgoing();
-        return true;
+        _lockStepLooper.RegisterActionAsync(((in LogicLooperActionContext ctx) =>
+        {
+            _networkServer.socket.TickIncoming();
+            _networkServer.socket.TickOutgoing();
+            return true;
+        }));
     }
 
     private void StopLockStep()

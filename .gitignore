@@ -7,3 +7,4 @@ bin
 
 log/
 db/
+JoltRenderer/mono_crash.*.json
