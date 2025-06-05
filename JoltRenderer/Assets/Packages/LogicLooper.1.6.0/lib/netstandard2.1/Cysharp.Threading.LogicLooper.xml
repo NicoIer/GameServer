@@ -1,0 +1,1041 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cysharp.Threading.LogicLooper</name>
+    </assembly>
+    <members>
+        <member name="T:Cysharp.Threading.ILogicLooper">
+            <summary>
+            Provides interface for update loop programming model.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooper.Id">
+            <summary>
+            Gets a unique identifier of the looper.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooper.ApproximatelyRunningActions">
+            <summary>
+            Gets an approximate count of running actions.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooper.LastProcessingDuration">
+            <summary>
+            Gets a duration of the last processed frame.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooper.TargetFrameRate">
+            <summary>
+            Gets a target frame rate of the looper.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooper.CurrentFrame">
+            <summary>
+            Gets a current frame that elapsed since beginning the looper is started.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <summary>
+            Registers a loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="options">The options of the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <summary>
+            Registers a loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="state">The object pass to the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="state">The object pass to the loop action.</param>
+            <param name="options">The options of the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="options">The options of the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="state">The object pass to the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction">The action that is called every frame in the loop.</param>
+            <param name="state">The object pass to the loop action.</param>
+            <param name="options">The options of the loop action.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooper.ShutdownAsync(System.TimeSpan)">
+            <summary>
+            Stops the action loop of the looper.
+            </summary>
+            <param name="shutdownDelay"></param>
+        </member>
+        <member name="P:Cysharp.Threading.ILogicLooperPool.Loopers">
+            <summary>
+            Gets the pooled looper instances.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <summary>
+            Registers a loop-frame action to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <summary>
+            Registers a loop-frame action with state object to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action with state object to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action with state object to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers an async-aware loop-frame action with state object to a pooled looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            An asynchronous action is executed across multiple frames, differ from the synchronous version.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.ShutdownAsync(System.TimeSpan)">
+            <summary>
+            Stops all action loop of the loopers.
+            </summary>
+            <param name="shutdownDelay"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ILogicLooperPool.GetLooper">
+            <summary>
+            Gets a <see cref="T:Cysharp.Threading.ILogicLooper"/> instance from the pool. This is useful when you want to explicitly register multiple actions on the same loop thread.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooper">
+            <summary>
+            Provides update loop programming model. the looper ties thread and while-loop and call registered methods every frame.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.Current">
+            <summary>
+            Gets a looper of the current thread.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.Id">
+            <inheritdoc/>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.ApproximatelyRunningActions">
+            <inheritdoc/>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.LastProcessingDuration">
+            <inheritdoc/>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.TargetFrameRate">
+            <inheritdoc/>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.ThreadId">
+            <summary>
+            Gets a unique identifier of the managed thread.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooper.CurrentFrame">
+            <inheritdoc/>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <summary>
+            Registers a loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <summary>
+            Registers a loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            Registers a loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <summary>
+            [Experimental] Registers a async-aware loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers a async-aware loop-frame action to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <summary>
+            [Experimental] Registers a async-aware loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <summary>
+            [Experimental] Registers a async-aware loop-frame action with state object to the looper and returns <see cref="T:System.Threading.Tasks.Task"/> to wait for completion.
+            </summary>
+            <param name="loopAction"></param>
+            <param name="state"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooper.ShutdownAsync(System.TimeSpan)">
+            <summary>
+            Stops the action loop of the looper.
+            </summary>
+            <param name="shutdownDelay"></param>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooperActionContext">
+            <summary>
+            Represents the current loop-action contextual values.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperActionContext.Looper">
+            <summary>
+            Gets a looper for the current action.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperActionContext.CurrentFrame">
+            <summary>
+            Gets a current frame that elapsed since beginning the looper is started.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperActionContext.FrameBeginTimestamp">
+            <summary>
+            Gets a timestamp for begin of the current frame.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperActionContext.ElapsedTimeFromPreviousFrame">
+            <summary>
+            Gets an elapsed time since the previous frame has proceeded. This is the equivalent to Time.deltaTime on Unity.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperActionContext.CancellationToken">
+            <summary>
+            Gets the cancellation token for the loop.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperActionContext.RunCoroutine(System.Func{Cysharp.Threading.LogicLooperCoroutineActionContext,Cysharp.Threading.LogicLooperCoroutine})">
+            <summary>
+            Launch the specified action as a new coroutine-like operation in the current looper.
+            </summary>
+            <param name="action"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperActionContext.RunCoroutine``1(System.Func{Cysharp.Threading.LogicLooperCoroutineActionContext,Cysharp.Threading.LogicLooperCoroutine{``0}})">
+            <summary>
+            Launch the specified action as a new coroutine-like operation in the current looper.
+            </summary>
+            <param name="action"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooperCoroutine">
+            <summary>
+            Represents a coroutine-like operation.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutine.IsCompleted">
+            <summary>
+            Gets whether the coroutine-like operation has completed.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutine.IsCompletedSuccessfully">
+            <summary>
+            Gets whether the coroutine-like operation has completed successfully.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutine.IsFaulted">
+            <summary>
+            Gets whether the coroutine-like operation completed due to unhandled exception.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutine.Exception">
+            <summary>
+            Gets an <see cref="T:System.Exception"/> that thrown while running in the update.
+            </summary>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooperCoroutine`1">
+            <summary>
+            Represents a coroutine-like operation.
+            </summary>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooperCoroutineActionContext">
+            <summary>
+            Represents the current coroutine-like contextual values.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutineActionContext.Looper">
+            <summary>
+            Gets a looper for the current action.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutineActionContext.CurrentFrame">
+            <summary>
+            Gets a current frame that elapsed since beginning the looper is started.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutineActionContext.ElapsedTimeFromPreviousFrame">
+            <summary>
+            Gets an elapsed time since the previous frame has proceeded.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperCoroutineActionContext.CancellationToken">
+            <summary>
+            Gets the cancellation token for the loop.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperCoroutineActionContext.DelayNextFrame">
+            <summary>
+            Creates an awaitable that resumes the coroutine until next update.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperCoroutineActionContext.DelayFrame(System.Int32)">
+            <summary>
+            Creates an awaitable that resumes the coroutine after a specified frames.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperCoroutineActionContext.Delay(System.TimeSpan)">
+            <summary>
+            Creates an awaitable that resumes the coroutine after a specified duration.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Cysharp.Threading.LogicLooperPool">
+            <summary>
+            Provides a pool of loopers that can be register loop-action into the pooled looper.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperPool.Loopers">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.#ctor(System.Int32,System.Int32,Cysharp.Threading.ILogicLooperPoolBalancer)">
+            <summary>
+            Initialize the looper pool with specified configurations.
+            </summary>
+            <param name="targetFrameRate"></param>
+            <param name="looperCount"></param>
+            <param name="balancer"></param>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.#ctor(System.TimeSpan,System.Int32,Cysharp.Threading.ILogicLooperPoolBalancer)">
+            <summary>
+            Initialize the looper pool with specified configurations.
+            </summary>
+            <param name="targetFrameTime"></param>
+            <param name="looperCount"></param>
+            <param name="balancer"></param>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.ShutdownAsync(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.GetLooper">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.LogicLooperPool.Shared">
+            <summary>
+            Gets the shared pool of loopers. Requires to call <see cref="M:Cysharp.Threading.LogicLooperPool.InitializeSharedPool(System.Int32,System.Int32,Cysharp.Threading.ILogicLooperPoolBalancer)"/> method before use.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.LogicLooperPool.InitializeSharedPool(System.Int32,System.Int32,Cysharp.Threading.ILogicLooperPoolBalancer)">
+            <summary>
+            Initializes the shared pool of loopers with specified options.
+            </summary>
+            <param name="targetFrameRate"></param>
+            <param name="looperCount"></param>
+            <param name="balancer"></param>
+        </member>
+        <member name="T:Cysharp.Threading.LooperActionOptions">
+            <summary>
+            Provides options for the loop-action.
+            </summary>
+            <param name="TargetFrameRateOverride">Set a override value for the target frame rate. LogicLooper tries to get as close to the target value as possible, but it is not as accurate as the Looper's frame rate.</param>
+        </member>
+        <member name="M:Cysharp.Threading.LooperActionOptions.#ctor(System.Nullable{System.Int32})">
+            <summary>
+            Provides options for the loop-action.
+            </summary>
+            <param name="TargetFrameRateOverride">Set a override value for the target frame rate. LogicLooper tries to get as close to the target value as possible, but it is not as accurate as the Looper's frame rate.</param>
+        </member>
+        <member name="P:Cysharp.Threading.LooperActionOptions.TargetFrameRateOverride">
+            <summary>Set a override value for the target frame rate. LogicLooper tries to get as close to the target value as possible, but it is not as accurate as the Looper's frame rate.</summary>
+        </member>
+        <member name="T:Cysharp.Threading.ManualLogicLooper">
+            <summary>
+            Implements <see cref="T:Cysharp.Threading.ILogicLooper"/> to loop update frame manually.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooper.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooper.ApproximatelyRunningActions">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooper.LastProcessingDuration">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooper.TargetFrameRate">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooper.CurrentFrame">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.Tick(System.Int32)">
+            <summary>
+            Ticks the frame of the current looper.
+            </summary>
+            <param name="frameCount"></param>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.Tick">
+            <summary>
+            Ticks the frame of the current looper.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.TickWhile(System.Func{System.Boolean})">
+            <summary>
+            Ticks the frame of the current looper while the predicate returns <c>true</c>.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooper.ShutdownAsync(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="T:Cysharp.Threading.ManualLogicLooperPool">
+            <summary>
+            Provides a pool of <see cref="T:Cysharp.Threading.ManualLogicLooper"/>.
+            </summary>
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooperPool.Loopers">
+            <inheritdoc />
+        </member>
+        <member name="P:Cysharp.Threading.ManualLogicLooperPool.FakeLooper">
+            <summary>
+            Gets the fake-looper in this pool.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.Tick(System.Int32)">
+            <summary>
+            Ticks the frame of the loopers.
+            </summary>
+            <param name="frameCount"></param>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.Tick">
+            <summary>
+            Ticks the frame of the loopers.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.TickWhile(System.Func{System.Boolean})">
+            <summary>
+            Ticks the frame of the loopers while the predicate returns <c>true</c>.
+            </summary>
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync(Cysharp.Threading.LogicLooperAsyncActionDelegate,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.RegisterActionAsync``1(Cysharp.Threading.LogicLooperAsyncActionWithStateDelegate{``0},``0,Cysharp.Threading.LooperActionOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.ShutdownAsync(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:Cysharp.Threading.ManualLogicLooperPool.GetLooper">
+            <inheritdoc />
+        </member>
+        <member name="T:Windows.Win32.Foundation.PCWSTR">
+            <summary>
+            A pointer to a null-terminated, constant character string.
+            </summary>
+        </member>
+        <member name="F:Windows.Win32.Foundation.PCWSTR.Value">
+            <summary>
+            A pointer to the first character in the string. The content should be considered readonly, as it was typed as constant in the SDK.
+            </summary>
+        </member>
+        <member name="P:Windows.Win32.Foundation.PCWSTR.Length">
+            <summary>
+            Gets the number of characters up to the first null character (exclusive).
+            </summary>
+        </member>
+        <member name="M:Windows.Win32.Foundation.PCWSTR.ToString">
+            <summary>
+            Returns a <see langword="string"/> with a copy of this character array, up to the first null character (exclusive).
+            </summary>
+            <returns>A <see langword="string"/>, or <see langword="null"/> if <see cref="F:Windows.Win32.Foundation.PCWSTR.Value"/> is <see langword="null"/>.</returns>
+        </member>
+        <member name="M:Windows.Win32.Foundation.PCWSTR.AsSpan">
+            <summary>
+            Returns a span of the characters in this string, up to the first null character (exclusive).
+            </summary>
+        </member>
+        <member name="T:Windows.Win32.PInvoke">
+            <content>
+            Contains extern methods from "KERNEL32.dll".
+            </content>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.CloseHandle(Windows.Win32.Foundation.HANDLE)">
+            <summary>Closes an open object handle.</summary>
+            <param name="hObject">A valid handle to an open object.</param>
+            <returns>
+            <para>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error information, call <a href="https://docs.microsoft.com/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror">GetLastError</a>. If the application is running under a debugger,  the function will throw an exception if it receives either a  handle value that is not valid  or a pseudo-handle value. This can happen if you close a handle twice, or if you  call <b>CloseHandle</b> on a handle returned by the <a href="https://docs.microsoft.com/windows/desktop/api/fileapi/nf-fileapi-findfirstfilea">FindFirstFile</a> function instead of calling the <a href="https://docs.microsoft.com/windows/desktop/api/fileapi/nf-fileapi-findclose">FindClose</a> function.</para>
+            </returns>
+            <remarks>
+            <para>The <b>CloseHandle</b> function closes handles to the following objects: </para>
+            <para>This doc was truncated.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/handleapi/nf-handleapi-closehandle#">Read more on docs.microsoft.com</see>.</para>
+            </remarks>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.CreateWaitableTimerEx(System.Nullable{Windows.Win32.Security.SECURITY_ATTRIBUTES},System.String,System.UInt32,System.UInt32)">
+            <inheritdoc cref="M:Windows.Win32.PInvoke.CreateWaitableTimerEx(Windows.Win32.Security.SECURITY_ATTRIBUTES*,Windows.Win32.Foundation.PCWSTR,System.UInt32,System.UInt32)"/>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Windows.Win32.PInvoke.CreateWaitableTimerEx(Windows.Win32.Security.SECURITY_ATTRIBUTES*,Windows.Win32.Foundation.PCWSTR,System.UInt32,System.UInt32)" -->
+        <member name="M:Windows.Win32.PInvoke.SetWaitableTimer(System.Runtime.InteropServices.SafeHandle,System.Int64@,System.Int32,Windows.Win32.System.Threading.PTIMERAPCROUTINE,System.Void*,Windows.Win32.Foundation.BOOL)">
+            <inheritdoc cref="M:Windows.Win32.PInvoke.SetWaitableTimer(Windows.Win32.Foundation.HANDLE,System.Int64*,System.Int32,Windows.Win32.System.Threading.PTIMERAPCROUTINE,System.Void*,Windows.Win32.Foundation.BOOL)"/>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.SetWaitableTimer(Windows.Win32.Foundation.HANDLE,System.Int64*,System.Int32,Windows.Win32.System.Threading.PTIMERAPCROUTINE,System.Void*,Windows.Win32.Foundation.BOOL)">
+            <summary>Activates the specified waitable timer. When the due time arrives, the timer is signaled and the thread that set the timer calls the optional completion routine.</summary>
+            <param name="hTimer">
+            <para>A handle to the timer object. The <a href="https://docs.microsoft.com/windows/desktop/api/synchapi/nf-synchapi-createwaitabletimerw">CreateWaitableTimer</a> or <a href="https://docs.microsoft.com/windows/desktop/api/synchapi/nf-synchapi-openwaitabletimerw">OpenWaitableTimer</a> function returns this handle.</para>
+            <para>The handle must have the <b>TIMER_MODIFY_STATE</b> access right. For more information, see <a href="https://docs.microsoft.com/windows/desktop/Sync/synchronization-object-security-and-access-rights">Synchronization Object Security and Access Rights</a>.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <param name="lpDueTime">
+            <para>The time after which the state of the timer is to be set to signaled, in 100 nanosecond intervals. Use the format described by the <a href="https://docs.microsoft.com/windows/desktop/api/minwinbase/ns-minwinbase-filetime">FILETIME</a> structure. Positive values indicate absolute time. Be sure to use a UTC-based absolute time, as the system uses UTC-based time internally. Negative values indicate relative time. The actual timer accuracy depends on the capability of your hardware. For more information about UTC-based time, see <a href="https://docs.microsoft.com/windows/desktop/SysInfo/system-time">System Time</a>.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <param name="lPeriod">
+            <para>The period of the timer, in milliseconds. If <i>lPeriod</i> is zero, the timer is signaled once. If <i>lPeriod</i> is greater than zero, the timer is periodic. A periodic timer automatically reactivates each time the period elapses, until the timer is canceled using the <a href="https://docs.microsoft.com/windows/desktop/api/synchapi/nf-synchapi-cancelwaitabletimer">CancelWaitableTimer</a> function or reset using <b>SetWaitableTimer</b>. If <i>lPeriod</i> is less than zero, the function fails.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <param name="pfnCompletionRoutine">
+            <para>A pointer to an optional completion routine. The completion routine is application-defined function of type <b>PTIMERAPCROUTINE</b> to be executed when the timer is signaled. For more information on the timer callback function, see <a href="https://docs.microsoft.com/windows/desktop/api/synchapi/nc-synchapi-ptimerapcroutine">TimerAPCProc</a>. For more information about APCs and thread pool threads, see Remarks.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <param name="lpArgToCompletionRoutine">A pointer to a structure that is passed to the completion routine.</param>
+            <param name="fResume">If this parameter is <b>TRUE</b>, restores a system in suspended power conservation mode when the timer state is set to signaled. Otherwise, the system is not restored. If the system does not support a restore, the call succeeds, but <a href="https://docs.microsoft.com/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror">GetLastError</a> returns <b>ERROR_NOT_SUPPORTED</b>.</param>
+            <returns>
+            <para>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error information, call <a href="https://docs.microsoft.com/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror">GetLastError</a>.</para>
+            </returns>
+            <remarks>
+            <para>Timers are initially inactive. To activate a timer, call <b>SetWaitableTimer</b>. If the timer is already active when you call <b>SetWaitableTimer</b>, the timer is stopped, then it is reactivated. Stopping the timer in this manner does not set the timer state to signaled, so threads blocked in a wait operation on the timer remain blocked. However, it does cancel any pending completion routines. When the specified due time arrives, the timer becomes inactive and the optional APC is queued to the thread that set the timer. The state of the timer is set to signaled, the timer is reactivated using the specified period, and the thread that set the timer calls the completion routine when it enters an alertable wait state. If the timer is set before the thread enters an alertable wait state, the APC is canceled. For more information, see <a href="https://docs.microsoft.com/windows/desktop/api/processthreadsapi/nf-processthreadsapi-queueuserapc">QueueUserAPC</a>. Note that APCs do not work as well as other signaling mechanisms  for thread pool threads because the system controls the lifetime of thread pool threads, so it is possible for a thread to be terminated before the notification is delivered. Instead of using the <i>pfnCompletionRoutine</i> parameter or another APC-based signaling mechanism, use a waitable object such as a timer created with <a href="https://docs.microsoft.com/windows/desktop/api/threadpoolapiset/nf-threadpoolapiset-createthreadpooltimer">CreateThreadpoolTimer</a>. For I/O, use  an I/O completion object created with <a href="https://docs.microsoft.com/windows/desktop/api/threadpoolapiset/nf-threadpoolapiset-createthreadpoolio">CreateThreadpoolIo</a> or an <i>hEvent</i>-based <a href="https://docs.microsoft.com/windows/desktop/api/minwinbase/ns-minwinbase-overlapped">OVERLAPPED</a> structure where the event can be passed to the <a href="https://docs.microsoft.com/windows/desktop/api/threadpoolapiset/nf-threadpoolapiset-setthreadpoolwait">SetThreadpoolWait</a> function. If the thread that set the timer terminates and there is an associated completion routine, the timer is canceled. However, the state of the timer remains unchanged. If there is no completion routine, then terminating the thread has no effect on the timer. When a manual-reset timer is set to the signaled state, it remains in this state until <b>SetWaitableTimer</b> is called to reset the timer. As a result, a periodic manual-reset timer is set to the signaled state when the initial due time arrives and remains signaled until it is reset. When a synchronization timer is set to the signaled state, it remains in this state until a thread completes a wait operation on the timer object. If the system time is adjusted, the due time of any outstanding absolute timers is adjusted. To compile an application that uses this function, define <b>_WIN32_WINNT</b> as 0x0400 or later. For more information, see <a href="https://docs.microsoft.com/windows/desktop/WinProg/using-the-windows-headers">Using the Windows Headers</a>. To use a timer to schedule an event for a window, use the <a href="https://docs.microsoft.com/windows/desktop/api/winuser/nf-winuser-settimer">SetTimer</a> function. APIs that deal with timers use various different hardware clocks. These clocks may have resolutions significantly different from what you expect: some may be measured in milliseconds (for those that use an RTC-based timer chip), to those measured in nanoseconds (for those that use ACPI or TSC counters). You can change the resolution of your API with a  call to the <a href="https://docs.microsoft.com/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod">timeBeginPeriod</a> and <a href="https://docs.microsoft.com/windows/desktop/api/timeapi/nf-timeapi-timeendperiod">timeEndPeriod</a> functions. How precise you can change the resolution depends on which hardware clock the particular API uses. For more information, check your hardware documentation.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer#">Read more on docs.microsoft.com</see>.</para>
+            </remarks>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.WaitForSingleObject(System.Runtime.InteropServices.SafeHandle,System.UInt32)">
+            <inheritdoc cref="M:Windows.Win32.PInvoke.WaitForSingleObject(Windows.Win32.Foundation.HANDLE,System.UInt32)"/>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.WaitForSingleObject(Windows.Win32.Foundation.HANDLE,System.UInt32)">
+            <summary>Waits until the specified object is in the signaled state or the time-out interval elapses.</summary>
+            <param name="hHandle">
+            <para>A handle to the object. For a list of the object types whose handles can be specified, see the following Remarks section.</para>
+            <para>If this handle is closed while the wait is still pending, the function's behavior is undefined. The handle must have the <b>SYNCHRONIZE</b> access right. For more information, see <a href="https://docs.microsoft.com/windows/desktop/SecAuthZ/standard-access-rights">Standard Access Rights</a>.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <param name="dwMilliseconds">
+            <para>The time-out interval, in milliseconds. If a nonzero value is specified, the function waits until the object is signaled or the interval elapses. If <i>dwMilliseconds</i> is zero, the function does not enter a wait state if the object is not signaled; it always returns immediately. If <i>dwMilliseconds</i> is <b>INFINITE</b>, the function will return only when the object is signaled. <b>Windows XP, Windows Server 2003, Windows Vista, Windows 7, Windows Server 2008 and Windows Server 2008 R2:  </b>The <i>dwMilliseconds</i> value does include time spent in low-power states. For example, the timeout does keep counting down while the computer is asleep. <b>Windows 8, Windows Server 2012, Windows 8.1, Windows Server 2012 R2, Windows 10 and Windows Server 2016:  </b>The <i>dwMilliseconds</i> value does not include time spent in low-power states. For example, the timeout does not keep counting down while the computer is asleep.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <returns>
+            <para>If the function succeeds, the return value indicates the event that caused the function to return. It can be one of the following values. </para>
+            <para>This doc was truncated.</para>
+            </returns>
+            <remarks>
+            <para>The <b>WaitForSingleObject</b> function checks the current state of the specified object. If the object's state is nonsignaled, the calling thread enters the wait state until the object is signaled or the time-out interval elapses. The function modifies the state of some types of synchronization objects. Modification occurs only for the object whose signaled state caused the function to return. For example, the count of a semaphore object is decreased by one. The <b>WaitForSingleObject</b> function can wait for the following objects: </para>
+            <para>This doc was truncated.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject#">Read more on docs.microsoft.com</see>.</para>
+            </remarks>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.CancelWaitableTimer(System.Runtime.InteropServices.SafeHandle)">
+            <inheritdoc cref="M:Windows.Win32.PInvoke.CancelWaitableTimer(Windows.Win32.Foundation.HANDLE)"/>
+        </member>
+        <member name="M:Windows.Win32.PInvoke.CancelWaitableTimer(Windows.Win32.Foundation.HANDLE)">
+            <summary>Sets the specified waitable timer to the inactive state.</summary>
+            <param name="hTimer">
+            <para>A handle to the timer object. The [CreateWaitableTimer](./nf-synchapi-createwaitabletimerw.md) or [OpenWaitableTimer](./nf-synchapi-openwaitabletimerw.md) function returns this handle. The handle must have the <b>TIMER_MODIFY_STATE</b> access right. For more information, see <a href="https://docs.microsoft.com/windows/desktop/Sync/synchronization-object-security-and-access-rights">Synchronization Object Security and Access Rights</a>.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-cancelwaitabletimer#parameters">Read more on docs.microsoft.com</see>.</para>
+            </param>
+            <returns>
+            <para>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error information, call <a href="https://docs.microsoft.com/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror">GetLastError</a>.</para>
+            </returns>
+            <remarks>
+            <para>The <b>CancelWaitableTimer</b> function does not change the signaled state of the timer. It stops the timer before it can be set to the signaled state and cancels outstanding APCs. Therefore, threads performing a wait operation on the timer remain waiting until they time out or the timer is reactivated and its state is set to signaled. If the timer is already in the signaled state, it remains in that state. To reactivate the timer, call the <a href="https://docs.microsoft.com/windows/desktop/api/synchapi/nf-synchapi-setwaitabletimer">SetWaitableTimer</a> function. To compile an application that uses this function, define <b>_WIN32_WINNT</b> as 0x0400 or later. For more information, see <a href="https://docs.microsoft.com/windows/desktop/WinProg/using-the-windows-headers">Using the Windows Headers</a>.</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/synchapi/nf-synchapi-cancelwaitabletimer#">Read more on docs.microsoft.com</see>.</para>
+            </remarks>
+        </member>
+        <member name="T:Windows.Win32.Security.SECURITY_ATTRIBUTES">
+            <summary>The SECURITY_ATTRIBUTES structure contains the security descriptor for an object and specifies whether the handle retrieved by specifying this structure is inheritable.</summary>
+            <remarks></remarks>
+        </member>
+        <member name="F:Windows.Win32.Security.SECURITY_ATTRIBUTES.nLength">
+            <summary>The size, in bytes, of this structure. Set this value to the size of the **SECURITY\_ATTRIBUTES** structure.</summary>
+        </member>
+        <member name="F:Windows.Win32.Security.SECURITY_ATTRIBUTES.lpSecurityDescriptor">
+            <summary>
+            <para>A pointer to a [**SECURITY\_DESCRIPTOR**](../winnt/ns-winnt-security_descriptor.md) structure that controls access to the object. If the value of this member is **NULL**, the object is assigned the default security descriptor associated with the [*access token*](/windows/win32/secauthz/access-tokens) of the calling process. This is not the same as granting access to everyone by assigning a **NULL** [*discretionary access control list*](/windows/win32/secauthz/dacls-and-aces) (DACL). By default, the default DACL in the access token of a process allows access only to the user represented by the access token. For information about creating a security descriptor, see [Creating a Security Descriptor](/windows/win32/secauthz/creating-a-security-descriptor-for-a-new-object-in-c--).</para>
+            <para><see href="https://docs.microsoft.com/windows/win32/api/wtypesbase/ns-wtypesbase-security_attributes#members">Read more on docs.microsoft.com</see>.</para>
+            </summary>
+        </member>
+        <member name="F:Windows.Win32.Security.SECURITY_ATTRIBUTES.bInheritHandle">
+            <summary>A Boolean value that specifies whether the returned handle is inherited when a new process is created. If this member is **TRUE**, the new process inherits the handle.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute">
+            <summary>
+            Specifies that the method or property will ensure that the listed field and property members have not-null values.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String)">
+            <summary>
+            Initializes the attribute with a field or property member.
+            </summary>
+            <param name="member">The field or property member that is promised to be not-null.</param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String[])">
+            <summary>
+            Initializes the attribute with the list of field and property members.
+            </summary>
+            <param name="members">The list of field and property members that are promised to be not-null.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.Members">
+            <summary>
+            Gets field or property member names.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute">
+            <summary>
+            Specifies that the method or property will ensure that the listed field and property
+            members have not-null values when returning with the specified return value condition.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String)">
+            <summary>
+            Initializes the attribute with the specified return value condition and a field or property member.
+            </summary>
+            <param name="returnValue">The return value condition. If the method returns this value, the associated parameter will not be null.</param>
+            <param name="member">The field or property member that is promised to be not-null.</param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String[])">
+            <summary>
+            Initializes the attribute with the specified return value condition and list of field and property members.
+            </summary>
+            <param name="returnValue">The return value condition. If the method returns this value, the associated parameter will not be null.</param>
+            <param name="members">The list of field and property members that are promised to be not-null.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.ReturnValue">
+            <summary>
+            Gets the return value condition.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.Members">
+            <summary>
+            Gets field or property member names.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute">
+            <summary>
+            Specifies that this constructor sets all required members for the current type,
+            and callers do not need to set any required members themselves.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute">
+            <summary>
+            Specifies the syntax used in a string.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.#ctor(System.String)">
+            <summary>
+            Initializes the <see cref="T:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute"/> with the identifier of the syntax used.
+            </summary>
+            <param name="syntax">The syntax identifier.</param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.#ctor(System.String,System.Object[])">
+            <summary>Initializes the <see cref="T:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute"/> with the identifier of the syntax used.</summary>
+            <param name="syntax">The syntax identifier.</param>
+            <param name="arguments">Optional arguments associated with the specific syntax employed.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Syntax">
+            <summary>Gets the identifier of the syntax used.</summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Arguments">
+            <summary>Optional arguments associated with the specific syntax employed.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.CompositeFormat">
+            <summary>The syntax identifier for strings containing composite formats for string formatting.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.DateOnlyFormat">
+            <summary>The syntax identifier for strings containing date format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.DateTimeFormat">
+            <summary>The syntax identifier for strings containing date and time format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.EnumFormat">
+            <summary>The syntax identifier for strings containing <see cref="T:System.Enum"/> format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.GuidFormat">
+            <summary>The syntax identifier for strings containing <see cref="T:System.Guid"/> format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Json">
+            <summary>The syntax identifier for strings containing JavaScript Object Notation (JSON).</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.NumericFormat">
+            <summary>The syntax identifier for strings containing numeric format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Regex">
+            <summary>The syntax identifier for strings containing regular expressions.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.TimeOnlyFormat">
+            <summary>The syntax identifier for strings containing time format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.TimeSpanFormat">
+            <summary>The syntax identifier for strings containing <see cref="T:System.TimeSpan"/> format specifiers.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Uri">
+            <summary>The syntax identifier for strings containing URIs.</summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Xml">
+            <summary>The syntax identifier for strings containing XML.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.UnscopedRefAttribute">
+            <summary>
+            Used to indicate a byref escapes and is not scoped.
+            </summary>
+            <remarks>
+            <para>
+            There are several cases where the C# compiler treats a <see langword="ref"/> as implicitly
+            <see langword="scoped"/> - where the compiler does not allow the <see langword="ref"/> to escape the method.
+            </para>
+            <para>
+            For example:
+            <list type="number">
+                <item><see langword="this"/> for <see langword="struct"/> instance methods.</item>
+                <item><see langword="ref"/> parameters that refer to <see langword="ref"/> <see langword="struct"/> types.</item>
+                <item><see langword="out"/> parameters.</item>
+            </list>
+            </para>
+            <para>
+            This attribute is used in those instances where the <see langword="ref"/> should be allowed to escape.
+            </para>
+            <para>
+            Applying this attribute, in any form, has impact on consumers of the applicable API. It is necessary for
+            API authors to understand the lifetime implications of applying this attribute and how it may impact their users.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute">
+            <summary>
+            An attribute that allows parameters to receive the expression of other parameters.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/> class.
+            </summary>
+            <param name="parameterName">The condition parameter value.</param>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute.ParameterName">
+            <summary>
+            Gets the parameter name the expression is retrieved from.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute">
+            <summary>
+            Indicates that compiler support for a particular feature is required for the location where this attribute is applied.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute"/> type.
+            </summary>
+            <param name="featureName">The name of the feature to indicate.</param>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName">
+            <summary>
+            The name of the compiler feature.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.IsOptional">
+            <summary>
+            If true, the compiler can choose to allow access to the location where this attribute is applied if it does not understand <see cref="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName"/>.
+            </summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.RefStructs">
+            <summary>
+            The <see cref="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName"/> used for the ref structs C# feature.
+            </summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.RequiredMembers">
+            <summary>
+            The <see cref="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName"/> used for the required members C# feature.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute">
+            <summary>
+            Indicates which arguments to a method involving an interpolated string handler should be passed to that handler.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute"/> class.
+            </summary>
+            <param name="argument">The name of the argument that should be passed to the handler.</param>
+            <remarks><see langword="null"/> may be used as the name of the receiver in an instance method.</remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute.#ctor(System.String[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute"/> class.
+            </summary>
+            <param name="arguments">The names of the arguments that should be passed to the handler.</param>
+            <remarks><see langword="null"/> may be used as the name of the receiver in an instance method.</remarks>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute.Arguments">
+            <summary>
+            Gets the names of the arguments that should be passed to the handler.
+            </summary>
+            <remarks><see langword="null"/> may be used as the name of the receiver in an instance method.</remarks>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute">
+            <summary>
+            Indicates the attributed type is to be used as an interpolated string handler.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.IsExternalInit">
+            <summary>
+            Reserved to be used by the compiler for tracking metadata.
+            This class should not be used by developers in source code.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.ModuleInitializerAttribute">
+             <summary>
+             Used to indicate to the compiler that a method should be called
+             in its containing module's initializer.
+             </summary>
+             <remarks>
+             When one or more valid methods
+             with this attribute are found in a compilation, the compiler will
+             emit a module initializer which calls each of the attributed methods.
+            
+             Certain requirements are imposed on any method targeted with this attribute:
+             - The method must be `static`.
+             - The method must be an ordinary member method, as opposed to a property accessor, constructor, local function, etc.
+             - The method must be parameterless.
+             - The method must return `void`.
+             - The method must not be generic or be contained in a generic type.
+             - The method's effective accessibility must be `internal` or `public`.
+            
+             The specification for module initializers in the .NET runtime can be found here:
+             https://github.com/dotnet/runtime/blob/main/docs/design/specs/Ecma-335-Augments.md#module-initializer
+             </remarks>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.RequiredMemberAttribute">
+            <summary>
+            Specifies that a type has required members or that a member is required.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.SkipLocalsInitAttribute">
+            <summary>
+            Used to indicate to the compiler that the <c>.locals init</c> flag should not be set in method headers.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute"/> class.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute"/> class with the specified message.
+            </summary>
+            <param name="message">An optional message associated with this attribute instance.</param>
+        </member>
+        <member name="P:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute.Message">
+            <summary>
+            Returns the optional message associated with this attribute instance.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.Versioning.RequiresPreviewFeaturesAttribute.Url">
+            <summary>
+            Returns the optional URL associated with this attribute instance.
+            </summary>
+        </member>
+    </members>
+</doc>

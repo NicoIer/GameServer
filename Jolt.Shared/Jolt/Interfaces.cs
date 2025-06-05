@@ -1,17 +1,31 @@
 // TODO 使用自动生成工具生成这些枚举
 
+using System;
 using System.Numerics;
 
 namespace GameCore.Jolt
 {
-    public interface IRenderer
+
+    public interface IJoltSystem<in TApp,TCtx>
     {
-        IConnector PhysicsData { get; }
+        public void OnAdded(TApp app, IPhysicsWorld world);
+
+
+        void OnRemoved();
+        public void BeforeRun();
+        public void BeforeUpdate(in TCtx ctx);
+        public void AfterUpdate(in TCtx ctx);
+        public void AfterRun();
+
+        public bool NeedShutdown()
+        {
+            return false;
+        }
+
+        public void Dispose();
     }
 
-    public interface IConnector
-    {
-    }
+
 
 
     public interface IPhysicsWorld
@@ -21,7 +35,7 @@ namespace GameCore.Jolt
         public const int MaxBodyPairs = 65536;
         public const int MaxContactConstraints = 65536;
         public const int NumBodyMutexes = 0;
-        
+
         protected static long worldIdCounter;
         public byte worldId { get; }
 

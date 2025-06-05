@@ -10,7 +10,7 @@ using UnityToolkit;
 namespace JoltServer;
 
 // TODO 将复制物理世界 网络传输部分 在另一个线程执行
-public partial class JoltServer : JoltApplication.ISystem
+public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.LoopContex>
 {
     private JoltApplication _app;
 
@@ -70,7 +70,7 @@ public partial class JoltServer : JoltApplication.ISystem
     }
 
 
-    public void OnAdded(JoltApplication app)
+    public void OnAdded(JoltApplication app,IPhysicsWorld world)
     {
         _app = app;
     }

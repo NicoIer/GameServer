@@ -40,7 +40,7 @@ public class JoltApplication : DisposableObject
         if (!Foundation.Init(false)) return;
         physicsWorld = new JoltPhysicsWorld(SetupCollisionFiltering);
 
-        systems = new List<ISystem>();
+        systems = new List<IJoltSystem<JoltApplication,LoopContex>>();
         Foundation.SetTraceHandler((message => Console.WriteLine(message)));
 #if DEBUG
         Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
@@ -146,42 +146,29 @@ public class JoltApplication : DisposableObject
 
     #region Systems
 
-    protected List<ISystem> systems;
+    protected List<IJoltSystem<JoltApplication,LoopContex>> systems;
 
-    public delegate void UpdateAction(in LoopContex ctx);
+    public class LoopContex
+    {
+        public long CurrentFrame;
+        public TimeSpan FrameBeginTimestamp;
+        public TimeSpan ElapsedTimeFromPreviousFrame;
+    }
 
     public event Action BeforeRun = delegate { };
     public event Action AfterRun = delegate { };
 
 
-    public interface ISystem
-    {
-        public void OnAdded(JoltApplication app);
-
-
-        void OnRemoved();
-        public void BeforeRun();
-        public void BeforeUpdate(in LoopContex ctx);
-        public void AfterUpdate(in LoopContex ctx);
-        public void AfterRun();
-
-        public bool NeedShutdown()
-        {
-            return false;
-        }
-
-        public void Dispose();
-    }
-
+    public delegate void UpdateAction(in LoopContex ctx);
 
     public event UpdateAction BeforePhysicsUpdate = delegate { };
     public event UpdateAction AfterPhysicsUpdate = delegate { };
 
 
-    public void AddSystem(ISystem system)
+    public void AddSystem(IJoltSystem<JoltApplication,LoopContex> system)
     {
         systems.Add(system);
-        system.OnAdded(this);
+        system.OnAdded(this, physicsWorld);
     }
 
     // public void RemoveSystem(ISystem system)
@@ -209,12 +196,6 @@ public class JoltApplication : DisposableObject
 
     public bool running { get; private set; }
 
-    public class LoopContex
-    {
-        public long CurrentFrame;
-        public TimeSpan FrameBeginTimestamp;
-        public TimeSpan ElapsedTimeFromPreviousFrame;
-    }
 
     public LoopContex ctx { get; private set; }
 
