@@ -28,6 +28,10 @@ namespace Game.Jolt
         private readonly JobSystem jobSystem = JobSystem.Create(new JobSystemThreadPoolConfig());
         public PhysicsSystem physicsSystem { get; private set; }
 
+        public delegate void OnBodyCreatedDelegate(in uint bodyId);
+
+        public event OnBodyCreatedDelegate OnBodyCreate = delegate { };
+
         public delegate void SetupCollisionFilteringDelegate(ref PhysicsSystemSettings settings);
 
 
@@ -129,9 +133,10 @@ namespace Game.Jolt
             return body.ID;
         }
 
-        private void OnBodyCreated(uint bodyId)
+        private void OnBodyCreated(in uint bodyId)
         {
             _bodies.Add(bodyId);
+            OnBodyCreate(in bodyId);
         }
 
         public bool QueryBody(in uint id, out BodyData bodyData)
