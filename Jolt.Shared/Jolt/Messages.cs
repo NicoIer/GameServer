@@ -1,11 +1,7 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using MemoryPack;
 using Network;
 using UnityToolkit;
@@ -38,9 +34,9 @@ namespace GameCore.Jolt
 
     [Serializable]
     [MemoryPackable]
-    public partial struct BodyData 
+    public partial struct BodyData
         // : IPhysicsData
-    // : INetworkEntity
+        // : INetworkEntity
     {
         public int ownerId { get; set; } // player id
         public uint entityId { get; set; } // entity id -> jolt bodyId
@@ -126,6 +122,9 @@ namespace GameCore.Jolt
     // [MemoryPackUnion(1, typeof(SphereShapeData))]
     public partial interface IShapeData
     {
+// #if UNITY_5_3_OR_NEWER
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+// #endif
         // public ShapeType type;
         // public ShapeSubType subType;
         // public float innerRadius;
@@ -194,9 +193,18 @@ namespace GameCore.Jolt
         }
     }
 
+    public enum ShapeTypeEnum : byte
+    {
+        Box = 1,
+        Sphere = 2,
+        Plane = 3,
+    }
+
     [MemoryPackable]
     public partial struct BoxShapeData : IShapeData
     {
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+
         public Vector3 halfExtents;
 
         public BoxShapeData(Vector3 halfExtents)
@@ -208,6 +216,7 @@ namespace GameCore.Jolt
     [MemoryPackable]
     public partial struct SphereShapeData : IShapeData
     {
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Sphere;
         public float radius;
 
         public SphereShapeData(float radius)
@@ -218,6 +227,7 @@ namespace GameCore.Jolt
 
     public partial struct PlaneShapeData : IShapeData
     {
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Plane;
         public float halfExtent;
         public Vector3 normal;
         public float distance;

@@ -30,7 +30,7 @@ public partial class JoltServer
         Debug.Assert(float.IsNaN(message.rotation.W) == false);
         Log.Information($"客户端{connectionId}请求生成Body,threadId:{Thread.CurrentThread.ManagedThreadId}");
         var data = message.GetShapeData();
-        var bodyId = _app.physicsWorld.Create(
+        var bodyId = _app.physicsWorld.CreateAndAdd(
             data,
             message.position,
             message.rotation,

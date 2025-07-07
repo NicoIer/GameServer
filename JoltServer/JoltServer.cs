@@ -10,7 +10,7 @@ using UnityToolkit;
 namespace JoltServer;
 
 // TODO 将复制物理世界 网络传输部分 在另一个线程执行
-public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.LoopContex>
+public partial class JoltServer : IJoltSystem<JoltApplication, JoltApplication.LoopContex, JoltPhysicsWorld>
 {
     private JoltApplication _app;
 
@@ -69,8 +69,7 @@ public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.Lo
         }
     }
 
-
-    public void OnAdded(JoltApplication app,IPhysicsWorld world)
+    public void OnAdded(JoltApplication app, JoltPhysicsWorld world)
     {
         _app = app;
     }
@@ -80,7 +79,7 @@ public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.Lo
     }
 
 
-    public void BeforeRun()
+    public void BeforePhysicsStart()
     {
         HandleRpc();
         Log.Information($"JoltServer Start {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
@@ -106,7 +105,7 @@ public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.Lo
     }
 
 
-    public void BeforeUpdate(in JoltApplication.LoopContex ctx)
+    public void BeforePhysicsUpdate(in JoltApplication.LoopContex ctx)
     {
         if (_config.lockStep)
         {
@@ -117,7 +116,7 @@ public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.Lo
     }
 
 
-    public unsafe void AfterUpdate(in JoltApplication.LoopContex ctx)
+    public void AfterPhysicsUpdate(in JoltApplication.LoopContex ctx)
     {
         // Console.WriteLine($"AfterUpdate {ctx.CurrentFrame}");
         BodyData[] array = ArrayPool<BodyData>.Shared.Rent(_app.physicsWorld.bodies.Count);
@@ -140,7 +139,7 @@ public partial class JoltServer : IJoltSystem<JoltApplication,JoltApplication.Lo
     }
 
 
-    public void AfterRun()
+    public void AfterPhysicsStop()
     {
         _server.Stop();
         if (_config.lockStep)

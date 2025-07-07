@@ -5,7 +5,7 @@ using UnityToolkit;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
-namespace Game.Jolt
+namespace JoltWrapper
 {
     [RequireComponent(typeof(JoltClient))]
     public class JoltCmd : MonoBehaviour

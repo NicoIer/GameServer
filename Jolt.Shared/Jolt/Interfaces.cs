@@ -5,17 +5,16 @@ using System.Numerics;
 
 namespace GameCore.Jolt
 {
-
-    public interface IJoltSystem<in TApp,TCtx>
+    public interface IJoltSystem<in TApp, TCtx, in TPhysicsWorld> where TPhysicsWorld : IPhysicsWorld
     {
-        public void OnAdded(TApp app, IPhysicsWorld world);
+        public void OnAdded(TApp app, TPhysicsWorld world);
 
 
         void OnRemoved();
-        public void BeforeRun();
-        public void BeforeUpdate(in TCtx ctx);
-        public void AfterUpdate(in TCtx ctx);
-        public void AfterRun();
+        public void BeforePhysicsStart();
+        public void BeforePhysicsUpdate(in TCtx ctx);
+        public void AfterPhysicsUpdate(in TCtx ctx);
+        public void AfterPhysicsStop();
 
         public bool NeedShutdown()
         {
@@ -24,8 +23,6 @@ namespace GameCore.Jolt
 
         public void Dispose();
     }
-
-
 
 
     public interface IPhysicsWorld
@@ -56,9 +53,12 @@ namespace GameCore.Jolt
         /// <param name="layers"></param>
         /// <param name="activation"></param>
         /// <returns></returns>
-        public uint Create(IShapeData shapeData, in Vector3 position, in Quaternion rotation, MotionType motionType,
+        public uint CreateAndAdd(IShapeData shapeData, in Vector3 position, in Quaternion rotation, MotionType motionType,
             ObjectLayers layers, Activation activation);
 
+        
+        public bool Exist(in uint id);
+        
         /// <summary>
         /// 获取一个实体的数据
         /// </summary>
@@ -66,6 +66,10 @@ namespace GameCore.Jolt
         /// <param name="bodyData"></param>
         /// <returns></returns>
         public bool QueryBody(in uint id, out BodyData bodyData);
+        
+        public Vector3 GetPosition(in uint id);
+        
+        public Quaternion GetRotation(in uint id);
 
         /// <summary>
         /// 更新一个实体的数据

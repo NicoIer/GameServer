@@ -40,7 +40,7 @@ public class JoltApplication : DisposableObject
         if (!Foundation.Init(false)) return;
         physicsWorld = new JoltPhysicsWorld(SetupCollisionFiltering);
 
-        systems = new List<IJoltSystem<JoltApplication,LoopContex>>();
+        systems = new List<IJoltSystem<JoltApplication, LoopContex,JoltPhysicsWorld>>();
         Foundation.SetTraceHandler((message => Console.WriteLine(message)));
 #if DEBUG
         Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
@@ -62,8 +62,8 @@ public class JoltApplication : DisposableObject
     {
         // We use only 2 layers: one for non-moving objects and one for moving objects
         ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
-        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.NonMoving, (byte)ObjectLayers.Moving);
-        objectLayerPairFilter.EnableCollision((ushort)ObjectLayers.Moving, (byte)ObjectLayers.Moving);
+        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.NonMoving, (uint)ObjectLayers.Moving);
+        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.Moving, (uint)ObjectLayers.Moving);
 
         // We use a 1-to-1 mapping between object layers and broadphase layers
         BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
@@ -146,7 +146,7 @@ public class JoltApplication : DisposableObject
 
     #region Systems
 
-    protected List<IJoltSystem<JoltApplication,LoopContex>> systems;
+    protected List<IJoltSystem<JoltApplication, LoopContex,JoltPhysicsWorld>> systems;
 
     public class LoopContex
     {
@@ -155,8 +155,8 @@ public class JoltApplication : DisposableObject
         public TimeSpan ElapsedTimeFromPreviousFrame;
     }
 
-    public event Action BeforeRun = delegate { };
-    public event Action AfterRun = delegate { };
+    public event Action BeforeStart = delegate { };
+    public event Action AfterPhysicsStop = delegate { };
 
 
     public delegate void UpdateAction(in LoopContex ctx);
@@ -165,7 +165,7 @@ public class JoltApplication : DisposableObject
     public event UpdateAction AfterPhysicsUpdate = delegate { };
 
 
-    public void AddSystem(IJoltSystem<JoltApplication,LoopContex> system)
+    public void AddSystem(IJoltSystem<JoltApplication, LoopContex, JoltPhysicsWorld> system)
     {
         systems.Add(system);
         system.OnAdded(this, physicsWorld);
@@ -208,11 +208,11 @@ public class JoltApplication : DisposableObject
         // using var looper = new LogicLooper(TargetFPS);
 
 
-        BeforeRun();
+        BeforeStart();
 
         foreach (var system in systems)
         {
-            system.BeforeRun();
+            system.BeforePhysicsStart();
         }
 
 
@@ -231,7 +231,7 @@ public class JoltApplication : DisposableObject
 
             foreach (var system in systems)
             {
-                system.BeforeUpdate(ctx);
+                system.BeforePhysicsUpdate(ctx);
             }
 
             var error = physicsWorld.Simulate(deltaTime, collisionSteps);
@@ -243,7 +243,7 @@ public class JoltApplication : DisposableObject
 
             foreach (var system in systems)
             {
-                system.AfterUpdate(ctx);
+                system.AfterPhysicsUpdate(ctx);
             }
 
             AfterPhysicsUpdate(ctx);
@@ -266,10 +266,10 @@ public class JoltApplication : DisposableObject
 
         foreach (var system in systems)
         {
-            system.AfterRun();
+            system.AfterPhysicsStop();
         }
 
-        AfterRun();
+        AfterPhysicsStop();
     }
 
 

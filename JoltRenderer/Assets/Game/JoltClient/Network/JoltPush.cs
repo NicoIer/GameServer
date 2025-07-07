@@ -1,7 +1,7 @@
 using GameCore.Jolt;
 using UnityEngine;
 
-namespace Game.Jolt
+namespace JoltWrapper
 {
     [RequireComponent(typeof(JoltClient))]
     public class JoltPush : MonoBehaviour

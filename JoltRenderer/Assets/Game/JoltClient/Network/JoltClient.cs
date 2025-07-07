@@ -8,7 +8,7 @@ using Network.Client;
 using UnityEngine;
 using UnityToolkit;
 
-namespace Game.Jolt
+namespace JoltWrapper
 {
     public partial class JoltClient : MonoSingleton<JoltClient>
     {

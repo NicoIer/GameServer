@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityToolkit;
 
-namespace Game.Jolt
+namespace JoltWrapper
 {
     [RequireComponent(typeof(JoltClient))]
     public class JoltReqRsp : MonoBehaviour

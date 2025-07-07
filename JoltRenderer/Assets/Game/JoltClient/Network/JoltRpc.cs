@@ -1,4 +1,4 @@
-namespace Game.Jolt
+namespace JoltWrapper
 {
     public class JoltRpc
     {

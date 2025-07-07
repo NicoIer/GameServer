@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityToolkit;
 
-namespace Game.Jolt
+namespace JoltWrapper
 {
     public class NetworkTime : MonoSingleton<NetworkTime>, IOnlyPlayingModelSingleton
     {

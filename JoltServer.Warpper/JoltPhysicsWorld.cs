@@ -34,7 +34,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     public JoltPhysicsWorld(SetupCollisionFilteringDelegate setup)
         // , int historyBufferSize)
     {
-        if (!Foundation.Init(false)) throw new NotImplementedException("Jolt Physics Not Initialized");
+        if (!Foundation.Init(false)) throw new Exception("Jolt Physics Not Initialized");
         // history = new LinkedList<WorldData>();
         // this.historyBufferSize = historyBufferSize;
         Interlocked.Increment(ref IPhysicsWorld.worldIdCounter);
@@ -137,7 +137,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     //     OnBodyCreated(body);
     //     return body;
     // }
-    public uint Create(IShapeData shapeData, in Vector3 position, in Quaternion rotation,
+    public uint CreateAndAdd(IShapeData shapeData, in Vector3 position, in Quaternion rotation,
         GameCore.Jolt.MotionType motionType,
         ObjectLayers layers, GameCore.Jolt.Activation activation)
     {
@@ -170,9 +170,15 @@ public class JoltPhysicsWorld : IPhysicsWorld
             (JoltPhysicsSharp.MotionType)motionType,
             new ObjectLayer((uint)layers)
         );
-        var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation);
+        var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation); // TODO Create Add Body
         OnBodyCreated(body.ID);
         return body.ID;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Exist(in uint id)
+    {
+        return body2Owner.ContainsKey(id);
     }
     // public uint Create(IShapeData shape, in Vector3 position, in Quaternion rotation,
     //     GameCore.Jolt.MotionType motionType,
@@ -275,6 +281,17 @@ public class JoltPhysicsWorld : IPhysicsWorld
         }
 
         return true;
+    }
+
+    public Vector3 GetPosition(in uint id)
+    {
+        return physicsSystem.BodyInterface.GetPosition(id);
+        
+    }
+
+    public Quaternion GetRotation(in uint id)
+    {
+        return physicsSystem.BodyInterface.GetRotation(id);
     }
 
     private static bool PackShapeData(in Shape shape, out ShapeDataPacket packet)
