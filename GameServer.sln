@@ -31,7 +31,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCore", "GameCore\GameCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repro", "Repro\Repro.csproj", "{E7A3F26F-4548-40AC-B808-D0C61354127A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoltServer.Warpper", "JoltServer.Warpper\JoltServer.Warpper.csproj", "{EF7CA6F5-18F6-463C-AA74-33B0D4B99B62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoltWarpper", "JoltWarpper\JoltWarpper.csproj", "{EF7CA6F5-18F6-463C-AA74-33B0D4B99B62}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C5D47040-A990-4334-BB14-2E4F4E4947F4}"
 EndProject

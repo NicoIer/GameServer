@@ -22,7 +22,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\GameCore\GameCore.csproj" />
-      <ProjectReference Include="..\JoltServer.Warpper\JoltServer.Warpper.csproj" />
+      <ProjectReference Include="..\JoltWarpper\JoltWarpper.csproj" />
     </ItemGroup>
 
 </Project>
