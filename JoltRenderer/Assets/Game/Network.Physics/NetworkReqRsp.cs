@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using GameCore.Jolt;
+using GameCore.Physics;
 using MemoryPack;
-using Network;
+using Network.Physics;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityToolkit;
 
-namespace JoltWrapper
+namespace Network.Physics
 {
-    [RequireComponent(typeof(JoltClient))]
-    public class JoltReqRsp : MonoBehaviour
+    [RequireComponent(typeof(NetworkCenter))]
+    public class NetworkReqRsp : MonoBehaviour
     {
-        private JoltClient _client;
+        private NetworkCenter _client;
 
         private void Start()
         {
-            _client = GetComponent<JoltClient>();
+            _client = GetComponent<NetworkCenter>();
             _client.messageHandler.Add<RspHead>(OnRspHead);
         }
 
@@ -38,9 +38,9 @@ namespace JoltWrapper
         {
             _client.Send(reqHead);
             _requesting[reqHead.index] = reqHead;
-            float startedTime = Time.realtimeSinceStartup;
+            float startedTime = UnityEngine.Time.realtimeSinceStartup;
             await UniTask.WaitUntil(() =>
-                _response.ContainsKey(reqHead.index) || Time.realtimeSinceStartup - startedTime > timeout);
+                _response.ContainsKey(reqHead.index) || UnityEngine.Time.realtimeSinceStartup - startedTime > timeout);
             bool outed = !_response.ContainsKey(reqHead.index);
             if (outed)
             {

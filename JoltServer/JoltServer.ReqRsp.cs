@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using MemoryPack;
 using Network;
@@ -31,17 +31,10 @@ public partial class JoltServer
         rsp = default;
         errorMsg = "";
         var bodyId = message.bodyId;
-        if (!_app.physicsWorld.body2Owner.TryGetValue(bodyId, out var value))
+        if (!_app.physicsWorld.Exist(bodyId))
         {
             errorcode = ErrorCode.InvalidArgument;
             errorMsg = "Invalid body id";
-            return;
-        }
-
-        if (value != connectionid)
-        {
-            errorcode = ErrorCode.InvalidArgument;
-            errorMsg = "Invalid owner";
             return;
         }
 

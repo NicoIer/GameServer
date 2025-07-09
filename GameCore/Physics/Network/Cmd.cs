@@ -1,8 +1,8 @@
 using System.Numerics;
 using MemoryPack;
-using Network;
+using Network.Physics;
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     // public interface IBodySpawnCmd
     // {

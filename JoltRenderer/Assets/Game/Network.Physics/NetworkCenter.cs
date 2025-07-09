@@ -2,15 +2,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using GameCore.Jolt;
-using Network;
-using Network.Client;
+using GameCore.Physics;
+using Network.Physics;
+using Network.Physics.Client;
 using UnityEngine;
 using UnityToolkit;
 
-namespace JoltWrapper
+namespace Network.Physics
 {
-    public partial class JoltClient : MonoSingleton<JoltClient>
+    public partial class NetworkCenter : MonoSingleton<NetworkCenter>
     {
         private NetworkClient _client;
         public string serverHost = "localhost";
@@ -50,7 +50,7 @@ namespace JoltWrapper
                 Port = serverPort
             };
             await _client.Run(uriBuilder.Uri, false);
-            lastTryConnectTime = Time.time;
+            lastTryConnectTime = UnityEngine.Time.time;
             _client.socket.TickOutgoing(); // 主动向服务器发送数据
             ContinueConnect(uriBuilder.Uri).Forget();
 
@@ -76,7 +76,7 @@ namespace JoltWrapper
             {
                 await Task.Delay(TimeSpan.FromSeconds(KEEP_ALIVE_INTERVAL));
                 if (!_client.socket.connected) continue; // 没连接上
-                ToolkitLog.Debug($"{nameof(JoltClient)}: Send Heartbeat");
+                ToolkitLog.Debug($"{nameof(NetworkCenter)}: Send Heartbeat");
                 Send(HeartBeat.Default);
             }
         }
@@ -94,11 +94,11 @@ namespace JoltWrapper
                     continue;
                 }
 
-                if (Time.time - lastTryConnectTime > retryDelay)
+                if (UnityEngine.Time.time - lastTryConnectTime > retryDelay)
                 {
-                    ToolkitLog.Info($"{nameof(JoltClient)}: 连接断开 重试 {uri}");
+                    ToolkitLog.Info($"{nameof(NetworkCenter)}: 连接断开 重试 {uri}");
                     _client.Stop();
-                    lastTryConnectTime = Time.time;
+                    lastTryConnectTime = UnityEngine.Time.time;
                     await _client.Run(uri, false);
                     _client.socket.TickOutgoing();
                     ++retryCount;

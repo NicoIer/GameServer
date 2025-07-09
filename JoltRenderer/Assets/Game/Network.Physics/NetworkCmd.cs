@@ -1,20 +1,20 @@
 using System;
-using GameCore.Jolt;
+using GameCore.Physics;
 using UnityEngine;
 using UnityToolkit;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
-namespace JoltWrapper
+namespace Network.Physics
 {
-    [RequireComponent(typeof(JoltClient))]
-    public class JoltCmd : MonoBehaviour
+    [RequireComponent(typeof(NetworkCenter))]
+    public class NetworkCmd : MonoBehaviour
     {
-        private JoltClient _client;
+        private NetworkCenter _client;
 
         private void Start()
         {
-            _client = GetComponent<JoltClient>();
+            _client = GetComponent<NetworkCenter>();
         }
 
         private void OnDestroy()

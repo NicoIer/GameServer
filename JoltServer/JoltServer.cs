@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using Cysharp.Threading;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using Network.Server;
 using Serilog;
@@ -38,9 +38,9 @@ public partial class JoltServer : IJoltSystem<JoltApplication, JoltApplication.L
 
     public delegate void ContextDelegate(in JoltApplication.LoopContex ctx);
 
-    private JoltConfig _config;
+    private PhysicsConfig _config;
 
-    public JoltServer(int targetFrameRate, int port, int bufferSize, JoltConfig cfg)
+    public JoltServer(int targetFrameRate, int port, int bufferSize, PhysicsConfig cfg)
     {
         _config = cfg;
         // _frameStep = new FrameStep(bufferSize);

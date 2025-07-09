@@ -28,7 +28,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\JoltServer\JoltServer.csproj" />
-      <ProjectReference Include="..\Jolt.Shared\Jolt.Shared.csproj" />
+      <ProjectReference Include="..\GameCore\GameCore.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     [Flags]
     public enum PhysicsUpdateError

@@ -1,4 +1,4 @@
-﻿namespace GameCore.Jolt
+﻿namespace GameCore.Physics
 {
     public enum ObjectLayers : uint
     {

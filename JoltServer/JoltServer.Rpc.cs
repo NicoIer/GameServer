@@ -1,4 +1,4 @@
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 
 namespace JoltServer;

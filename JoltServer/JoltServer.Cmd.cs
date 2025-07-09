@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using MemoryPack;
 using Network;
@@ -37,7 +37,7 @@ public partial class JoltServer
             message.motionType,
             message.objectLayer,
             message.activation);
-        _app.physicsWorld.body2Owner[bodyId] = connectionId;
+        // _app.physicsWorld.body2Owner[bodyId] = connectionId;
         Log.Information($"生成成功:{bodyId},threadId:{Thread.CurrentThread.ManagedThreadId}");
     }
 
@@ -45,18 +45,6 @@ public partial class JoltServer
     private void OnCmdBodyState(in int connectionid, in CmdBodyState message)
     {
         Log.Information($"客户端{connectionid}请求更新Body:{message.entityId}");
-        if (!_app.physicsWorld.body2Owner.ContainsKey(message.entityId))
-        {
-            Log.Warning($"客户端{connectionid}请求更新不存在的Body:{message.entityId}");
-            return;
-        }
-
-        if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
-        {
-            Log.Warning(
-                $"客户端{connectionid}请求更新不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
-            return;
-        }
 
         BodyID bodyId = new BodyID(message.entityId);
 
@@ -97,24 +85,7 @@ public partial class JoltServer
     private void OnCmdDestroy(in int connectionid, in CmdDestroy message)
     {
         Log.Information($"客户端{connectionid}请求销毁Body:{message.entityId}");
-
-        if (!_app.physicsWorld.body2Owner.ContainsKey(message.entityId))
-        {
-            Log.Warning($"客户端{connectionid}请求销毁不存在的Body:{message.entityId}");
-            return;
-        }
-
-        if (_app.physicsWorld.body2Owner[message.entityId] != connectionid)
-        {
-            Log.Warning(
-                $"客户端{connectionid}请求销毁不属于自己的Body:{message.entityId}由{_app.physicsWorld.body2Owner[message.entityId]}所有");
-            return;
-        }
-
         _app.RemoveAndDestroy(message.entityId);
-        _app.physicsWorld.body2Owner.Remove(message.entityId);
-
-
         Log.Information($"销毁Body成功:{message.entityId}");
     }
 }

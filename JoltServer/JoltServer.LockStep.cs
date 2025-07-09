@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Cysharp.Threading;
-using GameCore.Jolt;
+using GameCore.Physics;
 using Network.Server;
 
 namespace JoltServer;

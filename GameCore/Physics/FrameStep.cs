@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityToolkit;
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     public struct FrameInput
     {

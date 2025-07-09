@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Jolt.Shared\Jolt.Shared.csproj" />
+      <ProjectReference Include="..\GameCore\GameCore.csproj" />
       <ProjectReference Include="..\JoltServer.Warpper\JoltServer.Warpper.csproj" />
     </ItemGroup>
 

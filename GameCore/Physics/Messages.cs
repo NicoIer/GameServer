@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using MemoryPack;
-using Network;
+using Network.Physics;
 using UnityToolkit;
 
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     // public interface INetworkEntity
     // {
@@ -38,8 +38,8 @@ namespace GameCore.Jolt
         // : IPhysicsData
         // : INetworkEntity
     {
-        public int ownerId { get; set; } // player id
-        public uint entityId { get; set; } // entity id -> jolt bodyId
+        // public int ownerId { get; set; } // player id
+        public uint id { get; set; } // entity id -> jolt bodyId
         // public byte worldId { get; set; } // world id
 
         public BodyType bodyType;
@@ -54,12 +54,12 @@ namespace GameCore.Jolt
 
         public MotionType motionType;
 
-        /// <summary>
-        /// Same To PhysX isTrigger
-        /// </summary>
-        public bool isSensor;
+        // /// <summary>
+        // /// Same To PhysX isTrigger
+        // /// </summary>
+        // public bool isSensor;
 
-        [MemoryPackIgnore] public bool isTrigger => isSensor;
+        // [MemoryPackIgnore] public bool isTrigger => isSensor;
 
         public uint objectLayer;
 

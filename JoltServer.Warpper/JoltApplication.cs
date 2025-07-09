@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using Serilog;
 using UnityToolkit;
@@ -235,7 +235,7 @@ public class JoltApplication : DisposableObject
             }
 
             var error = physicsWorld.Simulate(deltaTime, collisionSteps);
-            if (error != GameCore.Jolt.PhysicsUpdateError.None)
+            if (error != GameCore.Physics.PhysicsUpdateError.None)
             {
                 ToolkitLog.Warning($"Physics update error: {error}");
             }

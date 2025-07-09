@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using GameCore.Jolt;
+using GameCore.Physics;
 using Jolt;
 using Unity.Mathematics;
 using UnityEngine;
-using Activation = GameCore.Jolt.Activation;
-using MotionType = GameCore.Jolt.MotionType;
-using PhysicsUpdateError = GameCore.Jolt.PhysicsUpdateError;
+using UnityToolkit;
+using Activation = GameCore.Physics.Activation;
+using MotionType = GameCore.Physics.MotionType;
+using PhysicsUpdateError = GameCore.Physics.PhysicsUpdateError;
 using Quaternion = System.Numerics.Quaternion;
+using ShapeSubType = Jolt.ShapeSubType;
 using Vector3 = System.Numerics.Vector3;
+using JoltApi = Jolt.Bindings;
 
 namespace JoltWrapper
 {
@@ -114,11 +117,10 @@ namespace JoltWrapper
                 throw new ArgumentException($"cannot create shape settings from shape[{shapeData}] ");
             }
 
-            rvec3 pos = new(position.X, position.Y, position.Z);
             quaternion quaternion = new(rotation.X, rotation.Y, rotation.Z, rotation.W);
             var settings = new BodyCreationSettings(
                 shape.Value,
-                pos,
+                position,
                 quaternion,
                 (Jolt.MotionType)motionType,
                 (uint)layers
@@ -126,12 +128,12 @@ namespace JoltWrapper
             var bodyInterface = physicsSystem.BodyInterface;
 
             var body = bodyInterface.CreateAndAddBody(settings, (Jolt.Activation)activation);
-            
+
             // --------------------- //
             _bodiesSet.Add(body.ID);
             _bodies.Add(body.ID);
             // --------------------- //
-            
+
             return body.ID;
         }
 
@@ -142,12 +144,98 @@ namespace JoltWrapper
 
         public bool QueryBody(in uint id, out BodyData bodyData)
         {
-            throw new NotImplementedException();
+            var bodyInterface = physicsSystem.BodyInterface;
+            var bodyId = new BodyID(id);
+            var shape = bodyInterface.GetShape(bodyId);
+            ShapeDataPacket? shapeDataPacket = null;
+            if(PackShapeData(shape, out var packet) == false)
+            {
+                shapeDataPacket = packet;
+            }
+
+            var position = bodyInterface.GetPosition(bodyId);
+            var quaternion = bodyInterface.GetRotation(bodyId).value;
+            var rotation = new Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+            
+            bodyData = new BodyData()
+            {
+            //     // ownerId = ownerId,
+            //     id = id,
+            //     bodyType = (GameCore.Jolt.BodyType)bodyInterface.GetBodyType(bodyId),
+            //     isActive = bodyInterface.IsActive(bodyId),
+            //     motionType = (GameCore.Jolt.MotionType)bodyInterface.GetMotionType(bodyId),
+            //     // isSensor = isSensor,
+            //     objectLayer = bodyInterface.GetObjectLayer(bodyId),
+            //     friction = bodyInterface.GetFriction(bodyId),
+            //     restitution = bodyInterface.GetRestitution(bodyId),
+            //     position = position,
+            //     rotation = rotation,
+            //     centerOfMass = bodyInterface.GetCenterOfMassPosition(bodyId),
+            //     linearVelocity = bodyInterface.GetLinearVelocity(bodyId),
+            //     angularVelocity = bodyInterface.GetAngularVelocity(bodyId),
+            //     shapeDataPacket = shapeDataPacket
+            };
+
+
+            if (shapeDataPacket == null)
+            {
+                ToolkitLog.Info($"got a null shape packet,id:{id},threadId:{Thread.CurrentThread.ManagedThreadId}");
+            }
+
+            return true;
+            
+        }
+
+        private static bool PackShapeData(Shape shape, out ShapeDataPacket packet)
+        {
+            packet = default;
+            switch (shape.subType)
+            {
+                case ShapeSubType.Sphere:
+                    break;
+                case ShapeSubType.Box:
+                    var f3 = JoltApi.JPH_BoxShape_GetHalfExtent(shape.Handle.Reinterpret<JPH_BoxShape>());
+                    var value = new Vector3(f3.x, f3.y, f3.z);
+                    var box = new BoxShapeData(value);
+                    ShapeDataPacket.Create(box, out packet);
+                    break;
+                case ShapeSubType.Triangle:
+                    break;
+                case ShapeSubType.Capsule:
+                    break;
+                case ShapeSubType.TaperedCapsule:
+                    break;
+                case ShapeSubType.Cylinder:
+                    break;
+                case ShapeSubType.ConvexHull:
+                    break;
+                case ShapeSubType.StaticCompound:
+                    break;
+                case ShapeSubType.MutableCompound:
+                    break;
+                case ShapeSubType.RotatedTranslated:
+                    break;
+                case ShapeSubType.Scaled:
+                    break;
+                case ShapeSubType.OffsetCenterOfMass:
+                    break;
+                case ShapeSubType.Mesh:
+                    break;
+                case ShapeSubType.HeightField:
+                    break;
+                case ShapeSubType.SoftBody:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return true;
         }
 
         public Vector3 GetPosition(in uint id)
         {
-            throw new NotImplementedException();
+            var position = physicsSystem.BodyInterface.GetPosition(id);
+            return new Vector3(position.x, position.y, position.z);
         }
 
         public Quaternion GetRotation(in uint id)

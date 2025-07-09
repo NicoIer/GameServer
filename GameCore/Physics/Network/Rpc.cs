@@ -1,7 +1,7 @@
 using MemoryPack;
-using Network;
+using Network.Physics;
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     [MemoryPackable]
     public partial struct RpcContactAdded : INetworkMessage

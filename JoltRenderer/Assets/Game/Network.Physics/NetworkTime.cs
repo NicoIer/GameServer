@@ -1,12 +1,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Network.Time;
+using Network.Physics.Time;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityToolkit;
 
-namespace JoltWrapper
+namespace Network.Physics
 {
     public class NetworkTime : MonoSingleton<NetworkTime>, IOnlyPlayingModelSingleton
     {

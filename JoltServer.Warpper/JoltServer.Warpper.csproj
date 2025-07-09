@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Jolt.Shared\Jolt.Shared.csproj" />
+      <ProjectReference Include="..\GameCore\GameCore.csproj" />
       <ProjectReference Include="..\JoltPhysicsSharp\src\JoltPhysicsSharp\JoltPhysicsSharp.csproj" />
     </ItemGroup>
 

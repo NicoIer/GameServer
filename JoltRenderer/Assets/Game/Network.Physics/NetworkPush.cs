@@ -1,15 +1,15 @@
-using GameCore.Jolt;
+using GameCore.Physics;
 using UnityEngine;
 
-namespace JoltWrapper
+namespace Network.Physics
 {
-    [RequireComponent(typeof(JoltClient))]
-    public class JoltPush : MonoBehaviour
+    [RequireComponent(typeof(NetworkCenter))]
+    public class NetworkPush : MonoBehaviour
     {
         public delegate void OnPush<T>(in T data);
 
         
-        private JoltClient _client;
+        private NetworkCenter _client;
 
         public event OnPush<WorldData> OnPushWorldData = delegate { };
 
@@ -17,7 +17,7 @@ namespace JoltWrapper
 
         private void Start()
         {
-            _client = GetComponent<JoltClient>();
+            _client = GetComponent<NetworkCenter>();
             _client.messageHandler.Add<WorldData>(OnWorldData);
         }
 

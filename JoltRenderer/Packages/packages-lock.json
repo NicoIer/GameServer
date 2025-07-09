@@ -14,8 +14,8 @@
       "dependencies": {},
       "hash": "fe31ad0904abee296b5ea72c6073157accba59e8"
     },
-    "com.nicoier.gamecore.jolt": {
-      "version": "file:../../Jolt.Shared/Jolt",
+    "com.nicoier.gamecore.physics": {
+      "version": "file:../../GameCore/Physics",
       "depth": 0,
       "source": "local",
       "dependencies": {}

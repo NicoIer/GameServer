@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoltServer", "JoltServer\JoltServer.csproj", "{9065DBD0-BE8D-4A3D-9A6D-61ABBEDA5C4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jolt.Shared", "Jolt.Shared\Jolt.Shared.csproj", "{708EEA5C-AA05-4B6B-A3A1-180C9563A39F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCore", "GameCore\GameCore.csproj", "{708EEA5C-AA05-4B6B-A3A1-180C9563A39F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repro", "Repro\Repro.csproj", "{E7A3F26F-4548-40AC-B808-D0C61354127A}"
 EndProject

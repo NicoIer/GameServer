@@ -2,10 +2,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using Serilog;
 using UnityToolkit;
+using ShapeSubType = JoltPhysicsSharp.ShapeSubType;
 
 namespace JoltServer;
 
@@ -13,7 +14,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
 {
     public byte worldId { get; private set; }
 
-    public readonly Dictionary<uint, int> body2Owner = new Dictionary<uint, int>();
+    // public readonly Dictionary<uint, int> body2Owner = new Dictionary<uint, int>();
 
 
     public IReadOnlyList<uint> bodies => _bodies;
@@ -115,7 +116,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     #endregion
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GameCore.Jolt.PhysicsUpdateError Simulate(in float deltaTime, in int collisionSteps)
+    public GameCore.Physics.PhysicsUpdateError Simulate(in float deltaTime, in int collisionSteps)
     {
         // if (history.Count == historyBufferSize)
         // {
@@ -127,7 +128,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
         // //Append Tail
         // history.AddLast(data);
 
-        return (GameCore.Jolt.PhysicsUpdateError)physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+        return (GameCore.Physics.PhysicsUpdateError)physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
     }
 
 
@@ -138,8 +139,8 @@ public class JoltPhysicsWorld : IPhysicsWorld
     //     return body;
     // }
     public uint CreateAndAdd(IShapeData shapeData, in Vector3 position, in Quaternion rotation,
-        GameCore.Jolt.MotionType motionType,
-        ObjectLayers layers, GameCore.Jolt.Activation activation)
+        GameCore.Physics.MotionType motionType,
+        ObjectLayers layers, GameCore.Physics.Activation activation)
     {
         Shape? shape;
         switch (shapeData)
@@ -178,7 +179,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Exist(in uint id)
     {
-        return body2Owner.ContainsKey(id);
+        return physicsSystem.BodyInterface.IsAdded(id);
     }
     // public uint Create(IShapeData shape, in Vector3 position, in Quaternion rotation,
     //     GameCore.Jolt.MotionType motionType,
@@ -222,26 +223,28 @@ public class JoltPhysicsWorld : IPhysicsWorld
     private void OnBodyCreated(in uint bodyId, int owner = IPhysicsWorld.ServerId)
     {
         _bodies.Add(bodyId);
-        body2Owner.Add(bodyId, owner);
+        // body2Owner.Add(bodyId, owner);
     }
 
     public bool QueryBody(in uint id, [UnscopedRef] out BodyData bodyData)
     {
-        Debug.Assert(physicsSystem.BodyInterface.IsAdded(id));
-        bool isSensor = false;
+        var bodyInterface = physicsSystem.BodyInterface;
+        var bodyId = new BodyID(id);
+        Debug.Assert(bodyInterface.IsAdded(bodyId));
+        // bool isSensor = false;
         ShapeDataPacket? shapeDataPacket = null;
 
-        physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
-        Debug.Assert(@lock.Succeeded);
-        if (@lock.Succeeded)
-        {
-            Debug.Assert(@lock.Body != null);
-            isSensor = @lock.Body.IsSensor;
-        }
+        // physicsSystem.BodyLockInterface.LockRead(id, out var @lock);
+        // Debug.Assert(@lock.Succeeded);
+        // if (@lock.Succeeded)
+        // {
+        //     Debug.Assert(@lock.Body != null);
+        //     isSensor = @lock.Body.IsSensor;
+        // }
+        //
+        // physicsSystem.BodyLockInterface.UnlockRead(@lock);
 
-        physicsSystem.BodyLockInterface.UnlockRead(@lock);
-
-        var shape = physicsSystem.BodyInterface.GetShape(id);
+        var shape = bodyInterface.GetShape(bodyId);
         Debug.Assert(shape != null);
         if (PackShapeData(shape, out var packet))
         {
@@ -249,28 +252,28 @@ public class JoltPhysicsWorld : IPhysicsWorld
         }
 
 
-        var ownerId = body2Owner.GetValueOrDefault(id, IPhysicsWorld.ServerId);
+        // var ownerId = body2Owner.GetValueOrDefault(id, IPhysicsWorld.ServerId);
 
-        Vector3 position = physicsSystem.BodyInterface.GetPosition(id);
-        Quaternion rotation = physicsSystem.BodyInterface.GetRotation(id);
+        Vector3 position = bodyInterface.GetPosition(bodyId);
+        Quaternion rotation = bodyInterface.GetRotation(bodyId);
 
 
         bodyData = new BodyData()
         {
-            ownerId = ownerId,
-            entityId = id,
-            bodyType = (GameCore.Jolt.BodyType)physicsSystem.BodyInterface.GetBodyType(id),
-            isActive = physicsSystem.BodyInterface.IsActive(id),
-            motionType = (GameCore.Jolt.MotionType)physicsSystem.BodyInterface.GetMotionType(id),
-            isSensor = isSensor,
-            objectLayer = physicsSystem.BodyInterface.GetObjectLayer(id),
-            friction = physicsSystem.BodyInterface.GetFriction(id),
-            restitution = physicsSystem.BodyInterface.GetRestitution(id),
+            // ownerId = ownerId,
+            id = id,
+            bodyType = (GameCore.Physics.BodyType)bodyInterface.GetBodyType(bodyId),
+            isActive = bodyInterface.IsActive(bodyId),
+            motionType = (GameCore.Physics.MotionType)bodyInterface.GetMotionType(bodyId),
+            // isSensor = isSensor,
+            objectLayer = bodyInterface.GetObjectLayer(bodyId),
+            friction = bodyInterface.GetFriction(bodyId),
+            restitution = bodyInterface.GetRestitution(bodyId),
             position = position,
             rotation = rotation,
-            centerOfMass = physicsSystem.BodyInterface.GetCenterOfMassPosition(id),
-            linearVelocity = physicsSystem.BodyInterface.GetLinearVelocity(id),
-            angularVelocity = physicsSystem.BodyInterface.GetAngularVelocity(id),
+            centerOfMass = bodyInterface.GetCenterOfMassPosition(bodyId),
+            linearVelocity = bodyInterface.GetLinearVelocity(bodyId),
+            angularVelocity = bodyInterface.GetAngularVelocity(bodyId),
             shapeDataPacket = shapeDataPacket
         };
 
@@ -297,71 +300,75 @@ public class JoltPhysicsWorld : IPhysicsWorld
     private static bool PackShapeData(in Shape shape, out ShapeDataPacket packet)
     {
         packet = default;
-        switch (shape)
+        switch (shape.SubType)
         {
-            case MutableCompoundShape mutableCompoundShape:
+            case ShapeSubType.Sphere:
                 break;
-            case StaticCompoundShape staticCompoundShape:
-                break;
-            case CompoundShape compoundShape:
-                break;
-            case CapsuleShape capsuleShape:
-                break;
-            case BoxShape boxShape:
-                var box = new BoxShapeData(boxShape.HalfExtent);
+            case ShapeSubType.Box:
+                JoltApi.JPH_BoxShape_GetHalfExtent(shape.Handle, out Vector3 value);
+                var box = new BoxShapeData(value);
                 ShapeDataPacket.Create(box, out packet);
                 break;
-            case ConvexHullShape convexHullShape:
+            case ShapeSubType.Triangle:
                 break;
-            case CylinderShape cylinderShape:
+            case ShapeSubType.Capsule:
                 break;
-            case OffsetCenterOfMassShape offsetCenterOfMassShape:
+            case ShapeSubType.TaperedCapsule:
                 break;
-            case SphereShape sphereShape:
-                var sphere = new SphereShapeData(sphereShape.Radius);
-                ShapeDataPacket.Create(sphere, out packet);
+            case ShapeSubType.Cylinder:
                 break;
-            case TaperedCapsuleShape taperedCapsuleShape:
+            case ShapeSubType.ConvexHull:
                 break;
-            case TaperedCylinderShape taperedCylinderShape:
+            case ShapeSubType.StaticCompound:
                 break;
-            case TriangleShape triangleShape:
+            case ShapeSubType.MutableCompound:
                 break;
-            case ConvexShape convexShape:
+            case ShapeSubType.RotatedTranslated:
                 break;
-            case RotatedTranslatedShape rotatedTranslatedShape:
+            case ShapeSubType.Scaled:
                 break;
-            case ScaledShape scaledShape:
+            case ShapeSubType.OffsetCenterOfMass:
                 break;
-            case DecoratedShape decoratedShape:
+            case ShapeSubType.Mesh:
                 break;
-            case EmptyShape emptyShape:
+            case ShapeSubType.HeightField:
                 break;
-            case HeightFieldShape heightFieldShape:
+            case ShapeSubType.SoftBody:
                 break;
-            case MeshShape meshShape:
+            case ShapeSubType.User1:
                 break;
-            case PlaneShape planeShape:
-                var plane = new PlaneShapeData
-                {
-                    halfExtent = planeShape.HalfExtent,
-                    normal = planeShape.Plane.Normal,
-                    distance = planeShape.Plane.D,
-                };
-                ShapeDataPacket.Create(plane, out packet);
+            case ShapeSubType.User2:
+                break;
+            case ShapeSubType.User3:
+                break;
+            case ShapeSubType.User4:
+                break;
+            case ShapeSubType.User5:
+                break;
+            case ShapeSubType.User6:
+                break;
+            case ShapeSubType.User7:
+                break;
+            case ShapeSubType.User8:
+                break;
+            case ShapeSubType.UserConvex1:
+                break;
+            case ShapeSubType.UserConvex2:
+                break;
+            case ShapeSubType.UserConvex3:
+                break;
+            case ShapeSubType.UserConvex4:
+                break;
+            case ShapeSubType.UserConvex5:
+                break;
+            case ShapeSubType.UserConvex6:
+                break;
+            case ShapeSubType.UserConvex7:
+                break;
+            case ShapeSubType.UserConvex8:
                 break;
             default:
-                // TODO 额外的处理逻辑
-                Log.Debug("Shape:{shape}进入异常序列化处理逻辑,{type},{subType}", shape, shape.Type, shape.SubType);
-                if (shape is { Type: JoltPhysicsSharp.ShapeType.Convex, SubType: JoltPhysicsSharp.ShapeSubType.Box })
-                {
-                    // Log.Warning("异常Shape进行额外处理，解析为BoxShape");
-                    ShapeDataPacket.Create(new BoxShapeData(shape.LocalBounds.Extent / 2), out packet);
-                    return true;
-                }
-
-                Log.Warning("Shape:{shape}序列化异常,{type},{subType}", shape, shape.Type, shape.SubType);
-                return false;
+                throw new ArgumentOutOfRangeException();
         }
 
         return true;
@@ -417,7 +424,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     {
         physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
         _bodies.Remove(id);
-        body2Owner.Remove(id);
+        // body2Owner.Remove(id);
     }
 
     public void Dispose()

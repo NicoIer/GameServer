@@ -3,7 +3,7 @@
 using System;
 using System.Numerics;
 
-namespace GameCore.Jolt
+namespace GameCore.Physics
 {
     public interface IJoltSystem<in TApp, TCtx, in TPhysicsWorld> where TPhysicsWorld : IPhysicsWorld
     {
