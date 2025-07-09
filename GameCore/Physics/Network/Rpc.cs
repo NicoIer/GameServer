@@ -1,5 +1,5 @@
 using MemoryPack;
-using Network.Physics;
+using Network;
 
 namespace GameCore.Physics
 {

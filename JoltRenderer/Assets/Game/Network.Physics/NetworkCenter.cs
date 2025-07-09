@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using GameCore.Physics;
-using Network.Physics;
-using Network.Physics.Client;
+using Network.Client;
 using UnityEngine;
 using UnityToolkit;
 
