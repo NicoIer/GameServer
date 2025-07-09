@@ -42,28 +42,28 @@ namespace Network.Physics
             _client.Send(cmd);
         }
 
-        [Sirenix.OdinInspector.Button]
-        private void CmdSpawnPlane(
-            Vector3 position,
-            Vector3 rotation,
-            float halfExtent = 10,
-            MotionType motionType = MotionType.Static,
-            Activation activation = Activation.Activate,
-            ObjectLayers objectLayer = ObjectLayers.NonMoving
-        )
-        {
-            var shape = new PlaneShapeData(halfExtent, new Vector3(0, 1, 0), 0);
-            ShapeDataPacket.Create(shape, out var packet);
-            CmdSpawnBody cmd = new CmdSpawnBody
-            {
-                shapeDataPacket = packet,
-                position = position,
-                rotation = UnityEngine.Quaternion.Euler(rotation.T()).T(),
-                motionType = motionType,
-                activation = activation,
-                objectLayer = objectLayer
-            };
-            _client.Send(cmd);
-        }
+        // [Sirenix.OdinInspector.Button]
+        // private void CmdSpawnPlane(
+        //     Vector3 position,
+        //     Vector3 rotation,
+        //     float halfExtent = 10,
+        //     MotionType motionType = MotionType.Static,
+        //     Activation activation = Activation.Activate,
+        //     ObjectLayers objectLayer = ObjectLayers.NonMoving
+        // )
+        // {
+        //     var shape = new PlaneShapeData(halfExtent, new Vector3(0, 1, 0), 0);
+        //     ShapeDataPacket.Create(shape, out var packet);
+        //     CmdSpawnBody cmd = new CmdSpawnBody
+        //     {
+        //         shapeDataPacket = packet,
+        //         position = position,
+        //         rotation = UnityEngine.Quaternion.Euler(rotation.T()).T(),
+        //         motionType = motionType,
+        //         activation = activation,
+        //         objectLayer = objectLayer
+        //     };
+        //     _client.Send(cmd);
+        // }
     }
 }

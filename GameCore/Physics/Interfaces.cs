@@ -52,12 +52,12 @@ namespace GameCore.Physics
         /// <param name="motionType"></param>
         /// <param name="layers"></param>
         /// <param name="activation"></param>
-        /// <returns></returns>
+        /// <returns>body Id</returns>
         public uint CreateAndAdd(IShapeData shapeData, in Vector3 position, in Quaternion rotation, MotionType motionType,
             ObjectLayers layers, Activation activation);
 
         
-        public bool Exist(in uint id);
+        public bool IsAdded(in uint id);
         
         /// <summary>
         /// 获取一个实体的数据
@@ -71,13 +71,13 @@ namespace GameCore.Physics
         
         public Quaternion GetRotation(in uint id);
 
-        /// <summary>
-        /// 更新一个实体的数据
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="bodyData"></param>
-        /// <returns></returns>
-        public bool UpdateBody(in uint id, in BodyData bodyData);
+        // /// <summary>
+        // /// 更新一个实体的数据
+        // /// </summary>
+        // /// <param name="id"></param>
+        // /// <param name="bodyData"></param>
+        // /// <returns></returns>
+        // public bool UpdateBody(in uint id, in BodyData bodyData);
 
 
         /// <summary>

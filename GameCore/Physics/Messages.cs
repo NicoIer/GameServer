@@ -29,6 +29,7 @@ namespace GameCore.Physics
         public long frameCount;
         public long timeStamp;
         public Vector3 gravity;
+        public Dictionary<uint, uint> entityId2BodyIndex; // entityId -> bodyIndex
         public ArraySegment<BodyData> bodies;
     }
 
@@ -39,7 +40,7 @@ namespace GameCore.Physics
         // : INetworkEntity
     {
         // public int ownerId { get; set; } // player id
-        public uint id { get; set; } // entity id -> jolt bodyId
+        public uint id; // entity id -> jolt bodyId
         // public byte worldId { get; set; } // world id
 
         public BodyType bodyType;
@@ -225,20 +226,20 @@ namespace GameCore.Physics
         }
     }
 
-    public partial struct PlaneShapeData : IShapeData
-    {
-        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Plane;
-        public float halfExtent;
-        public Vector3 normal;
-        public float distance;
-
-        public PlaneShapeData(float halfExtent, Vector3 normal, float distance)
-        {
-            this.halfExtent = halfExtent;
-            this.normal = normal;
-            this.distance = distance;
-        }
-    }
+    // public partial struct PlaneShapeData : IShapeData
+    // {
+    //     [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Plane;
+    //     public float halfExtent;
+    //     public Vector3 normal;
+    //     public float distance;
+    //
+    //     public PlaneShapeData(float halfExtent, Vector3 normal, float distance)
+    //     {
+    //         this.halfExtent = halfExtent;
+    //         this.normal = normal;
+    //         this.distance = distance;
+    //     }
+    // }
 
 
     public static class ShapeDataExtensions

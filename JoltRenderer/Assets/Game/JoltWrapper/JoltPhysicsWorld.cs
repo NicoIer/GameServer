@@ -23,7 +23,6 @@ namespace JoltWrapper
         private readonly JobSystem _nativeJobSystem = new();
         public float physicsTime { get; private set; }
 
-        private readonly HashSet<uint> _bodiesSet = new();
         private readonly List<uint> _bodies = new();
         public IReadOnlyList<uint> bodies => _bodies;
 
@@ -39,10 +38,13 @@ namespace JoltWrapper
             if (IPhysicsWorld.worldIdCounter > byte.MaxValue) throw new Exception("WorldId overflow");
             worldId = (byte)IPhysicsWorld.worldIdCounter;
 
+            #region Setup
+
             ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
             objectLayerPairFilter.EnableCollision((uint)ObjectLayers.NonMoving, (uint)ObjectLayers.Moving);
             objectLayerPairFilter.EnableCollision((uint)ObjectLayers.Moving, (uint)ObjectLayers.Moving);
 
+            // We use a 1-to-1 mapping between object layers and broadphase layers
             BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
             broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((uint)ObjectLayers.NonMoving,
                 (byte)BroadPhaseLayers.NonMoving);
@@ -61,6 +63,8 @@ namespace JoltWrapper
                 BroadPhaseLayerInterface = broadPhaseLayerInterface,
                 ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter,
             };
+
+            #endregion
 
             physicsSystem = new PhysicsSystem(settings);
 
@@ -100,11 +104,6 @@ namespace JoltWrapper
                     );
                     shape = new BoxShape(halfExtents);
                     break;
-                case PlaneShapeData planeShapeData:
-                    float3 normal = new(planeShapeData.normal.X, planeShapeData.normal.Y, planeShapeData.normal.Z);
-                    Jolt.Plane plane = new Jolt.Plane(normal, planeShapeData.distance);
-                    shape = new PlaneShape(plane, planeShapeData.halfExtent);
-                    break;
                 case SphereShapeData sphereShapeData:
                     shape = new SphereShape(sphereShapeData.radius);
                     break;
@@ -130,16 +129,15 @@ namespace JoltWrapper
             var body = bodyInterface.CreateAndAddBody(settings, (Jolt.Activation)activation);
 
             // --------------------- //
-            _bodiesSet.Add(body.ID);
             _bodies.Add(body.ID);
-            // --------------------- //
+            ; // --------------------- //
 
             return body.ID;
         }
 
-        public bool Exist(in uint id)
+        public bool IsAdded(in uint id)
         {
-            return _bodiesSet.Contains(id);
+            return physicsSystem.BodyInterface.IsAdded(new BodyID(id));
         }
 
         public bool QueryBody(in uint id, out BodyData bodyData)
@@ -148,7 +146,7 @@ namespace JoltWrapper
             var bodyId = new BodyID(id);
             var shape = bodyInterface.GetShape(bodyId);
             ShapeDataPacket? shapeDataPacket = null;
-            if(PackShapeData(shape, out var packet) == false)
+            if (PackShapeData(shape, out var packet) == false)
             {
                 shapeDataPacket = packet;
             }
@@ -156,24 +154,26 @@ namespace JoltWrapper
             var position = bodyInterface.GetPosition(bodyId);
             var quaternion = bodyInterface.GetRotation(bodyId).value;
             var rotation = new Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-            
+
+            var linearVelocity = bodyInterface.GetLinearVelocity(bodyId);
+            var angularVelocity = bodyInterface.GetAngularVelocity(bodyId);
+
             bodyData = new BodyData()
             {
-            //     // ownerId = ownerId,
-            //     id = id,
-            //     bodyType = (GameCore.Jolt.BodyType)bodyInterface.GetBodyType(bodyId),
-            //     isActive = bodyInterface.IsActive(bodyId),
-            //     motionType = (GameCore.Jolt.MotionType)bodyInterface.GetMotionType(bodyId),
-            //     // isSensor = isSensor,
-            //     objectLayer = bodyInterface.GetObjectLayer(bodyId),
-            //     friction = bodyInterface.GetFriction(bodyId),
-            //     restitution = bodyInterface.GetRestitution(bodyId),
-            //     position = position,
-            //     rotation = rotation,
-            //     centerOfMass = bodyInterface.GetCenterOfMassPosition(bodyId),
-            //     linearVelocity = bodyInterface.GetLinearVelocity(bodyId),
-            //     angularVelocity = bodyInterface.GetAngularVelocity(bodyId),
-            //     shapeDataPacket = shapeDataPacket
+                id = id,
+                bodyType = (GameCore.Physics.BodyType)bodyInterface.GetBodyType(bodyId),
+                isActive = bodyInterface.IsActive(bodyId),
+                motionType = (GameCore.Physics.MotionType)bodyInterface.GetMotionType(bodyId),
+                // isSensor = isSensor,
+                objectLayer = bodyInterface.GetObjectLayer(bodyId),
+                friction = bodyInterface.GetFriction(bodyId),
+                restitution = bodyInterface.GetRestitution(bodyId),
+                position = position,
+                rotation = rotation,
+                centerOfMass = bodyInterface.GetCenterOfMassPosition(bodyId),
+                linearVelocity = new Vector3(linearVelocity.x, linearVelocity.y, linearVelocity.z),
+                angularVelocity = new Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z),
+                shapeDataPacket = shapeDataPacket
             };
 
 
@@ -183,7 +183,6 @@ namespace JoltWrapper
             }
 
             return true;
-            
         }
 
         private static bool PackShapeData(Shape shape, out ShapeDataPacket packet)
@@ -192,12 +191,13 @@ namespace JoltWrapper
             switch (shape.subType)
             {
                 case ShapeSubType.Sphere:
+                    var radius = JoltApi.JPH_SphereShape_GetRadius(shape.Handle.Reinterpret<JPH_SphereShape>());
+                    ShapeDataPacket.Create(new SphereShapeData(radius), out packet);
                     break;
                 case ShapeSubType.Box:
                     var f3 = JoltApi.JPH_BoxShape_GetHalfExtent(shape.Handle.Reinterpret<JPH_BoxShape>());
                     var value = new Vector3(f3.x, f3.y, f3.z);
-                    var box = new BoxShapeData(value);
-                    ShapeDataPacket.Create(box, out packet);
+                    ShapeDataPacket.Create(new BoxShapeData(value), out packet);
                     break;
                 case ShapeSubType.Triangle:
                     break;
@@ -240,37 +240,47 @@ namespace JoltWrapper
 
         public Quaternion GetRotation(in uint id)
         {
-            throw new NotImplementedException();
+            var rotation = physicsSystem.BodyInterface.GetRotation(id);
+            return new Quaternion(rotation.value.x, rotation.value.y, rotation.value.z, rotation.value.w);
         }
 
-        public bool UpdateBody(in uint id, in BodyData bodyData)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// 序列化物理世界 客户端没有必要实现这个方法
+        /// </summary>
+        /// <param name="worldData"></param>
+        /// <exception cref="NotImplementedException"></exception>
         public void Serialize(ref WorldData worldData)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Deserialization is not implemented yet.");
         }
 
+        /// <summary>
+        /// 反序列化物理世界 客户端没有必要实现这个方法
+        /// </summary>
+        /// <param name="worldData"></param>
+        /// <exception cref="NotImplementedException"></exception>
         public void Deserialize(in WorldData worldData)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Deserialization is not implemented yet.");
         }
 
         public void Activate(in uint id)
         {
-            throw new NotImplementedException();
+            physicsSystem.BodyInterface.ActivateBody(id);
         }
 
         public void Deactivate(in uint id)
         {
-            throw new NotImplementedException();
+            physicsSystem.BodyInterface.DeactivateBody(id);
         }
 
         public void RemoveAndDestroy(in uint id)
         {
-            throw new NotImplementedException();
+            Debug.Assert(IsAdded(id), $"Body with id {id} does not exist in the physics world.");
+            var bodyInterface = physicsSystem.BodyInterface;
+            var bodyId = new BodyID(id);
+            bodyInterface.RemoveAndDestroyBody(bodyId);
+            _bodies.Remove(id);
         }
 
         public void Dispose()

@@ -31,7 +31,7 @@ public partial class JoltServer
         rsp = default;
         errorMsg = "";
         var bodyId = message.bodyId;
-        if (!_app.physicsWorld.Exist(bodyId))
+        if (!_app.physicsWorld.IsAdded(bodyId))
         {
             errorcode = ErrorCode.InvalidArgument;
             errorMsg = "Invalid body id";

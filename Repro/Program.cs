@@ -182,6 +182,8 @@ var halfExtent = 10;
 Plane plane = new Plane(normal, 0);
 var shape = new PlaneShape(plane, null, halfExtent);
 
+Console.WriteLine($"Shpae{shape.SubType},{shape.Type}");
+
 
 // success case
 using var bodyCreate = new BodyCreationSettings(

@@ -19,7 +19,7 @@ namespace Game.PhysXWrapper
             throw new System.NotImplementedException();
         }
 
-        public bool Exist(in uint id)
+        public bool IsAdded(in uint bodyId)
         {
             throw new System.NotImplementedException();
         }

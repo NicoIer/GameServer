@@ -21,7 +21,7 @@ public class JoltPhysicsWorld : IPhysicsWorld
     // public IReadOnlySet<BodyID> ignoreDrawBodies => _ignoreDrawBodies;
 
     protected readonly List<uint> _bodies = new();
-    protected readonly JobSystem jobSystem = null!;
+    protected readonly JobSystem jobSystem = new JobSystemThreadPool();
     public PhysicsSystem physicsSystem { get; private set; } = null!;
 
     // public float time { get; private set; }
@@ -30,9 +30,9 @@ public class JoltPhysicsWorld : IPhysicsWorld
     // private LinkedList<WorldData> history = new LinkedList<WorldData>();
     // private int historyBufferSize;
 
-    public delegate void SetupCollisionFilteringDelegate(ref PhysicsSystemSettings settings);
+    // public delegate void SetupCollisionFilteringDelegate(ref PhysicsSystemSettings settings);
 
-    public JoltPhysicsWorld(SetupCollisionFilteringDelegate setup)
+    public JoltPhysicsWorld()
         // , int historyBufferSize)
     {
         if (!Foundation.Init(false)) throw new Exception("Jolt Physics Not Initialized");
@@ -42,15 +42,38 @@ public class JoltPhysicsWorld : IPhysicsWorld
         if (IPhysicsWorld.worldIdCounter > byte.MaxValue) throw new Exception("WorldId overflow");
         worldId = (byte)IPhysicsWorld.worldIdCounter;
 
-        var settings = new PhysicsSystemSettings()
+        #region Setup
+
+        ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
+        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.NonMoving, (uint)ObjectLayers.Moving);
+        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.Moving, (uint)ObjectLayers.Moving);
+
+        // We use a 1-to-1 mapping between object layers and broadphase layers
+        BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.NonMoving,
+            (byte)BroadPhaseLayers.NonMoving);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.Moving, (byte)BroadPhaseLayers.Moving);
+
+        ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter =
+            new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
+
+        var settings = new PhysicsSystemSettings
         {
             MaxBodies = IPhysicsWorld.MaxBodies,
             MaxBodyPairs = IPhysicsWorld.MaxBodyPairs,
             MaxContactConstraints = IPhysicsWorld.MaxContactConstraints,
-            NumBodyMutexes = IPhysicsWorld.NumBodyMutexes,
+            ObjectLayerPairFilter = objectLayerPairFilter,
+            BroadPhaseLayerInterface = broadPhaseLayerInterface,
+            ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter,
         };
-        jobSystem = new JobSystemThreadPool();
-        setup(ref settings);
+
+        #endregion
+
+
+        settings.ObjectLayerPairFilter = objectLayerPairFilter;
+        settings.BroadPhaseLayerInterface = broadPhaseLayerInterface;
+        settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
+
         physicsSystem = new PhysicsSystem(settings);
 
         // ContactListener
@@ -148,10 +171,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
             case BoxShapeData boxShapeData:
                 shape = new BoxShape(boxShapeData.halfExtents);
                 break;
-            case PlaneShapeData planeShapeData:
-                Plane plane = new Plane(planeShapeData.normal, planeShapeData.distance);
-                shape = new PlaneShape(plane, null, planeShapeData.halfExtent);
-                break;
             case SphereShapeData sphereShapeData:
                 shape = new SphereShape(sphereShapeData.radius);
                 break;
@@ -171,60 +190,18 @@ public class JoltPhysicsWorld : IPhysicsWorld
             (JoltPhysicsSharp.MotionType)motionType,
             new ObjectLayer((uint)layers)
         );
-        var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation); // TODO Create Add Body
-        OnBodyCreated(body.ID);
+        var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate,
+            (JoltPhysicsSharp.Activation)activation); // TODO Create Add Body
+        _bodies.Add(body.ID);
         return body.ID;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Exist(in uint id)
+    public bool IsAdded(in uint id)
     {
         return physicsSystem.BodyInterface.IsAdded(id);
     }
-    // public uint Create(IShapeData shape, in Vector3 position, in Quaternion rotation,
-    //     GameCore.Jolt.MotionType motionType,
-    //     ObjectLayers layers, GameCore.Jolt.Activation activation)
-    // {
-    //     ShapeSettings? shapeSettings;
-    //     switch (shape)
-    //     {
-    //         case BoxShapeData boxShapeData:
-    //             shapeSettings = new BoxShapeSettings(boxShapeData.halfExtents);
-    //             break;
-    //         case PlaneShapeData planeShapeData:
-    //             Plane plane = new Plane(planeShapeData.normal, planeShapeData.distance);
-    //             shapeSettings = new PlaneShapeSettings(plane, null, planeShapeData.halfExtent);
-    //             break;
-    //         case SphereShapeData sphereShapeData:
-    //             shapeSettings = new SphereShapeSettings(sphereShapeData.radius);
-    //             break;
-    //         default:
-    //             throw new ArgumentOutOfRangeException(nameof(shape));
-    //     }
-    //
-    //     if (shapeSettings == null)
-    //     {
-    //         throw new ArgumentException($"cannot create shape settings from shape[{shape}] ");
-    //     }
-    //
-    //     var bodyCreate = new BodyCreationSettings(
-    //         shapeSettings,
-    //         position,
-    //         rotation,
-    //         (JoltPhysicsSharp.MotionType)motionType,
-    //         new ObjectLayer((uint)layers)
-    //     );
-    //     var body = physicsSystem.BodyInterface.CreateAndAddBody(bodyCreate, (JoltPhysicsSharp.Activation)activation);
-    //     OnBodyCreated(body);
-    //     return body.ID;
-    // }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void OnBodyCreated(in uint bodyId, int owner = IPhysicsWorld.ServerId)
-    {
-        _bodies.Add(bodyId);
-        // body2Owner.Add(bodyId, owner);
-    }
 
     public bool QueryBody(in uint id, [UnscopedRef] out BodyData bodyData)
     {
@@ -289,7 +266,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
     public Vector3 GetPosition(in uint id)
     {
         return physicsSystem.BodyInterface.GetPosition(id);
-        
     }
 
     public Quaternion GetRotation(in uint id)
@@ -374,11 +350,6 @@ public class JoltPhysicsWorld : IPhysicsWorld
         return true;
     }
 
-    public bool UpdateBody(in uint id, in BodyData bodyData)
-    {
-        throw new NotImplementedException();
-    }
-
 
     public void Serialize(ref WorldData worldData)
     {
@@ -389,7 +360,9 @@ public class JoltPhysicsWorld : IPhysicsWorld
         for (var i = 0; i < bodies.Count; i++)
         {
             var id = bodies[i];
-            Debug.Assert(physicsSystem.BodyInterface.IsAdded(id));
+
+            Debug.Assert(physicsSystem.BodyInterface.IsAdded(new BodyID(id)),
+                $"body {id} is not added to the physics world");
             QueryBody(id, out var data);
             worldData.bodies[i] = data;
 

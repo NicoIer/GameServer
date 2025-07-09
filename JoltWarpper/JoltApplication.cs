@@ -38,7 +38,7 @@ public class JoltApplication : DisposableObject
     public JoltApplication()
     {
         if (!Foundation.Init(false)) return;
-        physicsWorld = new JoltPhysicsWorld(SetupCollisionFiltering);
+        physicsWorld = new JoltPhysicsWorld();
 
         systems = new List<IJoltSystem<JoltApplication, LoopContex,JoltPhysicsWorld>>();
         Foundation.SetTraceHandler((message => Console.WriteLine(message)));
@@ -57,27 +57,7 @@ public class JoltApplication : DisposableObject
     }
 
     #region Physics
-
-    protected static void SetupCollisionFiltering(ref PhysicsSystemSettings settings)
-    {
-        // We use only 2 layers: one for non-moving objects and one for moving objects
-        ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
-        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.NonMoving, (uint)ObjectLayers.Moving);
-        objectLayerPairFilter.EnableCollision((uint)ObjectLayers.Moving, (uint)ObjectLayers.Moving);
-
-        // We use a 1-to-1 mapping between object layers and broadphase layers
-        BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
-        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.NonMoving,
-            (byte)BroadPhaseLayers.NonMoving);
-        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer((ushort)ObjectLayers.Moving, (byte)BroadPhaseLayers.Moving);
-
-        ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter =
-            new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
-
-        settings.ObjectLayerPairFilter = objectLayerPairFilter;
-        settings.BroadPhaseLayerInterface = broadPhaseLayerInterface;
-        settings.ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter;
-    }
+    
 
     // public BodyID CreateFloor(float size, ObjectLayer layer)
     // {
