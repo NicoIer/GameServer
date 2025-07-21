@@ -816,7 +816,7 @@ GameObject:
   - component: {fileID: 1960514046}
   - component: {fileID: 1960514045}
   - component: {fileID: 1960514044}
-  - component: {fileID: 1960514042}
+  - component: {fileID: 1960514047}
   m_Layer: 0
   m_Name: Renderer
   m_TagString: Untagged
@@ -860,22 +860,6 @@ Transform:
   - {fileID: 1690001066}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1960514042
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1960514039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ccd726a592c4b86953648f383e047ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boxPrefab: {fileID: 785709539}
-  planePrefab: {fileID: 493017013}
-  spherePrefab: {fileID: 1690001063}
-  snapshotCapacity: 16
 --- !u!114 &1960514044
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -910,6 +894,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4d0336d7f9f4ee68e3a2bb2e985389d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1960514047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960514039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 407d1e5b885d40e2863d699db935a196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
