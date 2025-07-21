@@ -20,7 +20,7 @@ namespace JoltWrapper
     {
         public byte worldId { get; private set; }
         public readonly PhysicsSystem physicsSystem;
-        private readonly JobSystem _nativeJobSystem = new();
+        private readonly JobSystem _nativeJobSystem = JobSystem.Create();
         public float physicsTime { get; private set; }
 
         private readonly List<uint> _bodies = new();
@@ -77,7 +77,7 @@ namespace JoltWrapper
 
         public PhysicsUpdateError Simulate(in float deltaTime, in int collisionSteps)
         {
-            if (physicsSystem.Update(deltaTime, collisionSteps, _nativeJobSystem, out var error) == false)
+            if (physicsSystem.Update(deltaTime, collisionSteps, _nativeJobSystem, out var error))
             {
                 physicsTime += deltaTime;
             }

@@ -9,11 +9,17 @@ namespace JoltWrapper
 
         private void Awake()
         {
-            
+            physicsWorld = new JoltPhysicsWorld();
+        }
+
+        private void FixedUpdate()
+        {
+            physicsWorld.Simulate(Time.fixedDeltaTime, 1);
         }
 
         private void OnDestroy()
         {
+            physicsWorld.Dispose();
         }
     }
 }
