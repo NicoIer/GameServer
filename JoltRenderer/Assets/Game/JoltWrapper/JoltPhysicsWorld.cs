@@ -67,11 +67,7 @@ namespace JoltWrapper
             #endregion
 
             physicsSystem = new PhysicsSystem(settings);
-
-
-            // InitializeScene();
-
-            physicsSystem.OptimizeBroadPhase();
+            
         }
 
 
