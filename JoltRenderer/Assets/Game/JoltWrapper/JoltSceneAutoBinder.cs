@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Jolt;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityToolkit;
@@ -22,17 +23,38 @@ namespace JoltWrapper
 
         private void BeforeSimulation()
         {
-            
+            var bodyInterface = _application.physicsWorld.physicsSystem.BodyInterface;
+            foreach (var joltBody in managedBodyList)
+            {
+                // 如果需要将Unity中的位置和旋转同步到物理世界
+                if (joltBody.needSyncTargetToPhysicsThisSimulation)
+                {
+                    bodyInterface.SetPositionAndRotationWhenChanged(
+                        joltBody.bodyID,
+                        joltBody.targetPosition,
+                        joltBody.targetRotation,
+                        Activation.Activate
+                    );
+                    joltBody.needSyncTargetToPhysicsThisSimulation = false; // 同步后不再需要
+                }
+            }
         }
-        
+
         private void AfterSimulation()
         {
             var bodyInterface = _application.physicsWorld.physicsSystem.BodyInterface;
             foreach (var joltBody in managedBodyList)
             {
+                // 将物理世界中的位置和旋转同步到Unity
                 var wt = bodyInterface.GetWorldTransform(joltBody.bodyID);
                 var pos = wt.c3.xyz;
                 var rot = new quaternion(wt);
+                joltBody.position = pos;
+                joltBody.rotation = rot;
+
+                joltBody.targetPosition = joltBody.position;
+                joltBody.targetRotation = joltBody.rotation;
+
                 joltBody.transform.SetPositionAndRotation(pos, rot);
             }
         }
@@ -41,11 +63,15 @@ namespace JoltWrapper
         private void InitializeJoltScene()
         {
             var managedBodies = FindObjectsByType<JoltBody>(FindObjectsSortMode.None);
+            var bodyInterface = _application.physicsWorld.physicsSystem.BodyInterface;
+            var bodyLockInterface = _application.physicsWorld.physicsSystem.GetBodyLockInterface();
             foreach (var body in managedBodies)
             {
+                // unsafe
+                // {
                 body.transform.position = body.position;
                 body.transform.rotation = body.rotation;
-                
+
                 var bodyId = _application.physicsWorld.CreateAndAdd(
                     body.shape.shapeData,
                     body.position.T(),
@@ -54,8 +80,15 @@ namespace JoltWrapper
                     body.objectLayers,
                     body.activation
                 );
+
+                // JPH_BodyLockWrite write;
+                // UnsafeBindings.JPH_BodyLockInterface_LockWrite(bodyLockInterface.Handle, bodyId, &write);
+                // UnsafeBindings.JPH_Shape_GetMassProperties();
+                // UnsafeBindings.JPH_BodyLockInterface_UnlockWrite(bodyLockInterface.Handle, &write);
+                //
                 body.BindNative(bodyId, _application.physicsWorld);
                 managedBodyList.Add(body);
+                // }
             }
         }
     }

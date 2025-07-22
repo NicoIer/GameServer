@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityToolkit;
 using Activation = GameCore.Physics.Activation;
+using AllowedDOFs = GameCore.Physics.AllowedDOFs;
 using MotionType = GameCore.Physics.MotionType;
 using PhysicsUpdateError = GameCore.Physics.PhysicsUpdateError;
 using Quaternion = System.Numerics.Quaternion;
@@ -25,6 +26,8 @@ namespace JoltWrapper
 
         private readonly List<uint> _bodies = new();
         public IReadOnlyList<uint> bodies => _bodies;
+        
+        // Dictionary<uint,Body> id2Body = new();
 
         public JoltPhysicsWorld()
         {
@@ -90,6 +93,7 @@ namespace JoltWrapper
             ObjectLayers layers, Activation activation)
         {
             Shape? shape;
+            AllowedDOFs allowedDOFs = AllowedDOFs.All;
             switch (shapeData)
             {
                 case BoxShapeData boxShapeData:
@@ -98,12 +102,15 @@ namespace JoltWrapper
                         boxShapeData.halfExtents.Y,
                         boxShapeData.halfExtents.Z
                     );
+                    allowedDOFs = boxShapeData.allowedDoFs;
                     shape = new BoxShape(halfExtents, boxShapeData.convexRadius);
                     break;
                 case SphereShapeData sphereShapeData:
+                    allowedDOFs = sphereShapeData.allowedDoFs;
                     shape = new SphereShape(sphereShapeData.radius);
                     break;
                 case CapsuleShapeData capsuleShapeData:
+                    allowedDOFs = capsuleShapeData.allowedDoFs;
                     shape = new CapsuleShape(
                         capsuleShapeData.halfHeight,
                         capsuleShapeData.radius
@@ -126,12 +133,15 @@ namespace JoltWrapper
                 (Jolt.MotionType)motionType,
                 (uint)layers
             );
+            settings.SetAllowedDOFs((Jolt.AllowedDOFs)allowedDOFs);
+            
             var bodyInterface = physicsSystem.BodyInterface;
 
             var body = bodyInterface.CreateAndAddBody(settings, (Jolt.Activation)activation);
 
             // --------------------- //
             _bodies.Add(body.ID);
+            // id2Body[body.ID] = body;
             // --------------------- //
 
             return body.ID;
@@ -285,6 +295,7 @@ namespace JoltWrapper
             var bodyId = new BodyID(id);
             bodyInterface.RemoveAndDestroyBody(bodyId);
             _bodies.Remove(id);
+            // id2Body.Remove(id);
         }
 
         public void Dispose()

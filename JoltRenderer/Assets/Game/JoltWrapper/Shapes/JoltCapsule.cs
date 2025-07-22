@@ -8,6 +8,11 @@ namespace JoltWrapper
     {
         public float halfHeight = 0.5f;
         public float radius = 0.5f;
-        public override IShapeData shapeData => new CapsuleShapeData(radius, halfHeight);
+        public AllowedDOFs allowedDOFs = AllowedDOFs.All;
+
+        public override IShapeData shapeData => new CapsuleShapeData(radius, halfHeight)
+        {
+            allowedDoFs = allowedDOFs
+        };
     }
 }

@@ -125,6 +125,7 @@ namespace GameCore.Physics
     {
 // #if UNITY_5_3_OR_NEWER
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+
 // #endif
         // public ShapeType type;
         // public ShapeSubType subType;
@@ -206,6 +207,7 @@ namespace GameCore.Physics
     public partial struct BoxShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+        public AllowedDOFs allowedDoFs; // 允许的自由度
 
         public Vector3 halfExtents;
         public float convexRadius;
@@ -214,6 +216,7 @@ namespace GameCore.Physics
         {
             this.halfExtents = halfExtents;
             this.convexRadius = convexRadius;
+            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
         }
     }
 
@@ -221,11 +224,13 @@ namespace GameCore.Physics
     public partial struct SphereShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Sphere;
+        public AllowedDOFs allowedDoFs; // 允许的自由度
         public float radius;
 
         public SphereShapeData(float radius)
         {
             this.radius = radius;
+            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
         }
     }
 
@@ -233,6 +238,7 @@ namespace GameCore.Physics
     public partial struct CapsuleShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Capsule;
+        public AllowedDOFs allowedDoFs; // 允许的自由度
         public float radius;
         public float halfHeight;
 
@@ -240,6 +246,7 @@ namespace GameCore.Physics
         {
             this.radius = radius;
             this.halfHeight = halfHeight;
+            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
         }
     }
 

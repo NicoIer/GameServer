@@ -7,7 +7,14 @@ namespace JoltWrapper
     public class JoltSphere : JoltShape
     {
         public float radius = 0.5f;
-        public override IShapeData shapeData => new SphereShapeData(radius);
+
+        public override IShapeData shapeData => new SphereShapeData(radius)
+        {
+            allowedDoFs = allowedDOFs
+        };
+
+        public AllowedDOFs allowedDOFs = AllowedDOFs.All;
+
         private void OnValidate()
         {
             if (radius <= 0)

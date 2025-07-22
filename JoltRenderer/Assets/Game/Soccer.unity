@@ -464,6 +464,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <halfExtents>k__BackingField: {x: 50, y: 0.5, z: 50}
   ConvexRadius: 0.05
+  allowedDOFs: 63
 --- !u!114 &22679633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -479,6 +480,8 @@ MonoBehaviour:
   motionType: 0
   objectLayers: 0
   activation: 0
+  <position>k__BackingField: {x: 0, y: -0.5, z: 0}
+  <rotation>k__BackingField: {x: 0, y: 0, z: 0, w: 1}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,6 +690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   halfHeight: 0.5
   radius: 0.5
+  allowedDOFs: 7
 --- !u!114 &360956250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -702,6 +706,8 @@ MonoBehaviour:
   motionType: 2
   objectLayers: 1
   activation: 0
+  <position>k__BackingField: {x: 0, y: 1, z: 2}
+  <rotation>k__BackingField: {x: 0, y: 1, z: 0, w: 0}
 --- !u!4 &360956253
 Transform:
   m_ObjectHideFlags: 0
@@ -850,6 +856,7 @@ GameObject:
   - component: {fileID: 433554269}
   - component: {fileID: 433554268}
   - component: {fileID: 433554267}
+  - component: {fileID: 433554270}
   m_Layer: 0
   m_Name: Ch03_Body
   m_TagString: Untagged
@@ -871,6 +878,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   halfHeight: 0.5
   radius: 0.5
+  allowedDOFs: 7
 --- !u!114 &433554268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -886,6 +894,8 @@ MonoBehaviour:
   motionType: 2
   objectLayers: 1
   activation: 0
+  <position>k__BackingField: {x: 0, y: 1, z: -2}
+  <rotation>k__BackingField: {x: 0, y: 0, z: 0, w: 1}
 --- !u!4 &433554269
 Transform:
   m_ObjectHideFlags: 0
@@ -902,6 +912,22 @@ Transform:
   - {fileID: 624074088}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &433554270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433554266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3bf306ab9f34a91a528d71297b77fd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <config>k__BackingField:
+    dribbleSpeed: 2
+  <animator>k__BackingField: {fileID: 624074087}
+  <body>k__BackingField: {fileID: 433554268}
 --- !u!1 &489092525
 GameObject:
   m_ObjectHideFlags: 0
@@ -1395,6 +1421,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 609961202}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!95 &624074087 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 7314234019881037727, guid: 6be11f4a9a5cf4d0d8e2dadc60e7e120, type: 3}
+  m_PrefabInstance: {fileID: 8144563601951205338}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &624074088 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 950022849448764086, guid: 6be11f4a9a5cf4d0d8e2dadc60e7e120, type: 3}
@@ -2761,6 +2792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 0.25
+  allowedDOFs: 63
 --- !u!114 &5844840226242612621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2776,6 +2808,8 @@ MonoBehaviour:
   motionType: 2
   objectLayers: 1
   activation: 0
+  <position>k__BackingField: {x: 0, y: 1, z: 0}
+  <rotation>k__BackingField: {x: 0, y: 0, z: 0, w: 1}
 --- !u!1001 &8144563601951205338
 PrefabInstance:
   m_ObjectHideFlags: 0
