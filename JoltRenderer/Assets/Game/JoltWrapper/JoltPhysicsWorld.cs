@@ -103,6 +103,12 @@ namespace JoltWrapper
                 case SphereShapeData sphereShapeData:
                     shape = new SphereShape(sphereShapeData.radius);
                     break;
+                case CapsuleShapeData capsuleShapeData:
+                    shape = new CapsuleShape(
+                        capsuleShapeData.halfHeight,
+                        capsuleShapeData.radius
+                    );
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(shapeData));
             }
@@ -126,7 +132,7 @@ namespace JoltWrapper
 
             // --------------------- //
             _bodies.Add(body.ID);
-            ; // --------------------- //
+            // --------------------- //
 
             return body.ID;
         }

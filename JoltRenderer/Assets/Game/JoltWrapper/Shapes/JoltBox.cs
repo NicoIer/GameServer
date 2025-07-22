@@ -9,8 +9,6 @@ namespace JoltWrapper
     public class JoltBox : JoltShape
     {
         [field: SerializeField] public Vector3 halfExtents { get; private set; } = Vector3.one;
-        public Vector3 position => transform.position + centerOffset;
-        public Quaternion rotation => transform.rotation;
         public float ConvexRadius = PhysicsSettings.DefaultConvexRadius;
 
         public override IShapeData shapeData => new BoxShapeData(halfExtents.T(), ConvexRadius);

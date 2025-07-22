@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JoltWrapper.Editor
 {
-    public static class JoltShapeHandles
+    public static class JoltHandles
     {
         private static readonly Color HandleColor = new Color(0.7f, 1f, 0.5f);
 
@@ -42,6 +42,59 @@ namespace JoltWrapper.Editor
             }
 
             ResetHandle();
+        }
+
+        public static void DrawSphereShape(Vector3 pos, Quaternion rot, JoltSphere shape)
+        {
+            StartHandle(pos, rot);
+
+            DrawWireSphere(float3.zero, shape.radius);
+
+            ResetHandle();
+        }
+
+        private static void DrawWireSphere(float3 position, float radius)
+        {
+            Handles.DrawWireDisc(position, math.up(), radius);
+            Handles.DrawWireDisc(position, math.left(), radius);
+            Handles.DrawWireDisc(position, math.forward(), radius);
+        }
+
+        
+        public static void DrawCapsuleShape(Vector3 position, Quaternion rotation, JoltCapsule shape)
+        {
+            StartHandle(position, rotation);
+
+            DrawWireCapsule(float3.zero, shape.halfHeight * 2f, shape.radius);
+
+            ResetHandle();
+        }
+
+        private static void DrawWireCapsule(float3 position, float height, float radius)
+        {
+            var h = new float3(0, height * 0.5f, 0);
+
+            Handles.DrawWireDisc(position + h, math.up(), radius);
+            Handles.DrawWireDisc(position - h, math.up(), radius);
+
+            var rx = new float3(radius, 0, 0);
+            var rz = new float3(0, 0, radius);
+
+            Handles.DrawLine(position + h + rx, position - h + rx);
+            Handles.DrawLine(position + h - rx, position - h - rx);
+
+            Handles.DrawLine(position + h + rz, position - h + rz);
+            Handles.DrawLine(position + h - rz, position - h - rz);
+
+            // xy plane wire arcs
+
+            DrawWireArcXY(position + h,   0f, 180f, radius);
+            DrawWireArcXY(position - h, 180f, 180f, radius);
+
+            // zy plane wire arcs
+
+            DrawWireArcZY(position + h,   0f, 180f, radius);
+            DrawWireArcZY(position - h, 180f, 180f, radius);
         }
 
         private static void DrawRoundedWireCube(float3 position, float3 size, float bevel)

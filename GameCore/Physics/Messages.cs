@@ -198,7 +198,8 @@ namespace GameCore.Physics
     {
         Box = 1,
         Sphere = 2,
-        Plane = 3,
+        Capsule = 3,
+        Plane = 4,
     }
 
     [MemoryPackable]
@@ -209,7 +210,7 @@ namespace GameCore.Physics
         public Vector3 halfExtents;
         public float convexRadius;
 
-        public BoxShapeData(Vector3 halfExtents,float convexRadius)
+        public BoxShapeData(Vector3 halfExtents, float convexRadius)
         {
             this.halfExtents = halfExtents;
             this.convexRadius = convexRadius;
@@ -225,6 +226,20 @@ namespace GameCore.Physics
         public SphereShapeData(float radius)
         {
             this.radius = radius;
+        }
+    }
+
+    [MemoryPackable]
+    public partial struct CapsuleShapeData : IShapeData
+    {
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Capsule;
+        public float radius;
+        public float halfHeight;
+
+        public CapsuleShapeData(float radius, float halfHeight)
+        {
+            this.radius = radius;
+            this.halfHeight = halfHeight;
         }
     }
 

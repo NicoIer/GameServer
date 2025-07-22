@@ -43,10 +43,13 @@ namespace JoltWrapper
             var managedBodies = FindObjectsByType<JoltBody>(FindObjectsSortMode.None);
             foreach (var body in managedBodies)
             {
+                body.transform.position = body.position;
+                body.transform.rotation = body.rotation;
+                
                 var bodyId = _application.physicsWorld.CreateAndAdd(
                     body.shape.shapeData,
-                    (body.transform.position + body.shape.centerOffset).T(),
-                    body.transform.rotation.T(),
+                    body.position.T(),
+                    body.rotation.T(),
                     body.motionType,
                     body.objectLayers,
                     body.activation

@@ -282,7 +282,8 @@ public class JoltPhysicsWorld : IPhysicsWorld
                 break;
             case ShapeSubType.Box:
                 JoltApi.JPH_BoxShape_GetHalfExtent(shape.Handle, out Vector3 value);
-                var box = new BoxShapeData(value);
+                var convexRadius = JoltApi.JPH_BoxShape_GetConvexRadius(shape.Handle);
+                var box = new BoxShapeData(value, convexRadius);
                 ShapeDataPacket.Create(box, out packet);
                 break;
             case ShapeSubType.Triangle:

@@ -10,7 +10,7 @@ public class JoltSerializeTests
     public void ShapeDataTest()
     {
         ShapeDataPacket.RegisterAll();
-        BoxShapeData shapeData = new BoxShapeData(Vector3.One);
+        BoxShapeData shapeData = new BoxShapeData(Vector3.One, 0.05f);
         ShapeDataPacket.Create(shapeData, out ShapeDataPacket data);
         IShapeData reverted = ShapeDataPacket.Deserialize(data);
         Assert.That(reverted, Is.TypeOf<BoxShapeData>());

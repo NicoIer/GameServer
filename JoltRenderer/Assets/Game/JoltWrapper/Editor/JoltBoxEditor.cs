@@ -11,9 +11,9 @@ namespace JoltWrapper.Editor
         {
             var shape = target as JoltBox;
             Assert.IsNotNull(shape);
-            var pos = shape.position;
-            var rot = shape.rotation;
-            JoltShapeHandles.DrawBoxShape(pos, rot, shape);
+            var pos = shape.body.position;
+            var rot = shape.body.rotation;
+            JoltHandles.DrawBoxShape(pos, rot, shape);
         }
     }
 }
