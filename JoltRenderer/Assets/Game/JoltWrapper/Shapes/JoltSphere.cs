@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JoltWrapper
 {
-    public class JoltSphereShape : JoltShape
+    public class JoltSphere : JoltShape
     {
         public float radius = 0.5f;
         public override IShapeData shapeData => new SphereShapeData(radius);

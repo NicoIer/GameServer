@@ -1,7 +1,10 @@
 using System;
 using GameCore.Physics;
+using Jolt;
 using UnityEngine;
 using UnityToolkit;
+using Activation = GameCore.Physics.Activation;
+using MotionType = GameCore.Physics.MotionType;
 using Quaternion = System.Numerics.Quaternion;
 using Vector3 = System.Numerics.Vector3;
 
@@ -23,12 +26,13 @@ namespace Network.Physics
 
         [Sirenix.OdinInspector.Button]
         private void CmdSpawnBox(Vector3 halfExtents, Vector3 position,
+            float convexRadius = PhysicsSettings.DefaultConvexRadius,
             MotionType motionType = MotionType.Dynamic,
             Activation activation = Activation.Activate,
             ObjectLayers objectLayer = ObjectLayers.Moving
         )
         {
-            var shape = new BoxShapeData(halfExtents);
+            var shape = new BoxShapeData(halfExtents, convexRadius);
             ShapeDataPacket.Create(shape, out var packet);
             CmdSpawnBody cmd = new CmdSpawnBody
             {

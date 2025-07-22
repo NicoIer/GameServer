@@ -98,7 +98,7 @@ namespace JoltWrapper
                         boxShapeData.halfExtents.Y,
                         boxShapeData.halfExtents.Z
                     );
-                    shape = new BoxShape(halfExtents);
+                    shape = new BoxShape(halfExtents, boxShapeData.convexRadius);
                     break;
                 case SphereShapeData sphereShapeData:
                     shape = new SphereShape(sphereShapeData.radius);
@@ -191,9 +191,11 @@ namespace JoltWrapper
                     ShapeDataPacket.Create(new SphereShapeData(radius), out packet);
                     break;
                 case ShapeSubType.Box:
-                    var f3 = JoltApi.JPH_BoxShape_GetHalfExtent(shape.Handle.Reinterpret<JPH_BoxShape>());
+                    var boxShape = shape.Handle.Reinterpret<JPH_BoxShape>();
+                    var f3 = JoltApi.JPH_BoxShape_GetHalfExtent(boxShape);
+                    var convexRadius = JoltApi.JPH_BoxShape_GetConvexRadius(boxShape);
                     var value = new Vector3(f3.x, f3.y, f3.z);
-                    ShapeDataPacket.Create(new BoxShapeData(value), out packet);
+                    ShapeDataPacket.Create(new BoxShapeData(value,convexRadius), out packet);
                     break;
                 case ShapeSubType.Triangle:
                     break;

@@ -207,10 +207,12 @@ namespace GameCore.Physics
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
 
         public Vector3 halfExtents;
+        public float convexRadius;
 
-        public BoxShapeData(Vector3 halfExtents)
+        public BoxShapeData(Vector3 halfExtents,float convexRadius)
         {
             this.halfExtents = halfExtents;
+            this.convexRadius = convexRadius;
         }
     }
 
