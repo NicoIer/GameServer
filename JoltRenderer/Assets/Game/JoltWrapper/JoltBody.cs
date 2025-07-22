@@ -7,7 +7,7 @@ using MotionType = GameCore.Physics.MotionType;
 
 namespace JoltWrapper
 {
-    [RequireComponent(typeof(JoltShape))]
+    // [RequireComponent(typeof(JoltShape))]
     public class JoltBody : MonoBehaviour
     {
         public BodyID bodyID { get; private set; }

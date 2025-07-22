@@ -45,7 +45,7 @@ namespace JoltWrapper
             {
                 var bodyId = _application.physicsWorld.CreateAndAdd(
                     body.shape.shapeData,
-                    body.transform.position.T(),
+                    (body.transform.position + body.shape.centerOffset).T(),
                     body.transform.rotation.T(),
                     body.motionType,
                     body.objectLayers,

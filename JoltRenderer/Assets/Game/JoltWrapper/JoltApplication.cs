@@ -10,7 +10,7 @@ namespace JoltWrapper
         public event Action AfterSimulation;
         public const int CollisionStep = 1;
         public event Action BeforeOptimization;
-
+        
         private void Start()
         {
             physicsWorld = new JoltPhysicsWorld();

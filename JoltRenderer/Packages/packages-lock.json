@@ -20,6 +20,12 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.nicoier.gamecore.soccer": {
+      "version": "file:../../GameCore/Soccer",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.nicoier.unitytoolkit": {
       "version": "file:../../Toolkit/UnityToolkit",
       "depth": 0,
@@ -51,6 +57,16 @@
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
         "com.unity.modules.jsonserialize": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.cinemachine": {
+      "version": "3.1.4",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.splines": "2.0.0",
+        "com.unity.modules.imgui": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -129,8 +145,17 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.postprocessing": {
+      "version": "3.4.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.physics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.probuilder": {
-      "version": "6.0.5",
+      "version": "6.0.6",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -207,6 +232,17 @@
         "com.unity.searcher": "4.9.3"
       }
     },
+    "com.unity.splines": {
+      "version": "2.8.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.settings-manager": "1.0.3"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.test-framework": {
       "version": "1.5.1",
       "depth": 0,
@@ -228,7 +264,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.8.7",
+      "version": "1.8.8",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -257,6 +293,13 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.veriorpies.parrelsync": {
+      "version": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "610157ad762084380380148ba8ce14e266a6da97"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
