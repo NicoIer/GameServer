@@ -1,5 +1,6 @@
 using System;
 using JoltWrapper;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityToolkit;
@@ -18,6 +19,9 @@ namespace Soccer
 
         [field: SerializeField] public Animator animator { get; private set; }
         [field: SerializeField] public JoltBody body { get; private set; }
+
+        [field: SerializeField] public CinemachineCamera virtualCamera { get; private set; }
+        [field: SerializeField] public bool isLocalPlayer { get; private set; } = true;
 
         private void Awake()
         {

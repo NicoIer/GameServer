@@ -8,11 +8,10 @@ using UnityToolkit;
 namespace JoltWrapper
 {
     [RequireComponent(typeof(JoltApplication))]
-    public class JoltSceneAutoBinder : MonoBehaviour
+    public class JoltSceneBinder : MonoBehaviour
     {
         private JoltApplication _application;
         public List<JoltBody> managedBodyList = new List<JoltBody>();
-
         private void Awake()
         {
             _application = GetComponent<JoltApplication>();
@@ -27,15 +26,15 @@ namespace JoltWrapper
             foreach (var joltBody in managedBodyList)
             {
                 // 如果需要将Unity中的位置和旋转同步到物理世界
-                if (joltBody.needSyncTargetToPhysicsThisSimulation)
+                if (joltBody.setPositionAndRotationThisSimulation)
                 {
                     bodyInterface.SetPositionAndRotationWhenChanged(
                         joltBody.bodyID,
-                        joltBody.targetPosition,
-                        joltBody.targetRotation,
+                        joltBody.setPositionThisSimulation,
+                        joltBody.setRotationThisSimulation,
                         Activation.Activate
                     );
-                    joltBody.needSyncTargetToPhysicsThisSimulation = false; // 同步后不再需要
+                    joltBody.setPositionAndRotationThisSimulation = false; // 同步后不再需要
                 }
             }
         }
@@ -51,10 +50,6 @@ namespace JoltWrapper
                 var rot = new quaternion(wt);
                 joltBody.position = pos;
                 joltBody.rotation = rot;
-
-                joltBody.targetPosition = joltBody.position;
-                joltBody.targetRotation = joltBody.rotation;
-
                 joltBody.transform.SetPositionAndRotation(pos, rot);
             }
         }

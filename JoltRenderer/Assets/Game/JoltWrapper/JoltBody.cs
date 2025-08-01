@@ -37,7 +37,6 @@ namespace JoltWrapper
         public MotionType motionType = MotionType.Dynamic;
         public ObjectLayers objectLayers = ObjectLayers.Moving;
         public Activation activation = Activation.Activate;
-        // public AllowedDOFs allowedDOFs = AllowedDOFs.All;
 
         /// <summary>
         /// 物理坐标
@@ -50,19 +49,17 @@ namespace JoltWrapper
         /// </summary>
         [field: SerializeField]
         public Quaternion rotation { get; internal set; }
-
-
-        internal Vector3 targetPosition;
-        internal Quaternion targetRotation;
-
-        internal bool needSyncTargetToPhysicsThisSimulation = true;
+        
+        
+        
+        internal bool setPositionAndRotationThisSimulation { get; set; } = false;
+        internal Quaternion setRotationThisSimulation { get; set; }
+        internal Vector3 setPositionThisSimulation { get; set; }
 
         private void OnValidate()
         {
             position = transform.position;
             rotation = transform.rotation;
-            targetPosition = position;
-            targetRotation = rotation;
         }
 
 
@@ -72,11 +69,11 @@ namespace JoltWrapper
             this.physicsWorld = physicsWorld;
         }
 
-        public void SyncToPhysics(Vector3 vector3, Quaternion quaternion)
+        public void SetPositionAndRotation(Vector3 vector3, Quaternion quaternion)
         {
-            needSyncTargetToPhysicsThisSimulation = true;
-            targetPosition = vector3;
-            targetRotation = quaternion;
+            setPositionAndRotationThisSimulation = true;
+            setPositionThisSimulation = vector3;
+            setRotationThisSimulation = quaternion;
         }
     }
 }
