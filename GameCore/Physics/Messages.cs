@@ -124,7 +124,8 @@ namespace GameCore.Physics
     public partial interface IShapeData
     {
 // #if UNITY_5_3_OR_NEWER
-        [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+        [MemoryPackIgnore] public ShapeTypeEnum shapeType { get; }
+        public float mass { get; }
 
 // #endif
         // public ShapeType type;
@@ -207,16 +208,18 @@ namespace GameCore.Physics
     public partial struct BoxShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Box;
+        [MemoryPackInclude] public float mass { get; set; }
         public AllowedDOFs allowedDoFs; // 允许的自由度
 
         public Vector3 halfExtents;
         public float convexRadius;
 
-        public BoxShapeData(Vector3 halfExtents, float convexRadius)
+        public BoxShapeData(Vector3 halfExtents, float convexRadius, float mass, AllowedDOFs allowed = AllowedDOFs.All)
         {
             this.halfExtents = halfExtents;
             this.convexRadius = convexRadius;
-            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
+            allowedDoFs = allowed;
+            this.mass = mass;
         }
     }
 
@@ -224,13 +227,15 @@ namespace GameCore.Physics
     public partial struct SphereShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Sphere;
+        [MemoryPackInclude] public float mass { get; set; }
         public AllowedDOFs allowedDoFs; // 允许的自由度
         public float radius;
 
-        public SphereShapeData(float radius)
+        public SphereShapeData(float radius, float mass, AllowedDOFs allowed = AllowedDOFs.All)
         {
             this.radius = radius;
-            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
+            allowedDoFs = allowed;
+            this.mass = mass;
         }
     }
 
@@ -238,15 +243,17 @@ namespace GameCore.Physics
     public partial struct CapsuleShapeData : IShapeData
     {
         [MemoryPackIgnore] public ShapeTypeEnum shapeType => ShapeTypeEnum.Capsule;
+        [MemoryPackInclude] public float mass { get; set; }
         public AllowedDOFs allowedDoFs; // 允许的自由度
         public float radius;
         public float halfHeight;
 
-        public CapsuleShapeData(float radius, float halfHeight)
+        public CapsuleShapeData(float radius, float halfHeight, float mass, AllowedDOFs allowed = AllowedDOFs.All)
         {
+            this.mass = mass;
             this.radius = radius;
             this.halfHeight = halfHeight;
-            allowedDoFs = AllowedDOFs.All; // 默认允许所有自由度
+            allowedDoFs = allowed;
         }
     }
 

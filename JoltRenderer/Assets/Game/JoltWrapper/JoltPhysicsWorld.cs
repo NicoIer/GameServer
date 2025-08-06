@@ -26,7 +26,7 @@ namespace JoltWrapper
 
         private readonly List<uint> _bodies = new();
         public IReadOnlyList<uint> bodies => _bodies;
-        
+
         // Dictionary<uint,Body> id2Body = new();
 
         public JoltPhysicsWorld()
@@ -70,7 +70,6 @@ namespace JoltWrapper
             #endregion
 
             physicsSystem = new PhysicsSystem(settings);
-            
         }
 
 
@@ -92,6 +91,17 @@ namespace JoltWrapper
             MotionType motionType,
             ObjectLayers layers, Activation activation)
         {
+            var body = Create(shapeData, position, rotation, motionType, layers);
+            var id = body.GetID();
+            var bodyInterface = physicsSystem.BodyInterface;
+            bodyInterface.AddBody(id, (Jolt.Activation)activation);
+            return id.Value;
+        }
+
+        public Body Create(IShapeData shapeData, in Vector3 position, in Quaternion rotation,
+            MotionType motionType,
+            ObjectLayers layers)
+        {
             Shape? shape;
             AllowedDOFs allowedDOFs = AllowedDOFs.All;
             switch (shapeData)
@@ -104,6 +114,7 @@ namespace JoltWrapper
                     );
                     allowedDOFs = boxShapeData.allowedDoFs;
                     shape = new BoxShape(halfExtents, boxShapeData.convexRadius);
+
                     break;
                 case SphereShapeData sphereShapeData:
                     allowedDOFs = sphereShapeData.allowedDoFs;
@@ -125,6 +136,7 @@ namespace JoltWrapper
                 throw new ArgumentException($"cannot create shape settings from shape[{shapeData}] ");
             }
 
+            shape.Value.GetMassProperties().ScaleToMass(shapeData.mass);
             quaternion quaternion = new(rotation.X, rotation.Y, rotation.Z, rotation.W);
             var settings = new BodyCreationSettings(
                 shape.Value,
@@ -134,17 +146,13 @@ namespace JoltWrapper
                 (uint)layers
             );
             settings.SetAllowedDOFs((Jolt.AllowedDOFs)allowedDOFs);
-            
             var bodyInterface = physicsSystem.BodyInterface;
 
-            var body = bodyInterface.CreateAndAddBody(settings, (Jolt.Activation)activation);
+            var body = bodyInterface.CreateBody(settings);
 
-            // --------------------- //
-            _bodies.Add(body.ID);
-            // id2Body[body.ID] = body;
-            // --------------------- //
+            _bodies.Add(body.GetID());
 
-            return body.ID;
+            return body;
         }
 
         public bool IsAdded(in uint id)
@@ -203,15 +211,18 @@ namespace JoltWrapper
             switch (shape.subType)
             {
                 case ShapeSubType.Sphere:
+                    var sphereShape = shape.Handle.Reinterpret<JPH_SphereShape>();
                     var radius = JoltApi.JPH_SphereShape_GetRadius(shape.Handle.Reinterpret<JPH_SphereShape>());
-                    ShapeDataPacket.Create(new SphereShapeData(radius), out packet);
+                    var massProp = JoltApi.JPH_Shape_GetMassProperties(sphereShape.Reinterpret<JPH_Shape>());
+                    ShapeDataPacket.Create(new SphereShapeData(radius, massProp.Mass), out packet);
                     break;
                 case ShapeSubType.Box:
                     var boxShape = shape.Handle.Reinterpret<JPH_BoxShape>();
                     var f3 = JoltApi.JPH_BoxShape_GetHalfExtent(boxShape);
                     var convexRadius = JoltApi.JPH_BoxShape_GetConvexRadius(boxShape);
                     var value = new Vector3(f3.x, f3.y, f3.z);
-                    ShapeDataPacket.Create(new BoxShapeData(value,convexRadius), out packet);
+                    var massProperties = JoltApi.JPH_Shape_GetMassProperties(boxShape.Reinterpret<JPH_Shape>());
+                    ShapeDataPacket.Create(new BoxShapeData(value, convexRadius, massProperties.Mass), out packet);
                     break;
                 case ShapeSubType.Triangle:
                     break;

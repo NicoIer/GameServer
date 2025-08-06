@@ -11,11 +11,9 @@ namespace JoltWrapper
     {
         [field: SerializeField] public Vector3 halfExtents { get; private set; } = Vector3.one;
         public float ConvexRadius = PhysicsSettings.DefaultConvexRadius;
+        public float mass;
         public AllowedDOFs allowedDOFs = AllowedDOFs.All;
-        public override IShapeData shapeData => new BoxShapeData(halfExtents.T(), ConvexRadius)
-        {
-            allowedDoFs = allowedDOFs
-        };
+        public override IShapeData shapeData => new BoxShapeData(halfExtents.T(), ConvexRadius, mass, allowedDOFs);
 
         private void OnValidate()
         {

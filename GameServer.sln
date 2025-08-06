@@ -41,7 +41,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnCSharp", "LearnCSharp\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Game", "Game", "{C1713DA0-4560-45B2-BB74-C11ADBEE62AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soccer", "Soccer\Soccer.csproj", "{3742C5B0-12C0-438D-97D1-860F412770A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game001", "Game001\Game001.csproj", "{3742C5B0-12C0-438D-97D1-860F412770A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

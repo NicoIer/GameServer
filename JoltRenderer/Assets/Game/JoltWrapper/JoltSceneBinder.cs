@@ -12,6 +12,7 @@ namespace JoltWrapper
     {
         private JoltApplication _application;
         public List<JoltBody> managedBodyList = new List<JoltBody>();
+
         private void Awake()
         {
             _application = GetComponent<JoltApplication>();
@@ -59,30 +60,33 @@ namespace JoltWrapper
         {
             var managedBodies = FindObjectsByType<JoltBody>(FindObjectsSortMode.None);
             var bodyInterface = _application.physicsWorld.physicsSystem.BodyInterface;
-            var bodyLockInterface = _application.physicsWorld.physicsSystem.GetBodyLockInterface();
-            foreach (var body in managedBodies)
+            // var bodyLockInterface = _application.physicsWorld.physicsSystem.GetBodyLockInterface();
+            foreach (var view in managedBodies)
             {
                 // unsafe
                 // {
-                body.transform.position = body.position;
-                body.transform.rotation = body.rotation;
+                view.transform.position = view.position;
+                view.transform.rotation = view.rotation;
 
-                var bodyId = _application.physicsWorld.CreateAndAdd(
-                    body.shape.shapeData,
-                    body.position.T(),
-                    body.rotation.T(),
-                    body.motionType,
-                    body.objectLayers,
-                    body.activation
+                var body = _application.physicsWorld.Create(
+                    view.shape.shapeData,
+                    view.position.T(),
+                    view.rotation.T(),
+                    view.motionType,
+                    view.objectLayers
                 );
+                var bodyId = body.GetID();
+                bodyInterface.SetFriction(bodyId, view.friction);
+                bodyInterface.AddBody(bodyId, (Activation)view.activation);
+
 
                 // JPH_BodyLockWrite write;
                 // UnsafeBindings.JPH_BodyLockInterface_LockWrite(bodyLockInterface.Handle, bodyId, &write);
                 // UnsafeBindings.JPH_Shape_GetMassProperties();
                 // UnsafeBindings.JPH_BodyLockInterface_UnlockWrite(bodyLockInterface.Handle, &write);
                 //
-                body.BindNative(bodyId, _application.physicsWorld);
-                managedBodyList.Add(body);
+                view.BindNative(bodyId, body, _application.physicsWorld);
+                managedBodyList.Add(view);
                 // }
             }
         }

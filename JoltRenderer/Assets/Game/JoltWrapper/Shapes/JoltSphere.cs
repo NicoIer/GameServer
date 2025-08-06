@@ -7,8 +7,9 @@ namespace JoltWrapper
     public class JoltSphere : JoltShape
     {
         public float radius = 0.5f;
+        public float mass;
 
-        public override IShapeData shapeData => new SphereShapeData(radius)
+        public override IShapeData shapeData => new SphereShapeData(radius, mass)
         {
             allowedDoFs = allowedDOFs
         };

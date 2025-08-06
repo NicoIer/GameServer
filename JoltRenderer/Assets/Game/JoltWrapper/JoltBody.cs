@@ -13,6 +13,9 @@ namespace JoltWrapper
     public class JoltBody : MonoBehaviour
     {
         public BodyID bodyID { get; private set; }
+        
+        public Body body { get; private set; }
+        // public Body
         public JoltPhysicsWorld physicsWorld { get; private set; }
         private JoltShape _shape;
 
@@ -38,6 +41,14 @@ namespace JoltWrapper
         public ObjectLayers objectLayers = ObjectLayers.Moving;
         public Activation activation = Activation.Activate;
 
+        public float friction;
+        
+        public float retitution;
+        
+        public float linearDamping;
+        public float angularDamping;
+        
+
         /// <summary>
         /// 物理坐标
         /// </summary>
@@ -56,6 +67,7 @@ namespace JoltWrapper
         internal Quaternion setRotationThisSimulation { get; set; }
         internal Vector3 setPositionThisSimulation { get; set; }
 
+        [ExecuteAlways]
         private void OnValidate()
         {
             position = transform.position;
@@ -63,8 +75,9 @@ namespace JoltWrapper
         }
 
 
-        internal void BindNative(BodyID bodyID, JoltPhysicsWorld physicsWorld)
+        internal void BindNative(BodyID bodyID,Body body, JoltPhysicsWorld physicsWorld)
         {
+            this.body = body;
             this.bodyID = bodyID;
             this.physicsWorld = physicsWorld;
         }
