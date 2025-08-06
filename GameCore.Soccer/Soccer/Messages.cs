@@ -2,8 +2,15 @@ using System.Numerics;
 using MemoryPack;
 using Network;
 
-namespace Game001
+namespace Soccer
 {
+    public enum IdentifierEnum
+    {
+        RedPlayer = 0,
+        BluePlayer = 1,
+        SoccerBall = 2,
+    }
+
     [MemoryPackable]
     public partial struct WorldData : INetworkMessage
     {

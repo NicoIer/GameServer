@@ -57,18 +57,23 @@ public partial class SoccerGameServer
         redGoal = physics.BodyInterface.CreateBody(goalBodySettings2);
 
         // 两个球员 （-3,1,0) 和 (3,1,0) 大小(1,1,1) 的动态盒子 不可旋转 Kinematic
+        // (0,90,0) & (0,-90,0) 的旋转
+        Quaternion bluePlayerRotation = Quaternion.CreateFromYawPitchRoll(MathF.PI / 2, 0, 0);
+        Quaternion redPlayerRotation = Quaternion.CreateFromYawPitchRoll(-MathF.PI / 2, 0, 0);
         BoxShapeSettings playerShapeSettings =
             new BoxShapeSettings(new Vector3(0.5f, 0.5f, 0.5f), Foundation.DefaultConvexRadius);
-        BodyCreationSettings playerBodySettings1 = new BodyCreationSettings(playerShapeSettings, new Vector3(-3, 1, 0),
-            Quaternion.Identity, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
-        BodyCreationSettings playerBodySettings2 = new BodyCreationSettings(playerShapeSettings, new Vector3(3, 1, 0),
-            Quaternion.Identity, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
+        BodyCreationSettings redPlayerBodySettings1 = new BodyCreationSettings(playerShapeSettings,
+            new Vector3(-3, 1, 0),
+            bluePlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
+        BodyCreationSettings bluePlayerBodySettings2 = new BodyCreationSettings(playerShapeSettings,
+            new Vector3(3, 1, 0),
+            redPlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
 
-        SetupPlayer(playerBodySettings1);
-        SetupPlayer(playerBodySettings2);
+        SetupPlayer(redPlayerBodySettings1);
+        SetupPlayer(bluePlayerBodySettings2);
 
-        bluePlayer1 = physics.BodyInterface.CreateBody(playerBodySettings1);
-        redPlayer1 = physics.BodyInterface.CreateBody(playerBodySettings2);
+        bluePlayer1 = physics.BodyInterface.CreateBody(redPlayerBodySettings1);
+        redPlayer1 = physics.BodyInterface.CreateBody(bluePlayerBodySettings2);
 
         // 添加到世界
         physics.BodyInterface.AddBody(soccerBall, Activation.Activate);

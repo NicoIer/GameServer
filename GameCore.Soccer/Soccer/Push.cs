@@ -1,3 +1,3 @@
-namespace Game001
+namespace Soccer
 {
 }
