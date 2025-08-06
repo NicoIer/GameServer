@@ -63,7 +63,24 @@ public partial class SoccerGameServer :
 
     public void BeforePhysicsUpdate(in JoltApplication.LoopContex ctx)
     {
+        if (ctx.CurrentFrame % 120 == 0)
+        {
+            Log.Information("SoccerGameServer CurrentFrame{CurrentFrame}", ctx.CurrentFrame);
+        }
+
         _server.socket.TickIncoming();
+
+        if (redWin)
+        {
+            ResetGameWorld();
+        }
+        else if (blueWin)
+        {
+            ResetGameWorld();
+        }
+
+        redWin = false;
+        blueWin = false;
 
         var bodyInterface = physics.BodyInterface;
         if (redPlayerInput.Length() > 0.01)
@@ -72,8 +89,9 @@ public partial class SoccerGameServer :
             Vector3 redMoveVector = new Vector3(redPlayerInput.X, 0, redPlayerInput.Y);
             // redPlayer1.AddImpulse(redMoveVector * 30);
             // redPlayer1.AddForce(redMoveVector * 30);
-            bodyInterface.AddLinearVelocity(redPlayer1.ID, redMoveVector);
-            // bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 10000);
+            // bodyInterface.AddLinearVelocity(redPlayer1.ID, redMoveVector);
+            bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 30 * 3000);
+            redPlayerInput = Vector2.Zero;
         }
 
         if (bluePlayerInput.Length() > 0.01)
@@ -83,11 +101,23 @@ public partial class SoccerGameServer :
             // bluePlayer1.AddForce(blueMoveVector * 30);
             // bluePlayer1.AddImpulse(blueMoveVector * 30);
             // bodyInterface.AddLinearVelocity(bluePlayer1.ID, blueMoveVector);
-            bodyInterface.AddForce(bluePlayer1.ID, blueMoveVector * 30);
+            bodyInterface.AddForce(bluePlayer1.ID, blueMoveVector * 30 * 3000);
+            bluePlayerInput = Vector2.Zero;
         }
     }
 
     public void AfterPhysicsUpdate(in JoltApplication.LoopContex ctx)
+    {
+        CheckSoccer();
+        BroadcastWorldData();
+        _server.socket.TickOutgoing();
+    }
+
+    private void CheckSoccer()
+    {
+    }
+
+    private void BroadcastWorldData()
     {
         // 收集物理世界信息
         PlayerData redPlayer = new PlayerData
@@ -122,7 +152,6 @@ public partial class SoccerGameServer :
         };
 
         _server.SendToAll(worldData);
-        _server.socket.TickOutgoing();
     }
 
     public void AfterPhysicsStop()

@@ -1,6 +1,7 @@
 using System.Numerics;
 using GameCore.Physics;
 using JoltPhysicsSharp;
+using Serilog;
 using Activation = JoltPhysicsSharp.Activation;
 using AllowedDOFs = JoltPhysicsSharp.AllowedDOFs;
 using MotionType = JoltPhysicsSharp.MotionType;
@@ -17,6 +18,15 @@ public partial class SoccerGameServer
 
     public Body bluePlayer1;
     public Body redPlayer1;
+
+    public bool redWin = false;
+    public bool blueWin = false;
+
+
+    Quaternion bluePlayerRotation = Quaternion.CreateFromYawPitchRoll(MathF.PI / 2, 0, 0);
+    Quaternion redPlayerRotation = Quaternion.CreateFromYawPitchRoll(-MathF.PI / 2, 0, 0);
+    Vector3 bluePlayerPosition = new Vector3(-3, 1, 0);
+    Vector3 redPlayerPosition = new Vector3(3, 1, 0);
 
     public void HandlePhysicsInit()
     {
@@ -60,15 +70,13 @@ public partial class SoccerGameServer
 
         // 两个球员 （-3,1,0) 和 (3,1,0) 大小(1,1,1) 的动态盒子 不可旋转 Kinematic
         // (0,90,0) & (0,-90,0) 的旋转
-        Quaternion bluePlayerRotation = Quaternion.CreateFromYawPitchRoll(MathF.PI / 2, 0, 0);
-        Quaternion redPlayerRotation = Quaternion.CreateFromYawPitchRoll(-MathF.PI / 2, 0, 0);
         BoxShapeSettings playerShapeSettings =
             new BoxShapeSettings(new Vector3(0.5f, 0.5f, 0.5f), Foundation.DefaultConvexRadius);
         BodyCreationSettings redPlayerBodySettings1 = new BodyCreationSettings(playerShapeSettings,
-            new Vector3(-3, 1, 0),
+            bluePlayerPosition,
             bluePlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
-        BodyCreationSettings bluePlayerBodySettings2 = new BodyCreationSettings(playerShapeSettings,
-            new Vector3(3, 1, 0),
+        BodyCreationSettings bluePlayerBodySettings2 = new BodyCreationSettings(playerShapeSettings, 
+            redPlayerPosition,
             redPlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
 
         SetupPlayer(redPlayerBodySettings1);
@@ -103,6 +111,15 @@ public partial class SoccerGameServer
         physics.BodyInterface.AddBody(redGoal, Activation.Activate);
         physics.BodyInterface.AddBody(bluePlayer1, Activation.Activate);
         physics.BodyInterface.AddBody(redPlayer1, Activation.Activate);
+
+        Log.Information("Physics initialized with ground, goals, soccer ball, and players.");
+        Log.Information("Red Player 1 ID: {ID}", redPlayer1.ID);
+        Log.Information("Blue Player 1 ID: {ID}", bluePlayer1.ID);
+        Log.Information("Soccer Ball ID: {ID}", soccerBall.ID);
+        Log.Information("Red Goal ID: {ID}", redGoal.ID);
+        Log.Information("Blue Goal ID: {ID}", blueGoal.ID);
+        Log.Information("Ground ID: {ID}", ground.ID);
+        Log.Information("Physics bodies initialized and added to the world.");
     }
 
     private Body CreateBoxWall(Vector3 center, Vector3 size, Quaternion rotation, MotionType motion)
@@ -133,8 +150,35 @@ public partial class SoccerGameServer
     {
     }
 
+
     private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold,
         in ContactSettings settings)
     {
+        if (body1 == soccerBall && body2 == redGoal)
+        {
+            blueWin = true;
+        }
+        else if (body1 == redGoal && body2 == soccerBall)
+        {
+            blueWin = true;
+        }
+        else if (body1 == soccerBall && body2 == blueGoal)
+        {
+            redWin = true;
+        }
+        else if (body1 == blueGoal && body2 == soccerBall)
+        {
+            redWin = true;
+        }
+    }
+
+    private void ResetGameWorld()
+    {
+        physics.BodyInterface.SetPositionRotationAndVelocity(soccerBall.ID, new Vector3(0, 0.5f, 0),
+            Quaternion.Identity, Vector3.Zero, Vector3.Zero);
+        physics.BodyInterface.SetPositionRotationAndVelocity(redPlayer1.ID, redPlayerPosition, redPlayerRotation
+            , Vector3.Zero, Vector3.Zero);
+        physics.BodyInterface.SetPositionRotationAndVelocity(bluePlayer1.ID, bluePlayerPosition,
+            bluePlayerRotation, Vector3.Zero, Vector3.Zero);
     }
 }
