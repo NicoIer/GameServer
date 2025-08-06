@@ -72,8 +72,8 @@ public partial class SoccerGameServer :
             Vector3 redMoveVector = new Vector3(redPlayerInput.X, 0, redPlayerInput.Y);
             // redPlayer1.AddImpulse(redMoveVector * 30);
             // redPlayer1.AddForce(redMoveVector * 30);
-            // bodyInterface.AddLinearVelocity(redPlayer1.ID, redMoveVector);
-            bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 10000);
+            bodyInterface.AddLinearVelocity(redPlayer1.ID, redMoveVector);
+            // bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 10000);
         }
 
         if (bluePlayerInput.Length() > 0.01)

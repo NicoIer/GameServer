@@ -1112,8 +1112,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soccerBall: {fileID: 2674482725143836243}
-  redPlayer: {fileID: 0}
-  bluePlayer: {fileID: 0}
+  redPlayer: {fileID: 2674482725538676137}
+  bluePlayer: {fileID: 2674482724365326193}
 --- !u!114 &781444699383463284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2228,6 +2228,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85d66d901b7342eeb8893cdf4ac44706, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  identifier: 0
+  moveInput: {x: 0, y: 0}
 --- !u!114 &2674482725538676137
 MonoBehaviour:
   m_ObjectHideFlags: 0
