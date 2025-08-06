@@ -16,6 +16,7 @@ namespace Network
         public float retryDelay = 1.0f;
 
         public NetworkClientMessageHandler messageHandler => _client.messageHandler;
+        // public static NetworkClientMessageHandler messageHandler=> Singleton._client.messageHandler;
 
         private float lastTryConnectTime;
 

@@ -5,14 +5,16 @@ using Soccer;
 
 namespace GameCore.Soccer
 {
-    public partial struct CmdMove : INetworkMessage
+    public partial struct CmdUpdateInput : INetworkMessage
     {
         public IdentifierEnum identifier;
         public Vector2 moveInput;
-        public CmdMove(IdentifierEnum identifier, Vector2 moveInput)
+        public float kickPressed;
+        public CmdUpdateInput(IdentifierEnum identifier, Vector2 moveInput, float kickPressed)
         {
             this.identifier = identifier;
             this.moveInput = moveInput;
+            this.kickPressed = kickPressed;
         }
     }
 }

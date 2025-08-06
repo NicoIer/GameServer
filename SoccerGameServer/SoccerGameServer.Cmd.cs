@@ -5,22 +5,22 @@ namespace Soccer;
 
 public partial class SoccerGameServer
 {
-    public Vector2 redPlayerInput;
-    public Vector2 bluePlayerInput;
+    public CmdUpdateInput redPlayerInput;
+    public CmdUpdateInput bluePlayerInput;
     private void HandleCmd()
     {
-        _server.messageHandler.Add<CmdMove>(OnCmdMove);
+        _server.messageHandler.Add<CmdUpdateInput>(OnCmdUpdateInput);
     }
 
-    private void OnCmdMove(in int connectionId, in CmdMove message)
+    private void OnCmdUpdateInput(in int connectionId, in CmdUpdateInput message)
     {
         switch (message.identifier)
         {
             case IdentifierEnum.RedPlayer:
-                redPlayerInput = message.moveInput;
+                redPlayerInput = message;
                 break;
             case IdentifierEnum.BluePlayer:
-                bluePlayerInput = message.moveInput;
+                bluePlayerInput = message;
                 break;
             default:
                 return;

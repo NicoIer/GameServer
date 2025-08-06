@@ -14,6 +14,8 @@ namespace Soccer
     [MemoryPackable]
     public partial struct WorldData : INetworkMessage
     {
+        public int redScore;
+        public int blueScore;
         public PlayerData redPlayer;
         public PlayerData bluePlayer;
         public SoccerData soccer;

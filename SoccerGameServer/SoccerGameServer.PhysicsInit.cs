@@ -75,7 +75,7 @@ public partial class SoccerGameServer
         BodyCreationSettings redPlayerBodySettings1 = new BodyCreationSettings(playerShapeSettings,
             bluePlayerPosition,
             bluePlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
-        BodyCreationSettings bluePlayerBodySettings2 = new BodyCreationSettings(playerShapeSettings, 
+        BodyCreationSettings bluePlayerBodySettings2 = new BodyCreationSettings(playerShapeSettings,
             redPlayerPosition,
             redPlayerRotation, MotionType.Dynamic, new ObjectLayer((uint)ObjectLayers.Moving));
 
@@ -148,12 +148,47 @@ public partial class SoccerGameServer
 
     private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
     {
+        if (subShapePair.Body1ID == redPlayer1.ID && subShapePair.Body2ID == soccerBall.ID)
+        {
+            redPlayerContactSoccer = false;
+        }
+        else if (subShapePair.Body1ID == soccerBall.ID && subShapePair.Body2ID == redPlayer1.ID)
+        {
+            redPlayerContactSoccer = false;
+        }
+        else if (subShapePair.Body1ID == bluePlayer1.ID && subShapePair.Body2ID == soccerBall.ID)
+        {
+            bluePlayerContactSoccer = false;
+        }
+        else if (subShapePair.Body1ID == soccerBall.ID && subShapePair.Body2ID == bluePlayer1.ID)
+        {
+            bluePlayerContactSoccer = false;
+        }
     }
 
+    public bool redPlayerContactSoccer;
+    public bool bluePlayerContactSoccer;
 
     private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold,
         in ContactSettings settings)
     {
+        if (body1 == redPlayer1 && body2 == soccerBall)
+        {
+            redPlayerContactSoccer = true;
+        }
+        else if (body1 == soccerBall && body2 == redPlayer1)
+        {
+            redPlayerContactSoccer = true;
+        }
+        else if (body1 == bluePlayer1 && body2 == soccerBall)
+        {
+            bluePlayerContactSoccer = true;
+        }
+        else if (body1 == soccerBall && body2 == bluePlayer1)
+        {
+            bluePlayerContactSoccer = true;
+        }
+
         if (body1 == soccerBall && body2 == redGoal)
         {
             blueWin = true;

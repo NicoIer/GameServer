@@ -11,7 +11,7 @@ namespace Soccer
         public InputSystem_Actions inputSystemActions;
         public InputSystem_Actions.PlayerActions playerActions => inputSystemActions.Player;
 
-        public Vector2 moveInput;
+        // public Vector2 moveInput;
 
         private void Awake()
         {
@@ -20,12 +20,10 @@ namespace Soccer
 
         private void Update()
         {
-            moveInput = playerActions.Move.ReadValue<Vector2>();
-            if (moveInput != Vector2.zero)
-            {
-                NetworkCenter.Singleton.Send(new CmdMove(identifier,
-                    new System.Numerics.Vector2(moveInput.x, moveInput.y)));
-            }
+            var moveInput = playerActions.Move.ReadValue<Vector2>();
+            var kickPressed = playerActions.Attack.ReadValue<float>();
+            NetworkCenter.Singleton.Send(new CmdUpdateInput(identifier,
+                new System.Numerics.Vector2(moveInput.x, moveInput.y), kickPressed));
         }
 
         private void OnEnable()

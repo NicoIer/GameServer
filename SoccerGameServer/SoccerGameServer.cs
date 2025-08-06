@@ -20,6 +20,9 @@ public partial class SoccerGameServer :
     public PhysicsSystem physics => _app.physicsWorld.physicsSystem;
     // private readonly CircularBuffer<WorldData> _worldSnapshot;
 
+    public int redScore;
+    public int blueScore;
+
     private readonly NetworkServer _server;
     private int port;
 
@@ -70,40 +73,109 @@ public partial class SoccerGameServer :
 
         _server.socket.TickIncoming();
 
+        var soccerPos = soccerBall.Position;
+
+
         if (redWin)
         {
+            if (soccerPos.Y <= 3)
+            {
+                _server.SendToAll(new RpcPlayerGoal(IdentifierEnum.RedPlayer));
+                ++redScore;
+            }
+
             ResetGameWorld();
         }
         else if (blueWin)
         {
+            if (soccerPos.Y <= 3)
+            {
+                _server.SendToAll(new RpcPlayerGoal(IdentifierEnum.BluePlayer));
+                ++blueScore;
+            }
+
             ResetGameWorld();
         }
+
+        // 如果足球离开了场地范围
+        if (Math.Abs(soccerPos.X) > 14 || Math.Abs(soccerPos.Z) > 6)
+        {
+            Log.Information("足球不知道跑哪去了");
+            ResetGameWorld();
+        }
+
 
         redWin = false;
         blueWin = false;
 
         var bodyInterface = physics.BodyInterface;
-        if (redPlayerInput.Length() > 0.01)
+        if (redPlayerInput.moveInput.Length() > 0.01)
         {
             // Log.Information("Red Input {redPlayerInput}", redPlayerInput);
-            Vector3 redMoveVector = new Vector3(redPlayerInput.X, 0, redPlayerInput.Y);
+            Vector3 redMoveVector = new Vector3(redPlayerInput.moveInput.X, 0, redPlayerInput.moveInput.Y);
             // redPlayer1.AddImpulse(redMoveVector * 30);
             // redPlayer1.AddForce(redMoveVector * 30);
             // bodyInterface.AddLinearVelocity(redPlayer1.ID, redMoveVector);
-            bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 30 * 3000);
-            redPlayerInput = Vector2.Zero;
+            bodyInterface.AddForce(redPlayer1.ID, redMoveVector * 30 * 2500);
+            redPlayerInput.moveInput = Vector2.Zero;
         }
 
-        if (bluePlayerInput.Length() > 0.01)
+        if (bluePlayerInput.moveInput.Length() > 0.01)
         {
             // Log.Information("Blue Input {bluePlayerInput}", bluePlayerInput);
-            Vector3 blueMoveVector = new Vector3(bluePlayerInput.X, 0, bluePlayerInput.Y);
+            Vector3 blueMoveVector = new Vector3(bluePlayerInput.moveInput.X, 0, bluePlayerInput.moveInput.Y);
             // bluePlayer1.AddForce(blueMoveVector * 30);
             // bluePlayer1.AddImpulse(blueMoveVector * 30);
             // bodyInterface.AddLinearVelocity(bluePlayer1.ID, blueMoveVector);
-            bodyInterface.AddForce(bluePlayer1.ID, blueMoveVector * 30 * 3000);
-            bluePlayerInput = Vector2.Zero;
+            bodyInterface.AddForce(bluePlayer1.ID, blueMoveVector * 30 * 2500);
+            bluePlayerInput.moveInput = Vector2.Zero;
         }
+
+        redPlayerContactSoccer |= Vector3.Distance(redPlayer1.Position, soccerBall.Position) < 0.6f;
+        bluePlayerContactSoccer |= Vector3.Distance(bluePlayer1.Position, soccerBall.Position) < 0.6f;
+
+        if (redPlayerContactSoccer && bluePlayerContactSoccer && redPlayerInput.kickPressed > 0 &&
+            bluePlayerInput.kickPressed > 0)
+        {
+            if (Random.Shared.NextDouble() < 0.5)
+            {
+                KickSoccer(redPlayer1, redPlayerInput.kickPressed);
+            }
+            else
+            {
+                KickSoccer(bluePlayer1, bluePlayerInput.kickPressed);
+            }
+        }
+        else
+        {
+            if (redPlayerContactSoccer && redPlayerInput.kickPressed > 0)
+            {
+                KickSoccer(redPlayer1, redPlayerInput.kickPressed);
+            }
+
+            if (bluePlayerContactSoccer && bluePlayerInput.kickPressed > 0)
+            {
+                KickSoccer(bluePlayer1, bluePlayerInput.kickPressed);
+            }
+        }
+
+        redPlayerInput.kickPressed = 0;
+        // float.Lerp(redPlayerInput.kickPressed, 0,
+        // ctx.ElapsedTimeFromPreviousFrame.Milliseconds / 1000f);
+        bluePlayerInput.kickPressed = 0;
+        // float.Lerp(bluePlayerInput.kickPressed, 0,
+        // ctx.ElapsedTimeFromPreviousFrame.Milliseconds / 1000f);
+    }
+
+    private void KickSoccer(Body player, float rate)
+    {
+        Log.Information("Kick Soccer {who}", player == redPlayer1 ? "Red" : "Blue");
+        Vector3 direction = player.GetLinearVelocity();
+        direction.Y = 0;
+        direction = Vector3.Normalize(direction);
+        // 往(0,1,0) 旋转45度
+        direction = Vector3.Normalize((direction + new Vector3(0, 1, 0)) / 2);
+        soccerBall.AddImpulse(direction * 30 * 100 * rate);
     }
 
     public void AfterPhysicsUpdate(in JoltApplication.LoopContex ctx)
@@ -146,6 +218,8 @@ public partial class SoccerGameServer :
 
         WorldData worldData = new WorldData
         {
+            redScore = redScore,
+            blueScore = blueScore,
             redPlayer = redPlayer,
             bluePlayer = bluePlayer,
             soccer = soccer
