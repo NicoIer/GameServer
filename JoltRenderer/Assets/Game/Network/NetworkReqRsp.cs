@@ -1,15 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using GameCore.Physics;
 using MemoryPack;
-using Network.Physics;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityToolkit;
 
-namespace Network.Physics
+namespace Network
 {
     [RequireComponent(typeof(NetworkCenter))]
     public abstract class NetworkReqRsp : MonoBehaviour

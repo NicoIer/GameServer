@@ -28,7 +28,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\JoltServer\JoltServer.csproj" />
-      <ProjectReference Include="..\GameCore\GameCore.csproj" />
     </ItemGroup>
 
 </Project>

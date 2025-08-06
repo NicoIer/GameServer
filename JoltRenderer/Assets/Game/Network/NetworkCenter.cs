@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using GameCore.Physics;
 using Network.Client;
 using UnityEngine;
 using UnityToolkit;
 
-namespace Network.Physics
+namespace Network
 {
     public partial class NetworkCenter : MonoSingleton<NetworkCenter>
     {
@@ -29,14 +28,7 @@ namespace Network.Physics
         protected async override void OnInit()
         {
             Application.runInBackground = true;
-            if (!ShapeDataPacket.registered)
-            {
-                ShapeDataPacket.RegisterAll();
-            }
-
             var socket = new TelepathyClientSocket();
-            // socket.OnDisconnected += OnDisConnected;
-            // socket.OnConnected += OnConnected;
             _client = new NetworkClient(socket);
             _client.socket.OnConnected += OnConnected;
             _client.socket.OnDisconnected += OnDisConnected;
@@ -110,8 +102,6 @@ namespace Network.Physics
             NetworkLoop.OnEarlyUpdate -= OnEarlyUpdate;
             NetworkLoop.OnLateUpdate -= OnLateUpdate;
             continueConnect = false;
-            // keepAlive = false;
-            _client.messageHandler.Clear<WorldData>();
             _client.Stop();
             _client.Dispose();
         }

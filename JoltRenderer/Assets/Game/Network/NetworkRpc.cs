@@ -1,4 +1,4 @@
-namespace Network.Physics
+namespace Network
 {
     public abstract class NetworkRpc
     {

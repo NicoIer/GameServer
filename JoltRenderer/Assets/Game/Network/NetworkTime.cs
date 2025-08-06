@@ -3,7 +3,7 @@ using Network.Time;
 using UnityEngine;
 using UnityToolkit;
 
-namespace Network.Physics
+namespace Network
 {
     public class NetworkTime : MonoSingleton<NetworkTime>, IOnlyPlayingModelSingleton
     {

@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\GameCore.Soccer\GameCore.Soccer.csproj" />
       <ProjectReference Include="..\JoltWarpper\JoltWarpper.csproj" />
       <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>

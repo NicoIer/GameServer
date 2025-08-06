@@ -1,5 +1,5 @@
 {
-  "name": "com.nicoier.gamecore.soccer",
+  "name": "com.nicoier.gamecore.game001",
   "version": "0.0.1",
   "displayName": "GameCore Soccer",
   "description": "GameCore Soccer is a Unity package that provides soccer game mechanics and features.",
@@ -8,7 +8,7 @@
   },
   "keywords": [
     "Game",
-    "Soccer"
+    "Game001"
   ],
   "author": {
     "name": "nicoier",

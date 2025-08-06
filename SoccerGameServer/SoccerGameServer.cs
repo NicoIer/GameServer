@@ -1,10 +1,12 @@
 using Cysharp.Threading;
+using Game001;
 using GameCore.Physics;
 using JoltPhysicsSharp;
 using JoltServer;
 using Network.Server;
 using Serilog;
 using UnityToolkit;
+using WorldData = Game001.WorldData;
 
 namespace Soccer;
 
@@ -67,6 +69,40 @@ public partial class SoccerGameServer :
 
     public void AfterPhysicsUpdate(in JoltApplication.LoopContex ctx)
     {
+        // 收集物理世界信息
+        PlayerData redPlayer = new PlayerData
+        {
+            position = redPlayer1.Position,
+            rotation = redPlayer1.Rotation,
+            linearVelocity = redPlayer1.GetLinearVelocity(),
+            angularVelocity = redPlayer1.GetAngularVelocity()
+        };
+
+        PlayerData bluePlayer = new PlayerData
+        {
+            position = bluePlayer1.Position,
+            rotation = bluePlayer1.Rotation,
+            linearVelocity = bluePlayer1.GetLinearVelocity(),
+            angularVelocity = bluePlayer1.GetAngularVelocity()
+        };
+
+        SoccerData soccer = new SoccerData
+        {
+            position = soccerBall.Position,
+            rotation = soccerBall.Rotation,
+            linearVelocity = soccerBall.GetLinearVelocity(),
+            angularVelocity = soccerBall.GetAngularVelocity()
+        };
+
+        WorldData worldData = new WorldData
+        {
+            redPlayer = redPlayer,
+            bluePlayer = bluePlayer,
+            soccer = soccer
+        };
+
+        _server.SendToAll(worldData);
+        Log.Information("Send WorldData {worldData}", worldData);
         _server.socket.TickOutgoing();
     }
 

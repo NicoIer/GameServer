@@ -2,8 +2,7 @@
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
-    "com.nicoier.gamecore.physics": "file:../../GameCore/Physics",
-    "com.nicoier.gamecore.soccer": "file:../../GameCore/Soccer",
+    "com.nicoier.gamecore.game001": "file:/Users/chenjun/Desktop/Project/GameServer/GameCore.Soccer/Soccer",
     "com.nicoier.unitytoolkit": "file:../../Toolkit/UnityToolkit",
     "com.unity.ai.navigation": "2.0.7",
     "com.unity.cinemachine": "3.1.4",

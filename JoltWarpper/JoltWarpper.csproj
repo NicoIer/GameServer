@@ -12,8 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\GameCore\GameCore.csproj" />
       <ProjectReference Include="..\JoltPhysicsSharp\src\JoltPhysicsSharp\JoltPhysicsSharp.csproj" />
+      <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
     </ItemGroup>
 
 </Project>

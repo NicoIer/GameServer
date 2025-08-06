@@ -14,14 +14,8 @@
       "dependencies": {},
       "hash": "fe31ad0904abee296b5ea72c6073157accba59e8"
     },
-    "com.nicoier.gamecore.physics": {
-      "version": "file:../../GameCore/Physics",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
-    "com.nicoier.gamecore.soccer": {
-      "version": "file:../../GameCore/Soccer",
+    "com.nicoier.gamecore.game001": {
+      "version": "file:/Users/chenjun/Desktop/Project/GameServer/GameCore.Soccer/Soccer",
       "depth": 0,
       "source": "local",
       "dependencies": {}

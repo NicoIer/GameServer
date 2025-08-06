@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>GameCore.Game001</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MemoryPack.Core" Version="1.21.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+    </ItemGroup>
+
+</Project>
