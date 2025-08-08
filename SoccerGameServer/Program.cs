@@ -1,14 +1,19 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text;
+using System.Text.Json.Serialization;
 using GameCore.Physics;
 using JoltPhysicsSharp;
 using JoltServer;
+using MemoryPack;
+using Network;
 using Network.Time;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
 using Soccer;
 using UnityToolkit;
+using JsonConverter = System.Text.Json.Serialization.JsonConverter;
 
 
 string logPath = $"./log/{DateTime.Now:yyyy-MM-dd}-.txt";
@@ -37,14 +42,25 @@ ToolkitLog.infoAction = Log.Information;
 ToolkitLog.warningAction = Log.Warning;
 ToolkitLog.errorAction = Log.Error;
 
+RunCfg cfg = new RunCfg();
+if (args.Length != 0)
+{
+    cfg = JsonConvert.DeserializeObject<RunCfg>(File.ReadAllText(args[0]));
+}
 
 var app = new JoltApplication();
 
-var gameServer = new SoccerGameServer(60,24419);
+var gameServer = new SoccerGameServer(cfg.gameFrameRate, cfg.gamePort);
 app.AddSystem(gameServer);
 
-NetworkTimeServer timeServer = new NetworkTimeServer();
-_ = timeServer.Start(24420);
+LocalNetwork localNetwork = new LocalNetwork(cfg.broadcastPort, ServerInfoGenerator, null, cfg.networkFrameRate);
 
+bool ServerInfoGenerator(out byte[] data)
+{
+    return gameServer.GetServerInfo(out data);
+}
+
+_ = localNetwork.Start();
 app.Run();
-timeServer.Stop();
+localNetwork.Stop();
+// timeServer.Stop();

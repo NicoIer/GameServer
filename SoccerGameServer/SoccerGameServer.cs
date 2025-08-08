@@ -3,6 +3,8 @@ using Cysharp.Threading;
 using GameCore.Physics;
 using JoltPhysicsSharp;
 using JoltServer;
+using MemoryPack;
+using Network;
 using Network.Server;
 using Serilog;
 
@@ -38,6 +40,19 @@ public partial class SoccerGameServer :
         _networkLooper = new LogicLooper(frameRate);
         _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)frameRate, true);
         HandleCmd();
+    }
+
+    public bool GetServerInfo(out byte[] data)
+    {
+        string ip = LocalNetwork.GetLocalIPv4();
+        var serverInfo = new ServerInfo
+        {
+            serverName = "Soccer Game Server",
+            serverAddress = ip,
+            port = port
+        };
+        data = MemoryPackSerializer.Serialize(serverInfo);
+        return true;
     }
 
     public void OnAdded(JoltApplication app, JoltPhysicsWorld world)

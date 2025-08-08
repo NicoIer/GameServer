@@ -4,6 +4,15 @@ using Network;
 
 namespace Soccer
 {
+    
+    [MemoryPackable]
+    public partial struct ServerInfo
+    {
+        public string serverName;
+        public string serverAddress;
+        public int port;
+    }
+    
     public enum IdentifierEnum
     {
         RedPlayer = 0,
