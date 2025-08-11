@@ -5,13 +5,12 @@ using UnityEngine;
 
 namespace Soccer
 {
-    public class PlayerController : MonoBehaviour
+    public class PlayerInputSender : MonoBehaviour
     {
         public IdentifierEnum identifier;
         public InputSystem_Actions inputSystemActions;
         public InputSystem_Actions.PlayerActions playerActions => inputSystemActions.Player;
-
-        // public Vector2 moveInput;
+        
 
         private void Awake()
         {

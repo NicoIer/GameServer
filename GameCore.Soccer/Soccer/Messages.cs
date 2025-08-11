@@ -10,7 +10,7 @@ namespace Soccer
     {
         public string serverName;
         public string serverAddress;
-        public int port;
+        public ushort port;
     }
     
     public enum IdentifierEnum

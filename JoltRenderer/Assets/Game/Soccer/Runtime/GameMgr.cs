@@ -1,5 +1,7 @@
 using System;
+using GameCore.Soccer;
 using Network;
+using Soccer.UI;
 using TMPro;
 using UnityEngine;
 using UnityToolkit;
@@ -14,14 +16,65 @@ namespace Soccer
 
         public WorldData worldData;
 
-        public TextMeshProUGUI scoreText;
         // private int redScore;
         // private int blueScore;
 
+        public FindServerPanel findServerPanel;
+        public GamePlayPanel gamePlayPanel;
+
+        public PlayerInputSender playerInputSender;
+        public GameNetworkReqRsp reqRsp;
+
         protected override void OnInit()
         {
+            NetworkCenter.Singleton.OnDisconnectedEvent += OnDisconnected;
+            NetworkCenter.Singleton.OnConnectedEvent += OnConnected;
             NetworkCenter.Singleton.messageHandler.Add<WorldData>(OnWorldDataReceived);
             NetworkCenter.Singleton.messageHandler.Add<RpcPlayerGoal>(OnRpcPlayerGoal);
+            
+            gamePlayPanel.gameObject.SetActive(false);
+            findServerPanel.gameObject.SetActive(true);
+        }
+
+        private async void OnConnected()
+        {
+            findServerPanel.gameObject.SetActive(false);
+            gamePlayPanel.gameObject.SetActive(true);
+
+            var (rsp,ok) = await reqRsp.Request<ReqJoinGame, RspJoinGame>(new ReqJoinGame());
+            if (ok)
+            {
+                switch (rsp.identifier)
+                {
+                    case IdentifierEnum.RedPlayer:
+                        playerInputSender = redPlayer.gameObject.AddComponent<PlayerInputSender>();
+                        playerInputSender.identifier = IdentifierEnum.RedPlayer;
+                        break;
+                    case IdentifierEnum.BluePlayer:
+                        playerInputSender = bluePlayer.gameObject.AddComponent<PlayerInputSender>();
+                        playerInputSender.identifier = IdentifierEnum.BluePlayer;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        private void OnDisconnected()
+        {
+            findServerPanel.gameObject.SetActive(true);
+            gamePlayPanel.gameObject.SetActive(false);
+            if (playerInputSender != null)
+            {
+                Destroy(playerInputSender);
+            }
+        }
+
+        public void JoinGame(string serverAddress, ushort port)
+        {
+            NetworkCenter.Singleton.StartConnect(
+                serverAddress,
+                port);
         }
 
         private void OnRpcPlayerGoal(in RpcPlayerGoal message)
@@ -33,8 +86,7 @@ namespace Soccer
         {
             this.worldData = worldData;
 
-            scoreText.text = $"Red: {message.redScore} - Blue: {message.blueScore}";
-
+            gamePlayPanel.UpdateWorldData(message);
             soccerBall.transform.position = message.soccer.position.T();
             soccerBall.transform.rotation = message.soccer.rotation.T();
 

@@ -39,7 +39,6 @@ public partial class SoccerGameServer :
         FrameRate = frameRate;
         _networkLooper = new LogicLooper(frameRate);
         _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)frameRate, true);
-        HandleCmd();
     }
 
     public bool GetServerInfo(out byte[] data)
@@ -49,7 +48,7 @@ public partial class SoccerGameServer :
         {
             serverName = "Soccer Game Server",
             serverAddress = ip,
-            port = port
+            port = (ushort)port
         };
         data = MemoryPackSerializer.Serialize(serverInfo);
         return true;
@@ -67,6 +66,9 @@ public partial class SoccerGameServer :
     public void BeforePhysicsStart()
     {
         HandlePhysicsInit();
+        HandleCmd();
+        HandleReqRsp();
+
         Log.Information(
             "SoccerGameServer Start at port {Port} with frame rate {FrameRate:yyyy-MM-dd HH:mm:ss} , {Time}",
             port, FrameRate, DateTime.Now);

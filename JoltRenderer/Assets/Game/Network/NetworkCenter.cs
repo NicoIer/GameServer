@@ -23,6 +23,9 @@ namespace Network
         // public int countDisconnectCount;
         public bool continueConnect = true;
         public bool keepAlive = true;
+        public bool autoConnect = true;
+        public event Action OnDisconnectedEvent;
+        public event Action OnConnectedEvent;
 
         private const float KEEP_ALIVE_INTERVAL = 5f;
 
@@ -32,8 +35,32 @@ namespace Network
             var socket = new TelepathyClientSocket();
             _client = new NetworkClient(socket);
             _client.socket.OnConnected += OnConnected;
-            _client.socket.OnDisconnected += OnDisConnected;
+            _client.socket.OnDisconnected += OnDisconnected;
+            NetworkLoop.OnEarlyUpdate += OnEarlyUpdate;
+            NetworkLoop.OnLateUpdate += OnLateUpdate;
 
+            if (autoConnect)
+            {
+                StartConnect(serverHost, serverPort);
+            }
+        }
+#if UNITY_EDITOR && ODIN_INSPECTOR_3
+        [Sirenix.OdinInspector.Button]
+        private void DebugConnect()
+        {
+            StartConnect(serverHost, serverPort);
+        }
+#endif
+
+        public async void StartConnect(string host, ushort port)
+        {
+            if (_client.socket.connecting)
+            {
+                _client.Stop();
+            }
+
+            serverHost = host;
+            serverPort = port;
 
             UriBuilder uriBuilder = new UriBuilder
             {
@@ -43,22 +70,26 @@ namespace Network
             await _client.Run(uriBuilder.Uri, false);
             lastTryConnectTime = UnityEngine.Time.time;
             _client.socket.TickOutgoing(); // 主动向服务器发送数据
-            ContinueConnect(uriBuilder.Uri).Forget();
+            if (continueConnect && !_client.socket.connected)
+            {
+                await ContinueConnect(uriBuilder.Uri);
+            }
 
-            NetworkLoop.OnEarlyUpdate += OnEarlyUpdate;
-            NetworkLoop.OnLateUpdate += OnLateUpdate;
-
-            KeepAlive().Forget();
+            if (_client.socket.connected)
+            {
+                KeepAlive().Forget();
+            }
         }
 
-        private void OnDisConnected()
+
+        private void OnDisconnected()
         {
-            
+            OnDisconnectedEvent?.Invoke();
         }
 
         private void OnConnected()
         {
-            
+            OnConnectedEvent?.Invoke();
         }
 
         private async UniTask KeepAlive()
@@ -102,21 +133,32 @@ namespace Network
         {
             NetworkLoop.OnEarlyUpdate -= OnEarlyUpdate;
             NetworkLoop.OnLateUpdate -= OnLateUpdate;
-            continueConnect = false;
-            _client.Stop();
-            _client.Dispose();
+
+            try
+            {
+                _client.Stop();
+                _client.Dispose();
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
         }
 
         private void OnEarlyUpdate()
         {
-            // ToolkitLog.Info("OnEarlyUpdate");
-            _client.socket.TickIncoming();
+            if (_client.socket.connecting || _client.socket.connected)
+            {
+                _client.socket.TickIncoming();
+            }
         }
 
         private void OnLateUpdate()
         {
-            // ToolkitLog.Info("OnLateUpdate");
-            _client.socket.TickOutgoing();
+            if (_client.socket.connecting || _client.socket.connected)
+            {
+                _client.socket.TickOutgoing();
+            }
         }
 
         public void Send<T>(in T msg) where T : INetworkMessage

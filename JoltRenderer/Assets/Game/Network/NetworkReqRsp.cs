@@ -51,7 +51,7 @@ namespace Network
         }
 
 
-        private async Task<(TRsp, bool)> Request<TReq, TRsp>(TReq req, float timeout = 1f)
+        public async Task<(TRsp, bool)> Request<TReq, TRsp>(TReq req, float timeout = 1f)
             where TReq : INetworkReq where TRsp : INetworkRsp
         {
             if (_idPool.Count == 0)
