@@ -3,6 +3,7 @@ using Network;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace Soccer.UI
 {
@@ -12,6 +13,7 @@ namespace Soccer.UI
         public TextMeshProUGUI scoreText;
         public TextMeshProUGUI rttText;
         public GameObject container;
+        // DynamicJoystick dynamicJoystick;
 
         private void OnEnable()
         {
@@ -20,7 +22,7 @@ namespace Soccer.UI
 
         private void Update()
         {
-            rttText.text = $"RTT: {NetworkTime.Singleton.rttMs:F0} ms";
+            rttText.text = $"Ping: {NetworkTime.Singleton.rttMs:F0} ms,FPS:{1 / Time.deltaTime:F0}";
         }
 
         public void UpdateWorldData(in WorldData message)

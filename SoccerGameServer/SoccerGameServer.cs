@@ -3,6 +3,7 @@ using Cysharp.Threading;
 using GameCore.Physics;
 using JoltPhysicsSharp;
 using JoltServer;
+using kcp2k;
 using MemoryPack;
 using Network;
 using Network.Server;
@@ -38,11 +39,20 @@ public partial class SoccerGameServer :
         this.port = port;
         FrameRate = frameRate;
         _networkLooper = new LogicLooper(frameRate);
-        _server = new NetworkServer(new TelepathyServerSocket((ushort)port), (ushort)frameRate, true);
+        
+        var serverSocket = new KcpServerSocket(new KcpConfig(), (ushort)port, KcpChannel.Reliable);
+        // var serverSocket2 = new TelepathyServerSocket((ushort)port);
+        _server = new NetworkServer(serverSocket, (ushort)frameRate, true);
     }
 
     public bool GetServerInfo(out byte[] data)
     {
+        if (joinedPlayerCount >= 2)
+        {
+            data = [];
+            return false;
+        }
+        
         string ip = LocalNetwork.GetLocalIPv4();
         var serverInfo = new ServerInfo
         {

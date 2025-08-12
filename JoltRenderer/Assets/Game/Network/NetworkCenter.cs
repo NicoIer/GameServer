@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using kcp2k;
 using Network.Client;
 using UnityEngine;
 using UnityToolkit;
@@ -32,7 +33,8 @@ namespace Network
         protected async override void OnInit()
         {
             Application.runInBackground = true;
-            var socket = new TelepathyClientSocket();
+            // var socket = new TelepathyClientSocket();
+            var socket = new KcpClientSocket(new KcpConfig(), KcpChannel.Reliable);
             _client = new NetworkClient(socket);
             _client.socket.OnConnected += OnConnected;
             _client.socket.OnDisconnected += OnDisconnected;

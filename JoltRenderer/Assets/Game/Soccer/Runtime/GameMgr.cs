@@ -25,6 +25,7 @@ namespace Soccer
         public PlayerInputSender playerInputSender;
         public GameNetworkReqRsp reqRsp;
 
+        public DynamicJoystick joystick;
         protected override void OnInit()
         {
             Application.targetFrameRate = -1;
@@ -40,6 +41,14 @@ namespace Soccer
             if (Application.isMobilePlatform)
             {
                 Input.multiTouchEnabled = true;
+            }
+        }
+
+        private void Update()
+        {
+            if (Application.isMobilePlatform)
+            {
+                Application.targetFrameRate = 144;
             }
         }
 

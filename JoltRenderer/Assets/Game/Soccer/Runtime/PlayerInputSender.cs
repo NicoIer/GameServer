@@ -20,6 +20,11 @@ namespace Soccer
         private void Update()
         {
             var moveInput = playerActions.Move.ReadValue<Vector2>();
+            if (Application.isMobilePlatform)
+            {
+                moveInput = GameMgr.Singleton.joystick.Direction;
+            }
+            // Debug.Log($"joystick moveInput: {GameMgr.Singleton.joystick.Direction}");
             var kickPressed = playerActions.Attack.ReadValue<float>();
             NetworkCenter.Singleton.Send(new CmdUpdateInput(identifier,
                 new System.Numerics.Vector2(moveInput.x, moveInput.y), kickPressed));

@@ -14,45 +14,46 @@ namespace Soccer
         // 假设PhysicsData有position、rotation、linearVelocity、angularVelocity
         public Vector3 targetPos;
 
-        public bool lerpToTarget = true;
-        public bool needLerp;
+        // public bool lerpToTarget = true;
+        // public bool needLerp;
 
         public void EnqueuePosAndRot(in PhysicsData data)
         {
             transform.rotation = data.rotation.T();
-            if (!lerpToTarget)
-            {
-                transform.position = data.position.T();
-                return;
-            }
-
-            if (Vector3.Distance(data.position.T(), transform.position) > 0.1f)
-            {
-                targetPos = data.position.T();
-                needLerp = true;
-            }
-            else // 差距很小 没必要做插值
-            {
-                transform.position = data.position.T();
-            }
+            transform.position = data.position.T();
+            // if (!lerpToTarget)
+            // {
+            //     transform.position = data.position.T();
+            //     return;
+            // }
+            //
+            // if (Vector3.Distance(data.position.T(), transform.position) > 0.1f)
+            // {
+            //     targetPos = data.position.T();
+            //     needLerp = true;
+            // }
+            // else // 差距很小 没必要做插值
+            // {
+            //     transform.position = data.position.T();
+            // }
         }
 
-        private void Update()
-        {
-            if (!lerpToTarget) return;
-            if (!needLerp) return;
-            float distance = Vector3.Distance(targetPos, transform.position);
-            // double rtt = NetworkTime.Singleton.rttMs; // 转换为秒
-            if (distance > 0.1f)
-            {
-                transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 10);
-            }
-            else
-            {
-                needLerp = false;
-                transform.position = targetPos;
-            }
-        }
+        // private void Update()
+        // {
+        //     if (!lerpToTarget) return;
+        //     if (!needLerp) return;
+        //     float distance = Vector3.Distance(targetPos, transform.position);
+        //     // double rtt = NetworkTime.Singleton.rttMs; // 转换为秒
+        //     if (distance is > 0.1f and < 1.5f)
+        //     {
+        //         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 10);
+        //     }
+        //     else
+        //     {
+        //         needLerp = false;
+        //         transform.position = targetPos;
+        //     }
+        // }
 
         //
         // private void Update()
