@@ -83,7 +83,7 @@ public partial class SoccerGameServer :
 
     public void BeforePhysicsUpdate(in JoltApplication.LoopContex ctx)
     {
-        if (ctx.CurrentFrame % 120 == 0)
+        if (ctx.CurrentFrame % FrameRate * 2 == 0)
         {
             Log.Information("SoccerGameServer CurrentFrame{CurrentFrame}", ctx.CurrentFrame);
         }

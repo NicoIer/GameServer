@@ -49,7 +49,7 @@ if (args.Length != 0)
 }
 
 var app = new JoltApplication();
-
+app.targetFPS = cfg.physicsFrameRate;
 var gameServer = new SoccerGameServer(cfg.gameFrameRate, cfg.gamePort);
 app.AddSystem(gameServer);
 

@@ -16,9 +16,8 @@ public class JoltApplication : DisposableObject
     // public HashSet<BodyID> deactivatedBodies = [];
 
     // protected readonly HashSet<BodyID> _ignoreDrawBodies = [];
-    public int targetFPS => TargetFPS;
+    public int targetFPS = 60;
     public JoltPhysicsWorld physicsWorld { get; private set; }
-    protected const int TargetFPS = 60;
     // protected const int WorldHistoryLength = 128;
 
     // public long timestamp { get; private set; }
@@ -183,8 +182,8 @@ public class JoltApplication : DisposableObject
     {
         physicsWorld.physicsSystem.OptimizeBroadPhase();
         const int collisionSteps = 1;
-        float deltaTime = 1.0f / TargetFPS;
-        TimeSpan deltaMs = TimeSpan.FromMilliseconds(1000 / TargetFPS);
+        float deltaTime = 1.0f / targetFPS;
+        TimeSpan deltaMs = TimeSpan.FromMilliseconds(1000 / targetFPS);
         // using var looper = new LogicLooper(TargetFPS);
 
 
