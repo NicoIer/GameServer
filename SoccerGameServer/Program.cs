@@ -57,10 +57,21 @@ LocalNetwork localNetwork = new LocalNetwork(cfg.broadcastPort, ServerInfoGenera
 
 bool ServerInfoGenerator(out byte[] data)
 {
-    return gameServer.GetServerInfo(out data);
+    var success = gameServer.GetServerInfo(out data);
+    if (success)
+    {
+        var info = MemoryPackSerializer.Deserialize<ServerInfo>(data);
+        info.timeServerPort = cfg.timeServerPort;
+        data = MemoryPackSerializer.Serialize(info);
+        return true;
+    }
+
+    return false;
 }
 
+NetworkTimeServer timeServer = new NetworkTimeServer();
+_ = timeServer.Start(cfg.timeServerPort);
 _ = localNetwork.Start();
 app.Run();
 localNetwork.Stop();
-// timeServer.Stop();
+timeServer.Stop();

@@ -76,7 +76,7 @@ namespace Soccer.UI
                 finedServerInfo = MemoryPackSerializer.Deserialize<ServerInfo>(data);
                 hasFindServer = true;
                 gameObject.SetActive(false);
-                GameMgr.Singleton.JoinGame(finedServerInfo.serverAddress, finedServerInfo.port);
+                GameMgr.Singleton.JoinGame(finedServerInfo.serverAddress, finedServerInfo.port, finedServerInfo.timeServerPort);
                 _buffer.Clear();
             }
         }

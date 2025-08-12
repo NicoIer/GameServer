@@ -10,25 +10,44 @@ namespace Network
         protected override bool DontDestroyOnLoad() => true;
 
         private NetworkTimeClient _client;
+
+        public double rttMs => _client.rttMs;
+
         // private Thread _worker;
         public string ip = "127.0.0.1";
         public int port = 24420;
+        public bool autoRun = true;
 
         protected override void OnInit()
         {
             _client = new NetworkTimeClient();
-            _ = _client.Run(ip, port);
+            if (autoRun)
+            {
+                Run(ip, port);
+            }
             // _worker = new Thread(() => { _client.Run(ip, port).Wait(); });
             // _worker.Start();
         }
 
+        public void Run(string ip, int port)
+        {
+            _client.Stop();
+            this.ip = ip;
+            this.port = port;
+            _ = _client.Run(this.ip, this.port);
+        }
+
+        public void Stop()
+        {
+            _client.Stop();
+        }
 
         protected override void OnDispose()
         {
             // _worker.Abort();
             _client.Stop();
         }
-#if UNITY_EDITOR
+
 
         public bool onGui = true;
 
@@ -40,7 +59,5 @@ namespace Network
             GUILayout.Label($"server:{DateTimeOffset.FromUnixTimeMilliseconds(_client.serverTimeMs):G}");
             GUILayout.EndHorizontal();
         }
-
-#endif
     }
 }

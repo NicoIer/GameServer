@@ -27,13 +27,20 @@ namespace Soccer
 
         protected override void OnInit()
         {
+            Application.targetFrameRate = -1;
             NetworkCenter.Singleton.OnDisconnectedEvent += OnDisconnected;
             NetworkCenter.Singleton.OnConnectedEvent += OnConnected;
             NetworkCenter.Singleton.messageHandler.Add<WorldData>(OnWorldDataReceived);
             NetworkCenter.Singleton.messageHandler.Add<RpcPlayerGoal>(OnRpcPlayerGoal);
-            
+
             gamePlayPanel.gameObject.SetActive(false);
             findServerPanel.gameObject.SetActive(true);
+            
+            // 允许多点触控
+            if (Application.isMobilePlatform)
+            {
+                Input.multiTouchEnabled = true;
+            }
         }
 
         private async void OnConnected()
@@ -41,7 +48,7 @@ namespace Soccer
             findServerPanel.gameObject.SetActive(false);
             gamePlayPanel.gameObject.SetActive(true);
 
-            var (rsp,ok) = await reqRsp.Request<ReqJoinGame, RspJoinGame>(new ReqJoinGame());
+            var (rsp, ok) = await reqRsp.Request<ReqJoinGame, RspJoinGame>(new ReqJoinGame());
             if (ok)
             {
                 switch (rsp.identifier)
@@ -68,13 +75,16 @@ namespace Soccer
             {
                 Destroy(playerInputSender);
             }
+
+            NetworkTime.Singleton.Stop();
         }
 
-        public void JoinGame(string serverAddress, ushort port)
+        public void JoinGame(string serverAddress, ushort port, ushort timeServerPort)
         {
             NetworkCenter.Singleton.StartConnect(
                 serverAddress,
                 port);
+            NetworkTime.Singleton.Run(serverAddress, timeServerPort);
         }
 
         private void OnRpcPlayerGoal(in RpcPlayerGoal message)
