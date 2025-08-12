@@ -850,7 +850,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &548186174
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1844,9 +1844,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd733fae75e048519019bc552eb62f2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soccerBall: {fileID: 2674482725143836243}
-  redPlayer: {fileID: 2674482725538676137}
-  bluePlayer: {fileID: 2674482724365326193}
+  soccerBall: {fileID: 2674482725145605300}
+  redPlayer: {fileID: 2674482725538676136}
+  bluePlayer: {fileID: 2674482724365326192}
   findServerPanel: {fileID: 1871860844}
   gamePlayPanel: {fileID: 548186177}
   playerInputSender: {fileID: 0}
@@ -2434,7 +2434,7 @@ GameObject:
   - component: {fileID: 2674482724363031951}
   - component: {fileID: 2674482724364326319}
   - component: {fileID: 2674482724365326191}
-  - component: {fileID: 2674482724365326193}
+  - component: {fileID: 2674482724365326192}
   m_Layer: 0
   m_Name: Blue_NO1
   m_TagString: blueAgent
@@ -2495,7 +2495,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2674482724365326193
+--- !u!114 &2674482724365326192
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2504,9 +2504,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2674482724363061679}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb1bf40b771743c69a414680bb97a8e2, type: 3}
+  m_Script: {fileID: 11500000, guid: 9e4f80169fb04475bf18d718df098a38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetPos: {x: 0, y: 0, z: 0}
+  lerpToTarget: 1
+  needLerp: 0
 --- !u!1 &2674482725143603827
 GameObject:
   m_ObjectHideFlags: 0
@@ -2518,6 +2521,7 @@ GameObject:
   - component: {fileID: 2674482725143836243}
   - component: {fileID: 2674482725144606323}
   - component: {fileID: 2674482725145605299}
+  - component: {fileID: 2674482725145605300}
   m_Layer: 0
   m_Name: Ball
   m_TagString: ball
@@ -2594,6 +2598,21 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2674482725145605300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2674482725143603827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e4f80169fb04475bf18d718df098a38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPos: {x: 0, y: 0, z: 0}
+  lerpToTarget: 0
+  needLerp: 0
 --- !u!1 &2674482725319299589
 GameObject:
   m_ObjectHideFlags: 0
@@ -3489,7 +3508,7 @@ GameObject:
   - component: {fileID: 2674482725538308487}
   - component: {fileID: 2674482725537538471}
   - component: {fileID: 2674482725536408423}
-  - component: {fileID: 2674482725538676137}
+  - component: {fileID: 2674482725538676136}
   m_Layer: 0
   m_Name: Red_NO1
   m_TagString: redAgent
@@ -3497,7 +3516,7 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2674482725538676137
+--- !u!114 &2674482725538676136
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3506,9 +3525,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2674482725538676135}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb1bf40b771743c69a414680bb97a8e2, type: 3}
+  m_Script: {fileID: 11500000, guid: 9e4f80169fb04475bf18d718df098a38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetPos: {x: 0, y: 0, z: 0}
+  lerpToTarget: 1
+  needLerp: 0
 --- !u!114 &5558922510371233627
 MonoBehaviour:
   m_ObjectHideFlags: 0

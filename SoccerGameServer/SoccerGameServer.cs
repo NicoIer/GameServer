@@ -209,7 +209,7 @@ public partial class SoccerGameServer :
     private void BroadcastWorldData()
     {
         // 收集物理世界信息
-        PlayerData redPlayer = new PlayerData
+        PhysicsData redPlayer = new PhysicsData
         {
             position = redPlayer1.Position,
             rotation = redPlayer1.Rotation,
@@ -217,7 +217,7 @@ public partial class SoccerGameServer :
             angularVelocity = redPlayer1.GetAngularVelocity()
         };
 
-        PlayerData bluePlayer = new PlayerData
+        PhysicsData bluePlayer = new PhysicsData
         {
             position = bluePlayer1.Position,
             rotation = bluePlayer1.Rotation,
@@ -225,7 +225,7 @@ public partial class SoccerGameServer :
             angularVelocity = bluePlayer1.GetAngularVelocity()
         };
 
-        SoccerData soccer = new SoccerData
+        PhysicsData soccer = new PhysicsData
         {
             position = soccerBall.Position,
             rotation = soccerBall.Rotation,

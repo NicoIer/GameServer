@@ -10,9 +10,9 @@ namespace Soccer
 {
     public class GameMgr : MonoSingleton<GameMgr>
     {
-        public Transform soccerBall;
-        public PlayerView redPlayer;
-        public PlayerView bluePlayer;
+        public PhysicsView soccerBall;
+        public PhysicsView redPlayer;
+        public PhysicsView bluePlayer;
 
         public WorldData worldData;
 
@@ -35,7 +35,7 @@ namespace Soccer
 
             gamePlayPanel.gameObject.SetActive(false);
             findServerPanel.gameObject.SetActive(true);
-            
+
             // 允许多点触控
             if (Application.isMobilePlatform)
             {
@@ -97,14 +97,14 @@ namespace Soccer
             this.worldData = worldData;
 
             gamePlayPanel.UpdateWorldData(message);
-            soccerBall.transform.position = message.soccer.position.T();
-            soccerBall.transform.rotation = message.soccer.rotation.T();
+            soccerBall.EnqueuePosAndRot(message.soccer);
+            redPlayer.EnqueuePosAndRot(message.redPlayer);
+            bluePlayer.EnqueuePosAndRot(message.bluePlayer);
+            // redPlayer.transform.position = message.redPlayer.position.T();
+            // redPlayer.transform.rotation = message.redPlayer.rotation.T();
 
-            redPlayer.transform.position = message.redPlayer.position.T();
-            redPlayer.transform.rotation = message.redPlayer.rotation.T();
-
-            bluePlayer.transform.position = message.bluePlayer.position.T();
-            bluePlayer.transform.rotation = message.bluePlayer.rotation.T();
+            // bluePlayer.transform.position = message.bluePlayer.position.T();
+            // bluePlayer.transform.rotation = message.bluePlayer.rotation.T();
         }
 
         // private void OnGUI()

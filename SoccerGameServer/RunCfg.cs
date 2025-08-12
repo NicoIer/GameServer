@@ -2,7 +2,7 @@ namespace Soccer;
 
 public class RunCfg
 {
-    public int gameFrameRate = 60;
+    public int gameFrameRate = 120;
     public ushort gamePort = 24419;
 
     public int networkFrameRate = 1;

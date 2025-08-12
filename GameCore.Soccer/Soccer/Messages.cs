@@ -26,26 +26,18 @@ namespace Soccer
     {
         public int redScore;
         public int blueScore;
-        public PlayerData redPlayer;
-        public PlayerData bluePlayer;
-        public SoccerData soccer;
+        public PhysicsData redPlayer;
+        public PhysicsData bluePlayer;
+        public PhysicsData soccer;
     }
-
+    
     [MemoryPackable]
-    public partial struct PlayerData
+    public partial struct PhysicsData
     {
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 linearVelocity;
         public Vector3 angularVelocity;
     }
-
-    [MemoryPackable]
-    public partial struct SoccerData
-    {
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 linearVelocity;
-        public Vector3 angularVelocity;
-    }
+    
 }
