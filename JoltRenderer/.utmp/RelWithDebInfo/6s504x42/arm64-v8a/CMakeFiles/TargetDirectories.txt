@@ -1,0 +1,5 @@
+/Users/chenjun/Desktop/Project/GameServer/JoltRenderer/.utmp/RelWithDebInfo/6s504x42/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/chenjun/Desktop/Project/GameServer/JoltRenderer/.utmp/RelWithDebInfo/6s504x42/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/chenjun/Desktop/Project/GameServer/JoltRenderer/.utmp/RelWithDebInfo/6s504x42/arm64-v8a/GameActivity/CMakeFiles/game.dir
+/Users/chenjun/Desktop/Project/GameServer/JoltRenderer/.utmp/RelWithDebInfo/6s504x42/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+/Users/chenjun/Desktop/Project/GameServer/JoltRenderer/.utmp/RelWithDebInfo/6s504x42/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir

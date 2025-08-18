@@ -1,0 +1,17 @@
+{
+  "name": "com.nicoier.gamecore.physics",
+  "version": "0.0.1",
+  "displayName": "GameCore Physics",
+  "description": "GameCore Physics integration for GameCore",
+  "unity": "2022.3",
+  "dependencies": {
+  },
+  "keywords": [
+    "Physics"
+  ],
+  "author": {
+    "name": "nicoier",
+    "email": "nicoier@163.com",
+    "url": "https://nicoier.github.io/"
+  }
+}

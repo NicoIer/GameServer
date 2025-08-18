@@ -22,10 +22,11 @@
     <ItemGroup>
       <Folder Include="UnityToolkit\Core\BVH\" />
       <Folder Include="UnityToolkit\Core\PathFinding\" />
-      <Folder Include="UnityToolkit\Culling\" />
       <Folder Include="UnityToolkit\Editor\Python\" />
+      <Folder Include="UnityToolkit\Minimap\" />
       <Folder Include="UnityToolkit\Network\Core\HTTP\" />
       <Folder Include="UnityToolkit\Network\Entity\" />
+      <Folder Include="UnityToolkit\StaticCulling\" />
     </ItemGroup>
     
 <!--&lt;!&ndash;    保留一些三方DLL &ndash;&gt;-->

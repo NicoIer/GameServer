@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Soccer</RootNamespace>
+        <TargetFramework>net9.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GameCore.Soccer\GameCore.Soccer.csproj" />
+      <ProjectReference Include="..\JoltWarpper\JoltWarpper.csproj" />
+      <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="LogicLooper" Version="1.6.0" />
+      <PackageReference Include="MemoryPack" Version="1.21.4" />
+      <PackageReference Include="MemoryPack.Core" Version="1.21.4" />
+      <PackageReference Include="MemoryPack.Generator" Version="1.21.4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Serilog" Version="4.2.0" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    </ItemGroup>
+
+</Project>

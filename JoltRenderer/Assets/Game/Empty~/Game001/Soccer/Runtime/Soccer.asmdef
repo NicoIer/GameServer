@@ -1,0 +1,22 @@
+{
+    "name": "Soccer",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9baea0ba6357e4d09ba61789a936bcc7",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:a9b0c32f88ea41758975e09cc63da8c8",
+        "GUID:a27d84b966358f640a9a96cddf1d0136",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:4307f53044263cf4b835bd812fc161a4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

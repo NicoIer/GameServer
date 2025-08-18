@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using MemoryPack;
 using Network;
@@ -31,26 +31,19 @@ public partial class JoltServer
         rsp = default;
         errorMsg = "";
         var bodyId = message.bodyId;
-        if (!_body2Owner.TryGetValue(bodyId, out var value))
+        if (!_app.physicsWorld.IsAdded(bodyId))
         {
             errorcode = ErrorCode.InvalidArgument;
             errorMsg = "Invalid body id";
             return;
         }
 
-        if (value != connectionid)
-        {
-            errorcode = ErrorCode.InvalidArgument;
-            errorMsg = "Invalid owner";
-            return;
-        }
-
-        _app.physicsSystem.BodyLockInterface.LockRead(message.bodyId, out var @lock);
+        _app.physicsWorld.physicsSystem.BodyLockInterface.LockRead(message.bodyId, out var @lock);
 
         if (@lock.Succeeded)
         {
             errorcode = ErrorCode.Success;
-            PackBodyData(bodyId, out var data);
+            _app.physicsWorld.QueryBody(bodyId, out var data);
             rsp = new RspBodyInfo(bodyId, data);
         }
         else
@@ -59,6 +52,6 @@ public partial class JoltServer
             errorMsg = "Internal Error LockRead Failed";
         }
 
-        _app.physicsSystem.BodyLockInterface.UnlockRead(@lock);
+        _app.physicsWorld.physicsSystem.BodyLockInterface.UnlockRead(@lock);
     }
 }

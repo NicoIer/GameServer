@@ -1,0 +1,27 @@
+using System;
+using GameCore.Physics;
+using UnityEngine;
+
+namespace JoltWrapper
+{
+    public class JoltSphere : JoltShape
+    {
+        public float radius = 0.5f;
+        public float mass;
+
+        public override IShapeData shapeData => new SphereShapeData(radius, mass)
+        {
+            allowedDoFs = allowedDOFs
+        };
+
+        public AllowedDOFs allowedDOFs = AllowedDOFs.All;
+
+        private void OnValidate()
+        {
+            if (radius <= 0)
+            {
+                Debug.LogWarning("Sphere shape radius must be positive.", this);
+            }
+        }
+    }
+}

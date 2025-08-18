@@ -1,0 +1,16 @@
+{
+    "name": "GameCore.Physics",
+    "rootNamespace": "GameCore.Physics",
+    "references": [
+        "GUID:9baea0ba6357e4d09ba61789a936bcc7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

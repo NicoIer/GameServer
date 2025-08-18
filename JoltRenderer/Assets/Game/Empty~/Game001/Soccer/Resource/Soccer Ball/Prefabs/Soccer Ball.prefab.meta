@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ec3e8f3ed27e2244caaedaf589590a03
+timeCreated: 1488399492
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 84382
+  packageName: Low Polygon Soccer Ball
+  packageVersion: 1.0
+  assetPath: Assets/Soccer Ball/Prefabs/Soccer Ball.prefab
+  uploadId: 165157

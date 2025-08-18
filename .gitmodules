@@ -1,9 +1,9 @@
 [submodule "Toolkit/UnityToolkit"]
 	path = Toolkit/UnityToolkit
 	url = https://github.com/NicoIer/UnityToolkit.git
-[submodule "GameCore"]
-	path = GameCore
-	url = https://github.com/NicoIer/GameCore.git
 [submodule "JoltRenderer/Packages/JoltPhysicsUnity"]
 	path = JoltRenderer/Packages/JoltPhysicsUnity
 	url = https://github.com/NicoIer/JoltPhysicsUnity.git
+[submodule "JoltPhysicsSharp"]
+	path = JoltPhysicsSharp
+	url = https://github.com/NicoIer/JoltPhysicsSharp.git

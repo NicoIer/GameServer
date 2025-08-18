@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text;
-using GameCore.Jolt;
+using GameCore.Physics;
 using JoltPhysicsSharp;
 using JoltServer;
 using Network.Time;
@@ -40,9 +40,15 @@ ShapeDataPacket.RegisterAll();
 
 
 var app = new JoltApplication();
-// var visualDebugger = new JoltRaylibDebugger(1200, 800, "Jolt.Shared Visual Debugger", app.targetFPS);
+// var visualDebugger = new JoltRaylibDebugger(1200, 800, "GameCore Visual Debugger", app.targetFPS);
 // app.AddSystem(visualDebugger); 
-var joltServer = new JoltServer.JoltServer(60, 24419);
+
+var cfg = new PhysicsConfig
+{
+    // lockStep = true
+};
+
+var joltServer = new JoltServer.JoltServer(60, 24419, 2048, cfg);
 app.AddSystem(joltServer);
 
 NetworkTimeServer timeServer = new NetworkTimeServer();
