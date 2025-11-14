@@ -33,13 +33,9 @@
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
   &lt;Assembly Path="/Users/chenjun/.nuget/packages/joltphysicssharp/2.16.2/lib/net9.0/JoltPhysicsSharp.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2bec34cc_002Deb61_002D4410_002D8cdb_002D4380b4503b6e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.InlineProfiler.Test1&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.FrameStepTests.Test1&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.Tests.Test1&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String>
+	
+	
+	
 	
 	
 	
