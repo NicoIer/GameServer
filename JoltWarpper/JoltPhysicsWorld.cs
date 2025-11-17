@@ -86,17 +86,17 @@ public class JoltPhysicsWorld : IPhysicsWorld
         physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
     }
 
-
-    #region Callback
-
-    protected virtual ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2,
-        Double3 baseOffset, in CollideShapeResult collisionResult)
+    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, RVector3 baseOffset, in CollideShapeResult collisionResult)
     {
         // Log.Information("Contact validate callback");
 
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult.AcceptAllContactsForThisBodyPair;
     }
+
+
+    #region Callback
+    
 
 
     protected virtual void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2,

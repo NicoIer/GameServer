@@ -3,7 +3,7 @@
     <PropertyGroup>
         <LangVersion>12</LangVersion>
         <Nullable>disable</Nullable>
-        <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
@@ -23,10 +23,6 @@
       <Folder Include="UnityToolkit\Core\BVH\" />
       <Folder Include="UnityToolkit\Core\PathFinding\" />
       <Folder Include="UnityToolkit\Editor\Python\" />
-      <Folder Include="UnityToolkit\Minimap\" />
-      <Folder Include="UnityToolkit\Network\Core\HTTP\" />
-      <Folder Include="UnityToolkit\Network\Entity\" />
-      <Folder Include="UnityToolkit\StaticCulling\" />
     </ItemGroup>
     
 <!--&lt;!&ndash;    保留一些三方DLL &ndash;&gt;-->
