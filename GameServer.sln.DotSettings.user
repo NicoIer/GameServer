@@ -34,6 +34,13 @@
   &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/8.0.8/ref/net8.0/System.Net.dll" /&gt;
   &lt;Assembly Path="/Users/chenjun/.nuget/packages/joltphysicssharp/2.16.2/lib/net9.0/JoltPhysicsSharp.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8cfdabfc_002D653d_002D4f57_002Da471_002De63d59b54c5c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CastShape_WhenSweptSphereHitsStaticBox_ReturnsClosestHit" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::BEC6E654-9143-4E42-B4BE-3163D1CCAE1A::net9.0::TestProject.JoltPhysicsTests.CastShape_WhenSweptSphereHitsStaticBox_ReturnsClosestHit&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	
+	
 	
 	
 	

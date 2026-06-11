@@ -12,6 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="libclang" Version="20.1.2" />
       <PackageReference Include="MemoryPack" Version="1.21.1" />
       <PackageReference Include="MemoryPack.Generator" Version="1.21.1">
         <PrivateAssets>all</PrivateAssets>
@@ -21,8 +22,16 @@
 
     <ItemGroup>
       <Folder Include="UnityToolkit\Core\BVH\" />
+      <Folder Include="UnityToolkit\Core\KDTree\" />
+      <Folder Include="UnityToolkit\Core\Network\Core\Shared\Protocol\Ignorance\" />
+      <Folder Include="UnityToolkit\Core\Network\Entity\" />
       <Folder Include="UnityToolkit\Core\PathFinding\" />
       <Folder Include="UnityToolkit\Editor\Python\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ClCompile Include="UnityToolkit\Runtime\Shader\MotionBlurFunction.hlsl" />
+      <ClCompile Include="UnityToolkit\Runtime\Shader\UnityToolkit.hlsl" />
     </ItemGroup>
     
 <!--&lt;!&ndash;    保留一些三方DLL &ndash;&gt;-->
