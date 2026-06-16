@@ -3,8 +3,12 @@
 
 obj
 bin
+
 */log/*.txt
 
 log/
 db/
-JoltRenderer/mono_crash.*.json
+
+!Configs/Tools/protoc/
+!Configs/Tools/protoc/bin/
+!Configs/Tools/protoc/bin/**
