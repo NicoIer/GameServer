@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Analyzers/">
+    <Project Path="Analyzers/Analyzers.Sample/Analyzers.Sample.csproj" />
+    <Project Path="Analyzers/Analyzers.Tests/Analyzers.Tests.csproj" />
+    <Project Path="Analyzers/Analyzers/Analyzers.csproj" />
+  </Folder>
+  <Project Path="GameServer.App\GameServer.App.csproj" />
+  <Project Path="GameServer.Tests/GameServer.Tests.csproj" />
+  <Project Path="JoltPhysics/JoltPhysics.csproj" />
+  <Project Path="Luban/Luban.csproj" />
+  <Project Path="UnityToolkit/UnityToolkit.csproj" />
+</Solution>

@@ -1,0 +1,7 @@
+# top-most EditorConfig file
+root = true
+
+# Default settings:
+[*.cs]
+# License header
+file_header_template = Copyright (c)2026 NicoIer@163.com All Rights Reserved.

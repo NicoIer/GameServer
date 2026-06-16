@@ -1,6 +1,0 @@
-[submodule "Toolkit/UnityToolkit"]
-	path = Toolkit/UnityToolkit
-	url = https://github.com/NicoIer/UnityToolkit.git
-[submodule "JoltPhysicsSharp"]
-	path = JoltPhysicsSharp
-	url = https://github.com/NicoIer/JoltPhysicsSharp.git

@@ -1,0 +1,19 @@
+{
+  "name": "com.nicoier.jolt.unity",
+  "version": "1.0.0",
+  "displayName": "jolt.unity",
+  "description": "jolt physics for unity.",
+  "unity": "2021.3",
+  "dependencies": {
+  },
+  "keywords": [
+    "jolt",
+    "physics",
+    "unity",
+  ],
+  "author": {
+    "name": "nicoier",
+    "email": "nicoier@163.com",
+    "url": "https://nicoier.github.io/"
+  }
+}
