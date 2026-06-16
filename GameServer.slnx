@@ -5,11 +5,12 @@
     <Project Path="Analyzers/Analyzers/Analyzers.csproj" />
   </Folder>
   <Folder Name="/Game001/" />
-  <Project Path="GameServer.App\GameServer.App.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />
   <Project Path="GameServer.Rpc\GameServer.Rpc.csproj" />
+  <Project Path="GameServer.Startup\GameServer.Startup.csproj" />
   <Project Path="GameServer.Tests/GameServer.Tests.csproj" />
+  <Project Path="JoltPhysics.Tests/JoltPhysics.Tests.csproj" />
   <Project Path="JoltPhysics/JoltPhysics.csproj" />
   <Project Path="Luban/Luban.csproj" />
   <Project Path="UnityToolkit/UnityToolkit.csproj" />
