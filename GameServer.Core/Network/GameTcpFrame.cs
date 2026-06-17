@@ -10,6 +10,44 @@ public static class GameTcpFrame
 
     public static async Task<GamePacket?> ReadAsync(Stream stream, CancellationToken cancellationToken = default)
     {
+        return await ReadAsync<GamePacket>(stream, cancellationToken);
+    }
+
+    public static async Task<T?> ReadAsync<T>(Stream stream, CancellationToken cancellationToken = default)
+        where T : struct
+    {
+        byte[]? data = await ReadFrameAsync(stream, cancellationToken);
+        if (data == null)
+        {
+            return null;
+        }
+
+        return MemoryPackSerializer.Deserialize<T>(data);
+    }
+
+    public static async Task WriteAsync(Stream stream, GamePacket packet, CancellationToken cancellationToken = default)
+    {
+        await WriteAsync<GamePacket>(stream, packet, cancellationToken);
+    }
+
+    public static async Task WriteAsync<T>(Stream stream, T message, CancellationToken cancellationToken = default)
+        where T : struct
+    {
+        byte[] data = MemoryPackSerializer.Serialize(message);
+        await WriteRawAsync(stream, data, cancellationToken);
+    }
+
+    public static async Task WriteRawAsync(Stream stream, byte[] data, CancellationToken cancellationToken = default)
+    {
+        byte[] header = new byte[HeaderSize];
+        BinaryPrimitives.WriteInt32BigEndian(header, data.Length);
+        await stream.WriteAsync(header, cancellationToken);
+        await stream.WriteAsync(data, cancellationToken);
+        await stream.FlushAsync(cancellationToken);
+    }
+
+    private static async Task<byte[]?> ReadFrameAsync(Stream stream, CancellationToken cancellationToken)
+    {
         byte[] header = new byte[HeaderSize];
         bool hasHeader = await ReadExactOrEndAsync(stream, header, cancellationToken);
         if (!hasHeader)
@@ -25,22 +63,7 @@ public static class GameTcpFrame
 
         byte[] data = new byte[length];
         await ReadExactAsync(stream, data, cancellationToken);
-        return MemoryPackSerializer.Deserialize<GamePacket>(data);
-    }
-
-    public static async Task WriteAsync(Stream stream, GamePacket packet, CancellationToken cancellationToken = default)
-    {
-        byte[] data = MemoryPackSerializer.Serialize(packet);
-        await WriteRawAsync(stream, data, cancellationToken);
-    }
-
-    public static async Task WriteRawAsync(Stream stream, byte[] data, CancellationToken cancellationToken = default)
-    {
-        byte[] header = new byte[HeaderSize];
-        BinaryPrimitives.WriteInt32BigEndian(header, data.Length);
-        await stream.WriteAsync(header, cancellationToken);
-        await stream.WriteAsync(data, cancellationToken);
-        await stream.FlushAsync(cancellationToken);
+        return data;
     }
 
     private static async Task<bool> ReadExactOrEndAsync(Stream stream, byte[] buffer, CancellationToken cancellationToken)

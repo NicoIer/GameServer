@@ -7,6 +7,10 @@ using GameServer.Gate;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
 
+const string Game001Id = "Game001";
+const string Game001RoomWorkerTarget = "room-worker";
+const string Game001RoomWorkerId = "worker-001";
+
 int centerPort = ReadPort(args, "--center-port", "CENTER_PORT", 5001);
 int gatePort = ReadPort(args, "--gate-port", "GATE_PORT", 5002);
 int game001RoomPort = ReadPort(args, "--game001-room-port", "GAME001_ROOM_PORT", 5101);
@@ -18,7 +22,9 @@ string game001RoomAddress = $"http://127.0.0.1:{game001RoomPort}";
 
 var centerRegistry = new CenterRegistry();
 var game001RoomState = new Game001RoomState();
-var game001RoomPacketHandler = new Game001RoomPacketHandler(game001RoomState);
+var game001RoomConnections = new Game001RoomConnectionRegistry();
+var game001RoomReqRspHandlers = new Game001RoomReqRspHandlers(game001RoomConnections, game001RoomState);
+var game001RoomDispatcher = new Game001RoomReqRspDispatcher(game001RoomConnections, game001RoomReqRspHandlers);
 
 await using var centerServer = new GrpcServerRuntime(centerPort, services =>
 {
@@ -34,7 +40,9 @@ centerServer.MapGrpcService<CenterServiceImpl>();
 await using var game001RoomServer = new GrpcServerRuntime(game001RoomPort, services =>
 {
     services.AddSingleton(game001RoomState);
-    services.AddSingleton(game001RoomPacketHandler);
+    services.AddSingleton(game001RoomConnections);
+    services.AddSingleton(game001RoomReqRspHandlers);
+    services.AddSingleton(game001RoomDispatcher);
     services.AddSingleton<Game001RoomServiceImpl>();
 });
 game001RoomServer.MapGrpcService<Game001RoomServiceImpl>();
@@ -49,7 +57,7 @@ await using IGameRoomTransportServer game001RoomTransportServer = CreateGame001R
     game001RoomDirectProtocol,
     game001RoomTcpPort,
     roomCenterClient,
-    game001RoomPacketHandler);
+    game001RoomDispatcher);
 
 await using var gateServer = new GrpcServerRuntime(gatePort, services =>
 {
@@ -70,9 +78,9 @@ await startupCenterClient.RegisterServiceAsync(new RegisterServiceRequest
 {
     Endpoint = new ServiceEndpoint
     {
-        GameId = "Game001",
-        Target = "room",
-        RouteId = "room-001",
+        GameId = Game001Id,
+        Target = Game001RoomWorkerTarget,
+        RouteId = Game001RoomWorkerId,
         Address = game001RoomAddress,
         DirectProtocol = game001RoomTransportServer.Protocol,
         DirectAddress = game001RoomTransportServer.Address,
@@ -83,7 +91,7 @@ Console.WriteLine($"Center started on {centerAddress}");
 Console.WriteLine($"Gate started on http://127.0.0.1:{gatePort}");
 Console.WriteLine($"Game001.Room started on {game001RoomAddress}");
 Console.WriteLine($"Game001.Room direct {game001RoomTransportServer.Protocol} started on {game001RoomTransportServer.Address}");
-Console.WriteLine("Registered Game001 / room / room-001");
+Console.WriteLine($"Registered {Game001Id} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
 
 using var shutdownCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, eventArgs) =>
@@ -168,11 +176,11 @@ static IGameRoomTransportServer CreateGame001RoomTransportServer(
     DirectTransportProtocol protocol,
     int tcpPort,
     CenterService.CenterServiceClient centerClient,
-    Game001RoomPacketHandler packetHandler)
+    Game001RoomReqRspDispatcher dispatcher)
 {
     if (protocol == DirectTransportProtocol.Tcp)
     {
-        return new Game001RoomTcpServer(tcpPort, centerClient, packetHandler);
+        return new Game001RoomTcpServer(tcpPort, centerClient, dispatcher);
     }
 
     throw new NotSupportedException($"unsupported Game001.Room direct transport protocol={protocol}");

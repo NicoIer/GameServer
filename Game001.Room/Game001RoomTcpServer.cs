@@ -2,22 +2,24 @@ using System.Net;
 using System.Net.Sockets;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
+using Network;
+using ErrorCode = GameServer.Core.Protocol.ErrorCode;
 
 namespace Game001.Room;
 
 public sealed class Game001RoomTcpServer : IGameRoomTransportServer
 {
     private readonly CenterService.CenterServiceClient _centerClient;
-    private readonly Game001RoomPacketHandler _handler;
+    private readonly Game001RoomReqRspDispatcher _dispatcher;
     private readonly TcpListener _listener;
     private readonly CancellationTokenSource _shutdown = new();
     private Task? _acceptTask;
     private bool _stopped;
 
-    public Game001RoomTcpServer(int port, CenterService.CenterServiceClient centerClient, Game001RoomPacketHandler handler)
+    public Game001RoomTcpServer(int port, CenterService.CenterServiceClient centerClient, Game001RoomReqRspDispatcher dispatcher)
     {
         _centerClient = centerClient;
-        _handler = handler;
+        _dispatcher = dispatcher;
         _listener = new TcpListener(IPAddress.Loopback, port);
         Address = $"127.0.0.1:{port}";
     }
@@ -106,16 +108,24 @@ public sealed class Game001RoomTcpServer : IGameRoomTransportServer
 
                 await WriteConnectionReplyAsync(stream, ErrorCode.Success, validateReply.Uid, connectRequest.RoomId, "connected", cancellationToken);
 
-                while (!cancellationToken.IsCancellationRequested)
+                int connectionId = _dispatcher.AddConnection(validateReply.Uid, connectRequest.RoomId);
+                try
                 {
-                    GamePacket? packet = await GameTcpFrame.ReadAsync(stream, cancellationToken);
-                    if (packet == null)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        return;
-                    }
+                        ReqHead? request = await GameTcpFrame.ReadAsync<ReqHead>(stream, cancellationToken);
+                        if (request == null)
+                        {
+                            return;
+                        }
 
-                    GameResponse response = _handler.HandlePacket(validateReply.Uid, connectRequest.RoomId, packet.Value);
-                    await GameTcpFrame.WriteRawAsync(stream, response.Data.ToByteArray(), cancellationToken);
+                        RspHead response = _dispatcher.HandleRequest(connectionId, request.Value);
+                        await GameTcpFrame.WriteAsync(stream, response, cancellationToken);
+                    }
+                }
+                finally
+                {
+                    _dispatcher.RemoveConnection(connectionId);
                 }
             }
             catch (OperationCanceledException)

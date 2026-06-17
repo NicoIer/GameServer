@@ -8,7 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Game001.Core\Game001.Core.csproj" />
       <ProjectReference Include="..\GameServer.Core\GameServer.Core.csproj" />
+      <ProjectReference Include="..\UnityToolkit\UnityToolkit.csproj" />
     </ItemGroup>
 
 </Project>

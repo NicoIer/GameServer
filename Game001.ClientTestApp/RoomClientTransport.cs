@@ -8,8 +8,11 @@ public interface IRoomClientTransport : IAsyncDisposable
 {
     DirectTransportProtocol Protocol { get; }
 
-    Task WriteAsync(GamePacket packet);
-    Task<GamePacket?> ReadAsync();
+    Task WriteAsync<T>(T message)
+        where T : struct;
+
+    Task<T?> ReadAsync<T>()
+        where T : struct;
 }
 
 public static class RoomClientTransportFactory
@@ -45,14 +48,16 @@ public sealed class TcpRoomClientTransport : IRoomClientTransport
         return new TcpRoomClientTransport(client);
     }
 
-    public Task WriteAsync(GamePacket packet)
+    public Task WriteAsync<T>(T message)
+        where T : struct
     {
-        return GameTcpFrame.WriteAsync(_stream, packet);
+        return GameTcpFrame.WriteAsync(_stream, message);
     }
 
-    public Task<GamePacket?> ReadAsync()
+    public Task<T?> ReadAsync<T>()
+        where T : struct
     {
-        return GameTcpFrame.ReadAsync(_stream);
+        return GameTcpFrame.ReadAsync<T>(_stream);
     }
 
     public ValueTask DisposeAsync()
