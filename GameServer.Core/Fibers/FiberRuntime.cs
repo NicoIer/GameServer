@@ -135,6 +135,7 @@ public sealed class Fiber
 
     private readonly IFiberModule _module;
     private readonly Action<Fiber> _wake;
+    private readonly ConcurrentQueue<Action> _nextUpdateQueue = new();
     private readonly CancellationTokenSource _shutdown = new();
     private int _updating;
     private int _stopped;
@@ -232,6 +233,32 @@ public sealed class Fiber
         return completion.Task;
     }
 
+    public Task<T> CallAsync<T>(Func<ValueTask<T>> action)
+    {
+        if (IsStopped)
+        {
+            return Task.FromCanceled<T>(new CancellationToken(true));
+        }
+
+        var completion = new FiberCompletion<T>();
+        SynchronizationContext.Post(_ =>
+        {
+            _ = ExecuteAsync(action, completion);
+        }, completion);
+
+        return completion.Task;
+    }
+
+    public void PostNextUpdate(Action action)
+    {
+        if (IsStopped)
+        {
+            return;
+        }
+
+        _nextUpdateQueue.Enqueue(action);
+    }
+
     internal bool RunOnce(long timeNowMs)
     {
         if (IsStopped || Interlocked.Exchange(ref _updating, 1) != 0)
@@ -246,6 +273,7 @@ public sealed class Fiber
             s_current = this;
             System.Threading.SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
             var context = new FiberUpdateContext(this, timeNowMs);
+            DrainNextUpdateQueue();
             SynchronizationContext.Drain();
             _module.OnUpdate(context);
             _module.OnLateUpdate(context);
@@ -257,6 +285,27 @@ public sealed class Fiber
             System.Threading.SynchronizationContext.SetSynchronizationContext(previousContext);
             s_current = previousFiber;
             Volatile.Write(ref _updating, 0);
+        }
+    }
+
+    private async Task ExecuteAsync<T>(Func<ValueTask<T>> action, FiberCompletion<T> completion)
+    {
+        try
+        {
+            T result = await action();
+            completion.SetResult(result);
+        }
+        catch (Exception e)
+        {
+            completion.SetException(e);
+        }
+    }
+
+    private void DrainNextUpdateQueue()
+    {
+        while (_nextUpdateQueue.TryDequeue(out Action? action))
+        {
+            action();
         }
     }
 

@@ -1,8 +1,8 @@
-namespace Game001.Room;
+namespace GameServer.Core.Rooms;
 
-public sealed class Game001RoomConnectionRegistry
+public sealed class RoomConnectionRegistry
 {
-    private readonly Dictionary<int, Game001RoomConnectionContext> _connections = new();
+    private readonly Dictionary<int, RoomConnectionContext> _connections = new();
     private readonly object _lock = new();
     private int _nextConnectionId;
 
@@ -11,12 +11,12 @@ public sealed class Game001RoomConnectionRegistry
         lock (_lock)
         {
             int connectionId = ++_nextConnectionId;
-            _connections[connectionId] = new Game001RoomConnectionContext(uid, roomId);
+            _connections[connectionId] = new RoomConnectionContext(uid, roomId);
             return connectionId;
         }
     }
 
-    public bool TryGet(int connectionId, out Game001RoomConnectionContext context)
+    public bool TryGet(int connectionId, out RoomConnectionContext context)
     {
         lock (_lock)
         {
@@ -28,7 +28,7 @@ public sealed class Game001RoomConnectionRegistry
     {
         lock (_lock)
         {
-            if (!_connections.TryGetValue(connectionId, out Game001RoomConnectionContext context))
+            if (!_connections.TryGetValue(connectionId, out RoomConnectionContext context))
             {
                 return false;
             }
@@ -47,4 +47,4 @@ public sealed class Game001RoomConnectionRegistry
     }
 }
 
-public readonly record struct Game001RoomConnectionContext(long Uid, string RoomId);
+public readonly record struct RoomConnectionContext(long Uid, string RoomId);

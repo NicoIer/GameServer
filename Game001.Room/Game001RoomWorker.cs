@@ -1,7 +1,5 @@
 using Game001.Core;
-using GameServer.Core.Fibers;
-using GameServer.Core.Protocol;
-using Google.Protobuf;
+using GameServer.Core.Rooms;
 using MemoryPack;
 using Network;
 using UnityToolkit;
@@ -10,7 +8,7 @@ using NetworkErrorCode = Network.ErrorCode;
 
 namespace Game001.Room;
 
-public sealed class Game001RoomWorker : IDisposable
+public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 {
     private const string DefaultRoomId = "room-001";
 
@@ -18,196 +16,42 @@ public sealed class Game001RoomWorker : IDisposable
     private static readonly ushort JoinRoomReqHash = TypeId<JoinRoomReq>.stableId16;
     private static readonly ushort LeaveRoomReqHash = TypeId<LeaveRoomReq>.stableId16;
     private static readonly ushort RoomPingReqHash = TypeId<RoomPingReq>.stableId16;
-    private static readonly ushort CreateRoomRspHash = TypeId<CreateRoomRsp>.stableId16;
     private static readonly ushort JoinRoomRspHash = TypeId<JoinRoomRsp>.stableId16;
     private static readonly ushort LeaveRoomRspHash = TypeId<LeaveRoomRsp>.stableId16;
     private static readonly ushort RoomPingRspHash = TypeId<RoomPingRsp>.stableId16;
 
-    private readonly FiberManager _fiberManager = new();
-    private readonly Game001RoomConnectionRegistry _connections;
-    private readonly Dictionary<string, RoomRuntimeHandle> _rooms = new(StringComparer.Ordinal);
-    private readonly SemaphoreSlim _roomLock = new(1, 1);
-    private readonly int _roomFrameRate;
-    private bool _stopped;
-
-    public Game001RoomWorker(Game001RoomConnectionRegistry connections, int roomFrameRate)
+    public Game001RoomWorker(RoomConnectionRegistry connections, int roomFrameRate)
+        : base(connections, roomFrameRate)
     {
-        _connections = connections;
-        _roomFrameRate = roomFrameRate;
     }
 
-    public Task<int> AddConnectionAsync(long uid, string roomId)
-    {
-        if (_stopped)
-        {
-            return Task.FromCanceled<int>(new CancellationToken(true));
-        }
-
-        return Task.FromResult(_connections.Add(uid, roomId));
-    }
-
-    public Task RemoveConnectionAsync(int connectionId)
-    {
-        _connections.Remove(connectionId);
-        return Task.CompletedTask;
-    }
-
-    public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
-    {
-        if (_stopped)
-        {
-            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InternalError, "room worker stopped", default);
-        }
-
-        if (!_connections.TryGet(connectionId, out Game001RoomConnectionContext context))
-        {
-            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, $"missing room connection context connectionId={connectionId}", default);
-        }
-
-        string roomId;
-        try
-        {
-            if (!TryResolveRouteRoomId(request, context.RoomId, out roomId))
-            {
-                return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, "room request is not registered", default);
-            }
-        }
-        catch
-        {
-            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, "invalid room request payload", default);
-        }
-
-        RoomRuntimeHandle? room = await ResolveRoomAsync(request, roomId);
-        if (room == null)
-        {
-            return CreateRoomNotFoundResponse(request, roomId);
-        }
-
-        RspHead response = await room.Fiber.CallAsync(() => room.Module.HandleRequest(connectionId, request));
-        if (response.error == NetworkErrorCode.Success && IsConnectionRoomBindingRequest(request.reqHash))
-        {
-            _connections.TrySetRoom(connectionId, roomId);
-        }
-        else if (response.error == NetworkErrorCode.Success && request.reqHash == LeaveRoomReqHash)
-        {
-            _connections.TrySetRoom(connectionId, string.Empty);
-        }
-
-        return response;
-    }
-
-    public async Task<GameResponse> HandleDataAsync(long uid, ByteString data)
-    {
-        int connectionId = _connections.Add(uid, string.Empty);
-        try
-        {
-            ReqHead request = MemoryPackSerializer.Deserialize<ReqHead>(data.ToByteArray());
-            RspHead response = await HandleRequestAsync(connectionId, request);
-            return new GameResponse
-            {
-                Error = ProtocolErrorCode.Success,
-                Data = ByteString.CopyFrom(MemoryPackSerializer.Serialize(response)),
-            };
-        }
-        catch
-        {
-            return new GameResponse { Error = ProtocolErrorCode.InvalidRequest };
-        }
-        finally
-        {
-            _connections.Remove(connectionId);
-        }
-    }
-
-    public void Update(long timeNowMs)
-    {
-        _fiberManager.UpdateMain(timeNowMs);
-    }
-
-    public void Stop()
-    {
-        _stopped = true;
-    }
-
-    public void Dispose()
-    {
-        Stop();
-        _roomLock.Dispose();
-        _fiberManager.Dispose();
-    }
-
-    private async Task<RoomRuntimeHandle?> ResolveRoomAsync(ReqHead request, string roomId)
-    {
-        if (request.reqHash == CreateRoomReqHash)
-        {
-            return await GetOrCreateRoomAsync(roomId);
-        }
-
-        await _roomLock.WaitAsync();
-        try
-        {
-            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle handle))
-            {
-                return handle;
-            }
-        }
-        finally
-        {
-            _roomLock.Release();
-        }
-
-        return null;
-    }
-
-    private async Task<RoomRuntimeHandle> GetOrCreateRoomAsync(string roomId)
-    {
-        await _roomLock.WaitAsync();
-        try
-        {
-            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle existing))
-            {
-                return existing;
-            }
-
-            var module = new Game001RoomFiberModule(roomId, _connections, _roomFrameRate);
-            Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, $"Game001.RoomRoot.{roomId}", module);
-            var handle = new RoomRuntimeHandle(fiber, module);
-            _rooms.Add(roomId, handle);
-            return handle;
-        }
-        finally
-        {
-            _roomLock.Release();
-        }
-    }
-
-    private static bool TryResolveRouteRoomId(ReqHead request, string contextRoomId, out string roomId)
+    protected override bool TryResolveRoomId(ReqHead request, RoomConnectionContext context, out string roomId)
     {
         if (request.reqHash == CreateRoomReqHash)
         {
             CreateRoomReq req = MemoryPackSerializer.Deserialize<CreateRoomReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            roomId = ResolveRoomId(req.RoomId, context.RoomId);
             return true;
         }
 
         if (request.reqHash == JoinRoomReqHash)
         {
             JoinRoomReq req = MemoryPackSerializer.Deserialize<JoinRoomReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            roomId = ResolveRoomId(req.RoomId, context.RoomId);
             return true;
         }
 
         if (request.reqHash == LeaveRoomReqHash)
         {
             LeaveRoomReq req = MemoryPackSerializer.Deserialize<LeaveRoomReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            roomId = ResolveRoomId(req.RoomId, context.RoomId);
             return true;
         }
 
         if (request.reqHash == RoomPingReqHash)
         {
             RoomPingReq req = MemoryPackSerializer.Deserialize<RoomPingReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            roomId = ResolveRoomId(req.RoomId, context.RoomId);
             return true;
         }
 
@@ -215,27 +59,23 @@ public sealed class Game001RoomWorker : IDisposable
         return false;
     }
 
-    private static string ResolveRoomId(string? messageRoomId, string contextRoomId)
+    protected override bool IsCreateRoomRequest(ReqHead request)
     {
-        if (!string.IsNullOrWhiteSpace(messageRoomId))
-        {
-            return messageRoomId;
-        }
-
-        if (!string.IsNullOrWhiteSpace(contextRoomId))
-        {
-            return contextRoomId;
-        }
-
-        return DefaultRoomId;
+        return request.reqHash == CreateRoomReqHash;
     }
 
-    private static bool IsConnectionRoomBindingRequest(ushort reqHash)
+    protected override bool ShouldBindConnectionRoom(ReqHead request, RspHead response)
     {
-        return reqHash == CreateRoomReqHash || reqHash == JoinRoomReqHash;
+        return response.error == NetworkErrorCode.Success &&
+               (request.reqHash == CreateRoomReqHash || request.reqHash == JoinRoomReqHash);
     }
 
-    private static RspHead CreateRoomNotFoundResponse(ReqHead request, string roomId)
+    protected override bool ShouldClearConnectionRoom(ReqHead request, RspHead response)
+    {
+        return response.error == NetworkErrorCode.Success && request.reqHash == LeaveRoomReqHash;
+    }
+
+    protected override RspHead CreateRoomNotFoundResponse(ReqHead request, string roomId)
     {
         string message = $"room not found room={roomId}";
         if (request.reqHash == JoinRoomReqHash)
@@ -283,5 +123,28 @@ public sealed class Game001RoomWorker : IDisposable
         return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, message, default);
     }
 
-    private readonly record struct RoomRuntimeHandle(Fiber Fiber, Game001RoomFiberModule Module);
+    protected override Game001RoomFiberModule CreateRoomModule(string roomId)
+    {
+        return new Game001RoomFiberModule(roomId, Connections, RoomFrameRate);
+    }
+
+    protected override string CreateRoomFiberName(string roomId)
+    {
+        return $"Game001.RoomRoot.{roomId}";
+    }
+
+    private static string ResolveRoomId(string? messageRoomId, string contextRoomId)
+    {
+        if (!string.IsNullOrWhiteSpace(messageRoomId))
+        {
+            return messageRoomId;
+        }
+
+        if (!string.IsNullOrWhiteSpace(contextRoomId))
+        {
+            return contextRoomId;
+        }
+
+        return DefaultRoomId;
+    }
 }

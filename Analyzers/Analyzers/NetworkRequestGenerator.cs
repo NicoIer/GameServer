@@ -170,11 +170,11 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
         sb.AppendLine("{");
         foreach (RequestPair pair in pairs)
         {
-            sb.Append("    void Handle(in int connectionId, in ");
-            sb.Append(TypeName(pair.Request));
-            sb.Append(" req, out ");
+            sb.Append("    global::System.Threading.Tasks.ValueTask<(");
             sb.Append(TypeName(pair.Response));
-            sb.Append(" rsp, out global::Network.ErrorCode errorCode, out string errorMsg);");
+            sb.Append(" rsp, global::Network.ErrorCode errorCode, string errorMsg)> Handle(int connectionId, ");
+            sb.Append(TypeName(pair.Request));
+            sb.Append(" req);");
             sb.AppendLine();
         }
         sb.AppendLine("}");

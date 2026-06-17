@@ -1,6 +1,6 @@
 using GameServer.Core.Protocol;
 
-namespace Game001.Room;
+namespace GameServer.Core.Rooms;
 
 public interface IGameRoomTransportServer : IAsyncDisposable
 {

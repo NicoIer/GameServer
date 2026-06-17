@@ -79,14 +79,14 @@ ExpectError("prepare unknown route", unknownRoutePrepareReply.Error, ProtocolErr
 
 await using IRoomClientTransport roomTransport = await RoomClientTransportFactory.ConnectAsync(prepareReply);
 
-await roomTransport.WriteAsync(GamePacketSerializer.Pack(GameMessageIds.Game001RoomConnectRequest, new RoomConnectRequest
+await roomTransport.WriteAsync(GamePacketSerializer.Pack(GameMessageIds.RoomConnectRequest, new RoomConnectRequest
 {
     ConnectTicket = prepareReply.ConnectTicket,
     RoomId = DefaultRoomId,
 }));
 
 GamePacket connectionPacket = await ReadRequiredMessage<GamePacket>(roomTransport, "room connect");
-Expect("room connect message", connectionPacket.MessageId == GameMessageIds.Game001RoomConnectionReply, $"unexpected message id={connectionPacket.MessageId}");
+Expect("room connect message", connectionPacket.MessageId == GameMessageIds.RoomConnectionReply, $"unexpected message id={connectionPacket.MessageId}");
 RoomConnectionReply connectionReply = GamePacketSerializer.Unpack<RoomConnectionReply>(connectionPacket);
 ExpectError("room connect", connectionReply.Error, ProtocolErrorCode.Success);
 Expect("room connect uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");

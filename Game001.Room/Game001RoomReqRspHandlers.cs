@@ -1,5 +1,6 @@
 using Game001.Core;
 using Game001.Core.Generated;
+using GameServer.Core.Rooms;
 using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
@@ -7,76 +8,76 @@ namespace Game001.Room;
 
 public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
 {
-    private readonly Game001RoomConnectionRegistry _connections;
+    private readonly RoomConnectionRegistry _connections;
     private readonly RoomRuntimeState _state;
+    private readonly RoomFrameAwaiter _frameAwaiter;
 
-    public Game001RoomReqRspHandlers(Game001RoomConnectionRegistry connections, RoomRuntimeState state)
+    public Game001RoomReqRspHandlers(RoomConnectionRegistry connections, RoomRuntimeState state, RoomFrameAwaiter frameAwaiter)
     {
         _connections = connections;
         _state = state;
+        _frameAwaiter = frameAwaiter;
     }
 
-    public void Handle(in int connectionId, in CreateRoomReq req, out CreateRoomRsp rsp, out NetworkErrorCode errorCode, out string errorMsg)
+    public ValueTask<(CreateRoomRsp rsp, NetworkErrorCode errorCode, string errorMsg)> Handle(int connectionId, CreateRoomReq req)
     {
-        if (!TryGetContext(connectionId, out Game001RoomConnectionContext context, out errorCode, out errorMsg))
+        if (!TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
         {
-            rsp = new CreateRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
-            return;
+            var invalidRsp = new CreateRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+            return new ValueTask<(CreateRoomRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
         }
 
         RoomStateResult result = _state.CreateRoom(context.Uid);
-        rsp = new CreateRoomRsp();
+        var rsp = new CreateRoomRsp();
         FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
-        errorCode = NetworkErrorCode.Success;
-        errorMsg = string.Empty;
+        return new ValueTask<(CreateRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, string.Empty));
     }
 
-    public void Handle(in int connectionId, in JoinRoomReq req, out JoinRoomRsp rsp, out NetworkErrorCode errorCode, out string errorMsg)
+    public ValueTask<(JoinRoomRsp rsp, NetworkErrorCode errorCode, string errorMsg)> Handle(int connectionId, JoinRoomReq req)
     {
-        if (!TryGetContext(connectionId, out Game001RoomConnectionContext context, out errorCode, out errorMsg))
+        if (!TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
         {
-            rsp = new JoinRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
-            return;
+            var invalidRsp = new JoinRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+            return new ValueTask<(JoinRoomRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
         }
 
         RoomStateResult result = _state.JoinRoom(context.Uid);
-        rsp = new JoinRoomRsp();
+        var rsp = new JoinRoomRsp();
         FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
-        errorCode = NetworkErrorCode.Success;
-        errorMsg = string.Empty;
+        return new ValueTask<(JoinRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, string.Empty));
     }
 
-    public void Handle(in int connectionId, in LeaveRoomReq req, out LeaveRoomRsp rsp, out NetworkErrorCode errorCode, out string errorMsg)
+    public ValueTask<(LeaveRoomRsp rsp, NetworkErrorCode errorCode, string errorMsg)> Handle(int connectionId, LeaveRoomReq req)
     {
-        if (!TryGetContext(connectionId, out Game001RoomConnectionContext context, out errorCode, out errorMsg))
+        if (!TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
         {
-            rsp = new LeaveRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
-            return;
+            var invalidRsp = new LeaveRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+            return new ValueTask<(LeaveRoomRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
         }
 
         RoomStateResult result = _state.LeaveRoom(context.Uid);
-        rsp = new LeaveRoomRsp();
+        var rsp = new LeaveRoomRsp();
         FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
-        errorCode = NetworkErrorCode.Success;
-        errorMsg = string.Empty;
+        return new ValueTask<(LeaveRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, string.Empty));
     }
 
-    public void Handle(in int connectionId, in RoomPingReq req, out RoomPingRsp rsp, out NetworkErrorCode errorCode, out string errorMsg)
+    public async ValueTask<(RoomPingRsp rsp, NetworkErrorCode errorCode, string errorMsg)> Handle(int connectionId, RoomPingReq req)
     {
-        if (!TryGetContext(connectionId, out Game001RoomConnectionContext context, out errorCode, out errorMsg))
+        await _frameAwaiter.WaitNextFrameAsync();
+
+        if (!TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
         {
-            rsp = new RoomPingRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
-            return;
+            var invalidRsp = new RoomPingRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+            return (invalidRsp, errorCode, errorMsg);
         }
 
         RoomStateResult result = _state.PingRoom(context.Uid);
-        rsp = new RoomPingRsp();
+        var rsp = new RoomPingRsp();
         FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
-        errorCode = NetworkErrorCode.Success;
-        errorMsg = string.Empty;
+        return (rsp, NetworkErrorCode.Success, string.Empty);
     }
 
-    private bool TryGetContext(int connectionId, out Game001RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg)
+    private bool TryGetContext(int connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg)
     {
         if (_connections.TryGet(connectionId, out context))
         {

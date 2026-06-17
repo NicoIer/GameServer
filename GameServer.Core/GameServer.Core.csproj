@@ -27,4 +27,8 @@
       <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\UnityToolkit\UnityToolkit.csproj" />
+    </ItemGroup>
+
 </Project>

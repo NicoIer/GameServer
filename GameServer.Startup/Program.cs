@@ -1,8 +1,10 @@
 ﻿using Game001.Room;
 using GameServer.Center;
 using GameServer.Center.Login;
+using GameServer.Core;
 using GameServer.Core.Grpc;
 using GameServer.Core.Protocol;
+using GameServer.Core.Rooms;
 using GameServer.Gate;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +26,7 @@ string centerAddress = $"http://127.0.0.1:{centerPort}";
 string game001RoomAddress = $"http://127.0.0.1:{game001RoomPort}";
 
 var centerRegistry = new CenterRegistry();
-var game001RoomConnections = new Game001RoomConnectionRegistry();
+var game001RoomConnections = new RoomConnectionRegistry();
 var game001RoomWorker = new Game001RoomWorker(game001RoomConnections, game001RoomFrameRate);
 await using var game001RoomUpdateRunner = new Game001RoomUpdateRunner(game001RoomWorker, NetworkTickSleepMs);
 
@@ -88,12 +90,12 @@ await startupCenterClient.RegisterServiceAsync(new RegisterServiceRequest
     },
 });
 
-Console.WriteLine($"Center started on {centerAddress}");
-Console.WriteLine($"Gate started on http://127.0.0.1:{gatePort}");
-Console.WriteLine($"Game001.Room started on {game001RoomAddress}");
-Console.WriteLine($"Game001.Room direct {game001RoomTransportServer.Protocol} started on {game001RoomTransportServer.Address}");
-Console.WriteLine($"Game001.Room worker network tick sleep={NetworkTickSleepMs}ms room fps={game001RoomFrameRate}");
-Console.WriteLine($"Registered {Game001Id} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
+Log.Info($"Center started on {centerAddress}");
+Log.Info($"Gate started on http://127.0.0.1:{gatePort}");
+Log.Info($"Game001.Room started on {game001RoomAddress}");
+Log.Info($"Game001.Room direct {game001RoomTransportServer.Protocol} started on {game001RoomTransportServer.Address}");
+Log.Info($"Game001.Room worker network tick sleep={NetworkTickSleepMs}ms room fps={game001RoomFrameRate}");
+Log.Info($"Registered {Game001Id} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
 
 using var shutdownCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, eventArgs) =>
@@ -189,7 +191,7 @@ static IGameRoomTransportServer CreateGame001RoomTransportServer(
 {
     if (protocol == DirectTransportProtocol.Tcp)
     {
-        return new Game001RoomTcpServer(tcpPort, centerClient, worker);
+        return new TcpRoomTransportServer(tcpPort, centerClient, worker);
     }
 
     throw new NotSupportedException($"unsupported Game001.Room direct transport protocol={protocol}");

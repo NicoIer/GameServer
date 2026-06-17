@@ -5,18 +5,18 @@ using GameServer.Core.Protocol;
 using Network;
 using ErrorCode = GameServer.Core.Protocol.ErrorCode;
 
-namespace Game001.Room;
+namespace GameServer.Core.Rooms;
 
-public sealed class Game001RoomTcpServer : IGameRoomTransportServer
+public sealed class TcpRoomTransportServer : IGameRoomTransportServer
 {
     private readonly CenterService.CenterServiceClient _centerClient;
-    private readonly Game001RoomWorker _worker;
+    private readonly IRoomWorker _worker;
     private readonly TcpListener _listener;
     private readonly CancellationTokenSource _shutdown = new();
     private Task? _acceptTask;
     private bool _stopped;
 
-    public Game001RoomTcpServer(int port, CenterService.CenterServiceClient centerClient, Game001RoomWorker worker)
+    public TcpRoomTransportServer(int port, CenterService.CenterServiceClient centerClient, IRoomWorker worker)
     {
         _centerClient = centerClient;
         _worker = worker;
@@ -88,7 +88,7 @@ public sealed class Game001RoomTcpServer : IGameRoomTransportServer
                     return;
                 }
 
-                if (firstPacket.Value.MessageId != GameMessageIds.Game001RoomConnectRequest)
+                if (firstPacket.Value.MessageId != GameMessageIds.RoomConnectRequest)
                 {
                     await WriteConnectionReplyAsync(stream, ErrorCode.InvalidRequest, 0, string.Empty, "first packet must be RoomConnectRequest", cancellationToken);
                     return;
@@ -156,7 +156,7 @@ public sealed class Game001RoomTcpServer : IGameRoomTransportServer
             Message = message,
         };
 
-        GamePacket packet = GamePacketSerializer.Pack(GameMessageIds.Game001RoomConnectionReply, reply);
+        GamePacket packet = GamePacketSerializer.Pack(GameMessageIds.RoomConnectionReply, reply);
         return GameTcpFrame.WriteAsync(stream, packet, cancellationToken);
     }
 }

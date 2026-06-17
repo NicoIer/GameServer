@@ -41,14 +41,11 @@ namespace Network
 
     public sealed class ReqRspServerCenter
     {
-        public delegate void ReqHandleDelegate<TReq, TRsp>(
-            in int connectionId,
-            in TReq message,
-            out TRsp rsp,
-            out ErrorCode errorCode,
-            out string errorMsg);
+        public delegate System.Threading.Tasks.ValueTask<(TRsp rsp, ErrorCode errorCode, string errorMsg)> ReqValueTaskHandleDelegate<TReq, TRsp>(
+            int connectionId,
+            TReq message);
 
-        public void Register<TReq, TRsp>(ReqHandleDelegate<TReq, TRsp> handleDelegate)
+        public void Register<TReq, TRsp>(ReqValueTaskHandleDelegate<TReq, TRsp> handleDelegate)
             where TReq : INetworkReq
             where TRsp : INetworkRsp
         {
@@ -83,7 +80,7 @@ namespace Game001.Core
 
         Assert.Contains("namespace Game001.Core.Generated;", generated);
         Assert.Contains("public interface INetworkReqRspHandlers", generated);
-        Assert.Contains("void Handle(in int connectionId, in global::Game001.Core.CreateRoomReq req, out global::Game001.Core.CreateRoomRsp rsp", generated);
+        Assert.Contains("global::System.Threading.Tasks.ValueTask<(global::Game001.Core.CreateRoomRsp rsp, global::Network.ErrorCode errorCode, string errorMsg)> Handle(int connectionId, global::Game001.Core.CreateRoomReq req);", generated);
         Assert.Contains("center.Register<global::Game001.Core.CreateRoomReq, global::Game001.Core.CreateRoomRsp>(handlers.Handle);", generated);
     }
 
