@@ -7,12 +7,10 @@ namespace Game001.Room;
 
 public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
 {
-    private const string DefaultRoomId = "room-001";
-
     private readonly Game001RoomConnectionRegistry _connections;
-    private readonly Game001RoomState _state;
+    private readonly RoomRuntimeState _state;
 
-    public Game001RoomReqRspHandlers(Game001RoomConnectionRegistry connections, Game001RoomState state)
+    public Game001RoomReqRspHandlers(Game001RoomConnectionRegistry connections, RoomRuntimeState state)
     {
         _connections = connections;
         _state = state;
@@ -26,10 +24,9 @@ public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
             return;
         }
 
-        string roomId = ResolveRoomId(req.RoomId, context.RoomId);
-        RoomStateResult result = _state.CreateRoom(context.Uid, roomId);
+        RoomStateResult result = _state.CreateRoom(context.Uid);
         rsp = new CreateRoomRsp();
-        FillResponse(ref rsp, ProtocolErrorCode.Success, roomId, result);
+        FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
         errorCode = NetworkErrorCode.Success;
         errorMsg = string.Empty;
     }
@@ -42,11 +39,9 @@ public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
             return;
         }
 
-        string roomId = ResolveRoomId(req.RoomId, context.RoomId);
-        RoomStateResult result = _state.JoinRoom(context.Uid, roomId);
-        int error = result.Success ? ProtocolErrorCode.Success : ProtocolErrorCode.RoomNotFound;
+        RoomStateResult result = _state.JoinRoom(context.Uid);
         rsp = new JoinRoomRsp();
-        FillResponse(ref rsp, error, roomId, result);
+        FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
         errorCode = NetworkErrorCode.Success;
         errorMsg = string.Empty;
     }
@@ -59,11 +54,9 @@ public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
             return;
         }
 
-        string roomId = ResolveRoomId(req.RoomId, context.RoomId);
-        RoomStateResult result = _state.LeaveRoom(context.Uid, roomId);
-        int error = result.Success ? ProtocolErrorCode.Success : ProtocolErrorCode.RoomNotFound;
+        RoomStateResult result = _state.LeaveRoom(context.Uid);
         rsp = new LeaveRoomRsp();
-        FillResponse(ref rsp, error, roomId, result);
+        FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
         errorCode = NetworkErrorCode.Success;
         errorMsg = string.Empty;
     }
@@ -76,11 +69,9 @@ public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
             return;
         }
 
-        string roomId = ResolveRoomId(req.RoomId, context.RoomId);
-        RoomStateResult result = _state.PingRoom(context.Uid, roomId);
-        int error = result.Success ? ProtocolErrorCode.Success : ProtocolErrorCode.RoomNotFound;
+        RoomStateResult result = _state.PingRoom(context.Uid);
         rsp = new RoomPingRsp();
-        FillResponse(ref rsp, error, roomId, result);
+        FillResponse(ref rsp, ProtocolErrorCode.Success, _state.RoomId, result);
         errorCode = NetworkErrorCode.Success;
         errorMsg = string.Empty;
     }
@@ -97,21 +88,6 @@ public sealed class Game001RoomReqRspHandlers : INetworkReqRspHandlers
         errorCode = NetworkErrorCode.InvalidArgument;
         errorMsg = $"missing room connection context connectionId={connectionId}";
         return false;
-    }
-
-    private static string ResolveRoomId(string? messageRoomId, string contextRoomId)
-    {
-        if (!string.IsNullOrWhiteSpace(messageRoomId))
-        {
-            return messageRoomId;
-        }
-
-        if (contextRoomId.Length > 0)
-        {
-            return contextRoomId;
-        }
-
-        return DefaultRoomId;
     }
 
     private static void FillResponse(ref CreateRoomRsp rsp, int error, string roomId, RoomStateResult result)

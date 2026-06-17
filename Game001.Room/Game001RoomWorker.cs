@@ -1,213 +1,287 @@
-using System.Collections.Concurrent;
+using Game001.Core;
+using GameServer.Core.Fibers;
 using GameServer.Core.Protocol;
 using Google.Protobuf;
+using MemoryPack;
 using Network;
+using UnityToolkit;
+using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
+using NetworkErrorCode = Network.ErrorCode;
 
 namespace Game001.Room;
 
-public sealed class Game001RoomWorker : IAsyncDisposable
+public sealed class Game001RoomWorker : IDisposable
 {
-    private readonly Game001RoomReqRspDispatcher _dispatcher;
-    private readonly ConcurrentQueue<IGame001RoomWorkItem> _queue = new();
-    private readonly SemaphoreSlim _signal = new(0);
-    private readonly CancellationTokenSource _shutdown = new();
-    private Task? _workerTask;
+    private const string DefaultRoomId = "room-001";
 
-    public Game001RoomWorker(Game001RoomReqRspDispatcher dispatcher)
+    private static readonly ushort CreateRoomReqHash = TypeId<CreateRoomReq>.stableId16;
+    private static readonly ushort JoinRoomReqHash = TypeId<JoinRoomReq>.stableId16;
+    private static readonly ushort LeaveRoomReqHash = TypeId<LeaveRoomReq>.stableId16;
+    private static readonly ushort RoomPingReqHash = TypeId<RoomPingReq>.stableId16;
+    private static readonly ushort CreateRoomRspHash = TypeId<CreateRoomRsp>.stableId16;
+    private static readonly ushort JoinRoomRspHash = TypeId<JoinRoomRsp>.stableId16;
+    private static readonly ushort LeaveRoomRspHash = TypeId<LeaveRoomRsp>.stableId16;
+    private static readonly ushort RoomPingRspHash = TypeId<RoomPingRsp>.stableId16;
+
+    private readonly FiberManager _fiberManager = new();
+    private readonly Game001RoomConnectionRegistry _connections;
+    private readonly Dictionary<string, RoomRuntimeHandle> _rooms = new(StringComparer.Ordinal);
+    private readonly SemaphoreSlim _roomLock = new(1, 1);
+    private readonly int _roomFrameRate;
+    private bool _stopped;
+
+    public Game001RoomWorker(Game001RoomConnectionRegistry connections, int roomFrameRate)
     {
-        _dispatcher = dispatcher;
-    }
-
-    public Task StartAsync()
-    {
-        _workerTask = Task.Run(RunAsync);
-        return Task.CompletedTask;
-    }
-
-    public async Task StopAsync()
-    {
-        _shutdown.Cancel();
-        _signal.Release();
-
-        if (_workerTask != null)
-        {
-            await _workerTask;
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await StopAsync();
-        _shutdown.Dispose();
-        _signal.Dispose();
+        _connections = connections;
+        _roomFrameRate = roomFrameRate;
     }
 
     public Task<int> AddConnectionAsync(long uid, string roomId)
     {
-        var item = new AddConnectionWorkItem(uid, roomId);
-        Enqueue(item);
-        return item.Task;
+        if (_stopped)
+        {
+            return Task.FromCanceled<int>(new CancellationToken(true));
+        }
+
+        return Task.FromResult(_connections.Add(uid, roomId));
     }
 
     public Task RemoveConnectionAsync(int connectionId)
     {
-        var item = new RemoveConnectionWorkItem(connectionId);
-        Enqueue(item);
-        return item.Task;
+        _connections.Remove(connectionId);
+        return Task.CompletedTask;
     }
 
-    public Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
+    public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
     {
-        var item = new RoomRequestWorkItem(connectionId, request);
-        Enqueue(item);
-        return item.Task;
-    }
-
-    public Task<GameResponse> HandleDataAsync(long uid, ByteString data)
-    {
-        var item = new GameIngressWorkItem(uid, data);
-        Enqueue(item);
-        return item.Task;
-    }
-
-    private void Enqueue(IGame001RoomWorkItem item)
-    {
-        if (_shutdown.IsCancellationRequested)
+        if (_stopped)
         {
-            item.Cancel();
-            return;
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InternalError, "room worker stopped", default);
         }
 
-        _queue.Enqueue(item);
-        _signal.Release();
-    }
+        if (!_connections.TryGet(connectionId, out Game001RoomConnectionContext context))
+        {
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, $"missing room connection context connectionId={connectionId}", default);
+        }
 
-    private async Task RunAsync()
-    {
+        string roomId;
         try
         {
-            while (!_shutdown.IsCancellationRequested)
+            if (!TryResolveRouteRoomId(request, context.RoomId, out roomId))
             {
-                await _signal.WaitAsync(_shutdown.Token);
-
-                while (_queue.TryDequeue(out IGame001RoomWorkItem? item))
-                {
-                    item.Execute(_dispatcher);
-                }
+                return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, "room request is not registered", default);
             }
         }
-        catch (OperationCanceledException)
+        catch
         {
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, "invalid room request payload", default);
         }
 
-        while (_queue.TryDequeue(out IGame001RoomWorkItem? item))
+        RoomRuntimeHandle? room = await ResolveRoomAsync(request, roomId);
+        if (room == null)
         {
-            item.Cancel();
+            return CreateRoomNotFoundResponse(request, roomId);
         }
+
+        RspHead response = await room.Fiber.CallAsync(() => room.Module.HandleRequest(connectionId, request));
+        if (response.error == NetworkErrorCode.Success && IsConnectionRoomBindingRequest(request.reqHash))
+        {
+            _connections.TrySetRoom(connectionId, roomId);
+        }
+        else if (response.error == NetworkErrorCode.Success && request.reqHash == LeaveRoomReqHash)
+        {
+            _connections.TrySetRoom(connectionId, string.Empty);
+        }
+
+        return response;
     }
 
-    private interface IGame001RoomWorkItem
+    public async Task<GameResponse> HandleDataAsync(long uid, ByteString data)
     {
-        void Execute(Game001RoomReqRspDispatcher dispatcher);
-        void Cancel();
+        int connectionId = _connections.Add(uid, string.Empty);
+        try
+        {
+            ReqHead request = MemoryPackSerializer.Deserialize<ReqHead>(data.ToByteArray());
+            RspHead response = await HandleRequestAsync(connectionId, request);
+            return new GameResponse
+            {
+                Error = ProtocolErrorCode.Success,
+                Data = ByteString.CopyFrom(MemoryPackSerializer.Serialize(response)),
+            };
+        }
+        catch
+        {
+            return new GameResponse { Error = ProtocolErrorCode.InvalidRequest };
+        }
+        finally
+        {
+            _connections.Remove(connectionId);
+        }
     }
 
-    private sealed class AddConnectionWorkItem : IGame001RoomWorkItem
+    public void Update(long timeNowMs)
     {
-        private readonly long _uid;
-        private readonly string _roomId;
-        private readonly TaskCompletionSource<int> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public AddConnectionWorkItem(long uid, string roomId)
-        {
-            _uid = uid;
-            _roomId = roomId;
-        }
-
-        public Task<int> Task => _completion.Task;
-
-        public void Execute(Game001RoomReqRspDispatcher dispatcher)
-        {
-            _completion.SetResult(dispatcher.AddConnection(_uid, _roomId));
-        }
-
-        public void Cancel()
-        {
-            _completion.SetCanceled();
-        }
+        _fiberManager.UpdateMain(timeNowMs);
     }
 
-    private sealed class RemoveConnectionWorkItem : IGame001RoomWorkItem
+    public void Stop()
     {
-        private readonly int _connectionId;
-        private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public RemoveConnectionWorkItem(int connectionId)
-        {
-            _connectionId = connectionId;
-        }
-
-        public Task Task => _completion.Task;
-
-        public void Execute(Game001RoomReqRspDispatcher dispatcher)
-        {
-            dispatcher.RemoveConnection(_connectionId);
-            _completion.SetResult(true);
-        }
-
-        public void Cancel()
-        {
-            _completion.SetCanceled();
-        }
+        _stopped = true;
     }
 
-    private sealed class RoomRequestWorkItem : IGame001RoomWorkItem
+    public void Dispose()
     {
-        private readonly int _connectionId;
-        private readonly ReqHead _request;
-        private readonly TaskCompletionSource<RspHead> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public RoomRequestWorkItem(int connectionId, ReqHead request)
-        {
-            _connectionId = connectionId;
-            _request = request;
-        }
-
-        public Task<RspHead> Task => _completion.Task;
-
-        public void Execute(Game001RoomReqRspDispatcher dispatcher)
-        {
-            _completion.SetResult(dispatcher.HandleRequest(_connectionId, _request));
-        }
-
-        public void Cancel()
-        {
-            _completion.SetCanceled();
-        }
+        Stop();
+        _roomLock.Dispose();
+        _fiberManager.Dispose();
     }
 
-    private sealed class GameIngressWorkItem : IGame001RoomWorkItem
+    private async Task<RoomRuntimeHandle?> ResolveRoomAsync(ReqHead request, string roomId)
     {
-        private readonly long _uid;
-        private readonly ByteString _data;
-        private readonly TaskCompletionSource<GameResponse> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public GameIngressWorkItem(long uid, ByteString data)
+        if (request.reqHash == CreateRoomReqHash)
         {
-            _uid = uid;
-            _data = data;
+            return await GetOrCreateRoomAsync(roomId);
         }
 
-        public Task<GameResponse> Task => _completion.Task;
-
-        public void Execute(Game001RoomReqRspDispatcher dispatcher)
+        await _roomLock.WaitAsync();
+        try
         {
-            _completion.SetResult(dispatcher.HandleData(_uid, _data));
+            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle handle))
+            {
+                return handle;
+            }
+        }
+        finally
+        {
+            _roomLock.Release();
         }
 
-        public void Cancel()
+        return null;
+    }
+
+    private async Task<RoomRuntimeHandle> GetOrCreateRoomAsync(string roomId)
+    {
+        await _roomLock.WaitAsync();
+        try
         {
-            _completion.SetCanceled();
+            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle existing))
+            {
+                return existing;
+            }
+
+            var module = new Game001RoomFiberModule(roomId, _connections, _roomFrameRate);
+            Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, $"Game001.RoomRoot.{roomId}", module);
+            var handle = new RoomRuntimeHandle(fiber, module);
+            _rooms.Add(roomId, handle);
+            return handle;
+        }
+        finally
+        {
+            _roomLock.Release();
         }
     }
+
+    private static bool TryResolveRouteRoomId(ReqHead request, string contextRoomId, out string roomId)
+    {
+        if (request.reqHash == CreateRoomReqHash)
+        {
+            CreateRoomReq req = MemoryPackSerializer.Deserialize<CreateRoomReq>(request.payload);
+            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            return true;
+        }
+
+        if (request.reqHash == JoinRoomReqHash)
+        {
+            JoinRoomReq req = MemoryPackSerializer.Deserialize<JoinRoomReq>(request.payload);
+            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            return true;
+        }
+
+        if (request.reqHash == LeaveRoomReqHash)
+        {
+            LeaveRoomReq req = MemoryPackSerializer.Deserialize<LeaveRoomReq>(request.payload);
+            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            return true;
+        }
+
+        if (request.reqHash == RoomPingReqHash)
+        {
+            RoomPingReq req = MemoryPackSerializer.Deserialize<RoomPingReq>(request.payload);
+            roomId = ResolveRoomId(req.RoomId, contextRoomId);
+            return true;
+        }
+
+        roomId = string.Empty;
+        return false;
+    }
+
+    private static string ResolveRoomId(string? messageRoomId, string contextRoomId)
+    {
+        if (!string.IsNullOrWhiteSpace(messageRoomId))
+        {
+            return messageRoomId;
+        }
+
+        if (!string.IsNullOrWhiteSpace(contextRoomId))
+        {
+            return contextRoomId;
+        }
+
+        return DefaultRoomId;
+    }
+
+    private static bool IsConnectionRoomBindingRequest(ushort reqHash)
+    {
+        return reqHash == CreateRoomReqHash || reqHash == JoinRoomReqHash;
+    }
+
+    private static RspHead CreateRoomNotFoundResponse(ReqHead request, string roomId)
+    {
+        string message = $"room not found room={roomId}";
+        if (request.reqHash == JoinRoomReqHash)
+        {
+            var rsp = new JoinRoomRsp
+            {
+                Error = ProtocolErrorCode.RoomNotFound,
+                Success = false,
+                Message = message,
+                RoomId = roomId,
+                PlayerCount = 0,
+                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+            return new RspHead(request.index, request.reqHash, JoinRoomRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+        }
+
+        if (request.reqHash == LeaveRoomReqHash)
+        {
+            var rsp = new LeaveRoomRsp
+            {
+                Error = ProtocolErrorCode.RoomNotFound,
+                Success = false,
+                Message = message,
+                RoomId = roomId,
+                PlayerCount = 0,
+                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+            return new RspHead(request.index, request.reqHash, LeaveRoomRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+        }
+
+        if (request.reqHash == RoomPingReqHash)
+        {
+            var rsp = new RoomPingRsp
+            {
+                Error = ProtocolErrorCode.RoomNotFound,
+                Success = false,
+                Message = message,
+                RoomId = roomId,
+                PlayerCount = 0,
+                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+            return new RspHead(request.index, request.reqHash, RoomPingRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+        }
+
+        return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, message, default);
+    }
+
+    private readonly record struct RoomRuntimeHandle(Fiber Fiber, Game001RoomFiberModule Module);
 }

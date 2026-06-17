@@ -1,52 +1,45 @@
 namespace Game001.Room;
 
-public sealed class Game001RoomState
+public readonly record struct RoomStateResult(bool Success, string Message, int PlayerCount);
+
+public sealed class RoomRuntimeState
 {
-    private readonly Dictionary<string, HashSet<long>> _rooms = new();
+    public string RoomId { get; }
+    public HashSet<long> Players { get; } = new();
+    public int Frame { get; private set; }
+    public long LastUpdateTimeMs { get; private set; }
 
-    public RoomStateResult CreateRoom(long uid, string roomId)
+    public RoomRuntimeState(string roomId)
     {
-        if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
-        {
-            players = new HashSet<long>();
-            _rooms[roomId] = players;
-        }
-
-        players.Add(uid);
-        return new RoomStateResult(true, $"created room={roomId} players={players.Count}", players.Count);
+        RoomId = roomId;
     }
 
-    public RoomStateResult JoinRoom(long uid, string roomId)
+    public RoomStateResult CreateRoom(long uid)
     {
-        if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
-        {
-            return new RoomStateResult(false, $"room not found room={roomId}", 0);
-        }
-
-        players.Add(uid);
-        return new RoomStateResult(true, $"joined room={roomId} players={players.Count}", players.Count);
+        Players.Add(uid);
+        return new RoomStateResult(true, $"created room={RoomId} players={Players.Count}", Players.Count);
     }
 
-    public RoomStateResult LeaveRoom(long uid, string roomId)
+    public RoomStateResult JoinRoom(long uid)
     {
-        if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
-        {
-            return new RoomStateResult(false, $"room not found room={roomId}", 0);
-        }
-
-        players.Remove(uid);
-        return new RoomStateResult(true, $"left room={roomId} players={players.Count}", players.Count);
+        Players.Add(uid);
+        return new RoomStateResult(true, $"joined room={RoomId} players={Players.Count}", Players.Count);
     }
 
-    public RoomStateResult PingRoom(long uid, string roomId)
+    public RoomStateResult LeaveRoom(long uid)
     {
-        if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
-        {
-            return new RoomStateResult(false, $"room not found room={roomId}", 0);
-        }
+        Players.Remove(uid);
+        return new RoomStateResult(true, $"left room={RoomId} players={Players.Count}", Players.Count);
+    }
 
-        return new RoomStateResult(true, $"pong uid={uid} room={roomId} players={players.Count}", players.Count);
+    public RoomStateResult PingRoom(long uid)
+    {
+        return new RoomStateResult(true, $"pong uid={uid} room={RoomId} players={Players.Count}", Players.Count);
+    }
+
+    public void Update(long timeNowMs, int frame)
+    {
+        Frame = frame;
+        LastUpdateTimeMs = timeNowMs;
     }
 }
-
-public readonly record struct RoomStateResult(bool Success, string Message, int PlayerCount);

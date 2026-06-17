@@ -8,6 +8,7 @@
     <Project Path="Game001.ClientTestApp/Game001.ClientTestApp.csproj" />
     <Project Path="Game001.Core/Game001.Core.csproj" />
     <Project Path="Game001.Room/Game001.Room.csproj" />
+    <Project Path="Game001.Startup/Game001.Startup.csproj" />
   </Folder>
   <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />

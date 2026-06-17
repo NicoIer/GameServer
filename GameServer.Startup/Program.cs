@@ -10,22 +10,23 @@ using Microsoft.Extensions.DependencyInjection;
 const string Game001Id = "Game001";
 const string Game001RoomWorkerTarget = "room-worker";
 const string Game001RoomWorkerId = "worker-001";
+const int NetworkTickSleepMs = 1;
+const int DefaultGame001RoomFrameRate = 50;
 
 int centerPort = ReadPort(args, "--center-port", "CENTER_PORT", 5001);
 int gatePort = ReadPort(args, "--gate-port", "GATE_PORT", 5002);
 int game001RoomPort = ReadPort(args, "--game001-room-port", "GAME001_ROOM_PORT", 5101);
 int game001RoomTcpPort = ReadPort(args, "--game001-room-tcp-port", "GAME001_ROOM_TCP_PORT", 6101);
+int game001RoomFrameRate = ReadInt(args, "--game001-room-frame-rate", "GAME001_ROOM_FRAME_RATE", DefaultGame001RoomFrameRate);
 DirectTransportProtocol game001RoomDirectProtocol = ReadDirectProtocol(args, "--game001-room-direct-protocol", "GAME001_ROOM_DIRECT_PROTOCOL", DirectTransportProtocol.Tcp);
 
 string centerAddress = $"http://127.0.0.1:{centerPort}";
 string game001RoomAddress = $"http://127.0.0.1:{game001RoomPort}";
 
 var centerRegistry = new CenterRegistry();
-var game001RoomState = new Game001RoomState();
 var game001RoomConnections = new Game001RoomConnectionRegistry();
-var game001RoomReqRspHandlers = new Game001RoomReqRspHandlers(game001RoomConnections, game001RoomState);
-var game001RoomDispatcher = new Game001RoomReqRspDispatcher(game001RoomConnections, game001RoomReqRspHandlers);
-var game001RoomWorker = new Game001RoomWorker(game001RoomDispatcher);
+var game001RoomWorker = new Game001RoomWorker(game001RoomConnections, game001RoomFrameRate);
+await using var game001RoomUpdateRunner = new Game001RoomUpdateRunner(game001RoomWorker, NetworkTickSleepMs);
 
 await using var centerServer = new GrpcServerRuntime(centerPort, services =>
 {
@@ -40,10 +41,7 @@ centerServer.MapGrpcService<CenterServiceImpl>();
 
 await using var game001RoomServer = new GrpcServerRuntime(game001RoomPort, services =>
 {
-    services.AddSingleton(game001RoomState);
     services.AddSingleton(game001RoomConnections);
-    services.AddSingleton(game001RoomReqRspHandlers);
-    services.AddSingleton(game001RoomDispatcher);
     services.AddSingleton(game001RoomWorker);
     services.AddSingleton<Game001RoomServiceImpl>();
 });
@@ -70,7 +68,7 @@ await using var gateServer = new GrpcServerRuntime(gatePort, services =>
 gateServer.MapGrpcService<GateServiceImpl>();
 
 await centerServer.StartAsync();
-await game001RoomWorker.StartAsync();
+await game001RoomUpdateRunner.StartAsync();
 await game001RoomServer.StartAsync();
 await game001RoomTransportServer.StartAsync();
 await gateServer.StartAsync();
@@ -94,6 +92,7 @@ Console.WriteLine($"Center started on {centerAddress}");
 Console.WriteLine($"Gate started on http://127.0.0.1:{gatePort}");
 Console.WriteLine($"Game001.Room started on {game001RoomAddress}");
 Console.WriteLine($"Game001.Room direct {game001RoomTransportServer.Protocol} started on {game001RoomTransportServer.Address}");
+Console.WriteLine($"Game001.Room worker network tick sleep={NetworkTickSleepMs}ms room fps={game001RoomFrameRate}");
 Console.WriteLine($"Registered {Game001Id} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
 
 using var shutdownCts = new CancellationTokenSource();
@@ -114,7 +113,8 @@ catch (OperationCanceledException)
 await gateServer.StopAsync();
 await game001RoomTransportServer.StopAsync();
 await game001RoomServer.StopAsync();
-await game001RoomWorker.StopAsync();
+await game001RoomUpdateRunner.StopAsync();
+game001RoomWorker.Dispose();
 await centerServer.StopAsync();
 
 startupCenterChannel.Dispose();
@@ -123,6 +123,11 @@ roomCenterChannel.Dispose();
 gateCenterChannel.Dispose();
 
 static int ReadPort(string[] args, string argName, string envName, int defaultPort)
+{
+    return ReadInt(args, argName, envName, defaultPort);
+}
+
+static int ReadInt(string[] args, string argName, string envName, int defaultValue)
 {
     for (int i = 0; i < args.Length - 1; i++)
     {
@@ -138,7 +143,7 @@ static int ReadPort(string[] args, string argName, string envName, int defaultPo
         return int.Parse(value);
     }
 
-    return defaultPort;
+    return defaultValue;
 }
 
 static DirectTransportProtocol ReadDirectProtocol(string[] args, string argName, string envName, DirectTransportProtocol defaultProtocol)
