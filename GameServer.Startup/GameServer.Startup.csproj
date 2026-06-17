@@ -8,4 +8,11 @@
         <RootNamespace>App</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Game001.Room\Game001.Room.csproj" />
+      <ProjectReference Include="..\GameServer.Center\GameServer.Center.csproj" />
+      <ProjectReference Include="..\GameServer.Core\GameServer.Core.csproj" />
+      <ProjectReference Include="..\GameServer.Gate\GameServer.Gate.csproj" />
+    </ItemGroup>
+
 </Project>

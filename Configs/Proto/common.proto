@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package gameserver.core;
+
+option csharp_namespace = "GameServer.Core.Protocol";
+
+service CenterService {
+  rpc Auth (AuthRequest) returns (AuthReply);
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenReply);
+  rpc RegisterService (RegisterServiceRequest) returns (RegisterServiceReply);
+  rpc ResolveService (ResolveServiceRequest) returns (ResolveServiceReply);
+}
+
+service GateService {
+  rpc Login (LoginRequest) returns (LoginReply);
+  rpc Forward (ForwardRequest) returns (ForwardReply);
+}
+
+service GameIngress {
+  rpc Handle (GameRequest) returns (GameResponse);
+}
+
+message ServiceEndpoint {
+  string game_id = 1;
+  string target = 2;
+  string route_id = 3;
+  string address = 4;
+}
+
+message AuthRequest {
+  string login_type = 1;
+  string credential = 2;
+  string device_id = 3;
+  string client_version = 4;
+}
+
+message AuthReply {
+  int32 error = 1;
+  string token = 2;
+  int64 uid = 3;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenReply {
+  int32 error = 1;
+  int64 uid = 2;
+}
+
+message RegisterServiceRequest {
+  ServiceEndpoint endpoint = 1;
+}
+
+message RegisterServiceReply {
+  int32 error = 1;
+}
+
+message ResolveServiceRequest {
+  string game_id = 1;
+  string target = 2;
+  string route_id = 3;
+}
+
+message ResolveServiceReply {
+  int32 error = 1;
+  ServiceEndpoint endpoint = 2;
+}
+
+message ClientEnvelope {
+  string game_id = 1;
+  string target = 2;
+  string route_id = 3;
+  int32 opcode = 4;
+  bytes payload = 5;
+}
+
+message LoginRequest {
+  string login_type = 1;
+  string credential = 2;
+  string device_id = 3;
+  string client_version = 4;
+}
+
+message LoginReply {
+  int32 error = 1;
+  string token = 2;
+  int64 uid = 3;
+}
+
+message ForwardRequest {
+  string token = 1;
+  ClientEnvelope envelope = 2;
+}
+
+message ForwardReply {
+  int32 error = 1;
+  int32 opcode = 2;
+  bytes payload = 3;
+}
+
+message GameRequest {
+  int64 uid = 1;
+  string session_id = 2;
+  string game_id = 3;
+  string target = 4;
+  string route_id = 5;
+  int32 opcode = 6;
+  bytes payload = 7;
+}
+
+message GameResponse {
+  int32 error = 1;
+  int32 opcode = 2;
+  bytes payload = 3;
+}

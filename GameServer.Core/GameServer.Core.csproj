@@ -8,9 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Google.Protobuf" Version="3.35.1" />
+      <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+      <PackageReference Include="Grpc.Core.Api" Version="2.71.0" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.76.0" PrivateAssets="all" />
       <PackageReference Include="Serilog" Version="4.3.1" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
       <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
 </Project>

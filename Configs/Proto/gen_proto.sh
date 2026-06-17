@@ -8,9 +8,10 @@ REPO_ROOT=$WORKSPACE/..
 PROTO_ROOT=$SCRIPT_DIR
 PROTOC=$WORKSPACE/Tools/protoc/bin/protoc
 PROTOC_INCLUDE=$WORKSPACE/Tools/protoc/include
-RPC_OUTPUT_DIR=$REPO_ROOT/GameServer.Rpc/Generated
+CORE_OUTPUT_DIR=$REPO_ROOT/GameServer.Core/Generated
 
-mkdir -p "$RPC_OUTPUT_DIR"
+mkdir -p "$CORE_OUTPUT_DIR"
+find "$CORE_OUTPUT_DIR" -maxdepth 1 -name '*.cs' -type f -delete
 
 find_grpc_csharp_plugin() {
     local protoc_bin_dir
@@ -52,7 +53,7 @@ fi
 
 GRPC_CSHARP_PLUGIN=$(find_grpc_csharp_plugin)
 if [ -z "$GRPC_CSHARP_PLUGIN" ]; then
-    echo "grpc_csharp_plugin not found. Run 'dotnet restore GameServer.Rpc/GameServer.Rpc.csproj' or place it next to protoc." >&2
+    echo "grpc_csharp_plugin not found. Run 'dotnet restore GameServer.Core/GameServer.Core.csproj' or place it next to protoc." >&2
     exit 1
 fi
 
@@ -68,7 +69,7 @@ done < <(find "$PROTO_ROOT" -name '*.proto' -type f | sort)
 "$PROTOC" \
     -I "$PROTO_ROOT" \
     -I "$PROTOC_INCLUDE" \
-    --csharp_out="$RPC_OUTPUT_DIR" \
-    --grpc_out="$RPC_OUTPUT_DIR" \
+    --csharp_out="$CORE_OUTPUT_DIR" \
+    --grpc_out="$CORE_OUTPUT_DIR" \
     --plugin=protoc-gen-grpc="$GRPC_CSHARP_PLUGIN" \
     "${PROTO_FILES[@]}"
