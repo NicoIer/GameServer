@@ -24,53 +24,66 @@ namespace GameServer.Core.Protocol {
     static CommonReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cgxjb21tb24ucHJvdG8SD2dhbWVzZXJ2ZXIuY29yZSJVCg9TZXJ2aWNlRW5k",
-            "cG9pbnQSDwoHZ2FtZV9pZBgBIAEoCRIOCgZ0YXJnZXQYAiABKAkSEAoIcm91",
-            "dGVfaWQYAyABKAkSDwoHYWRkcmVzcxgEIAEoCSJgCgtBdXRoUmVxdWVzdBIS",
-            "Cgpsb2dpbl90eXBlGAEgASgJEhIKCmNyZWRlbnRpYWwYAiABKAkSEQoJZGV2",
-            "aWNlX2lkGAMgASgJEhYKDmNsaWVudF92ZXJzaW9uGAQgASgJIjYKCUF1dGhS",
-            "ZXBseRINCgVlcnJvchgBIAEoBRINCgV0b2tlbhgCIAEoCRILCgN1aWQYAyAB",
-            "KAMiJQoUVmFsaWRhdGVUb2tlblJlcXVlc3QSDQoFdG9rZW4YASABKAkiMAoS",
-            "VmFsaWRhdGVUb2tlblJlcGx5Eg0KBWVycm9yGAEgASgFEgsKA3VpZBgCIAEo",
-            "AyJMChZSZWdpc3RlclNlcnZpY2VSZXF1ZXN0EjIKCGVuZHBvaW50GAEgASgL",
-            "MiAuZ2FtZXNlcnZlci5jb3JlLlNlcnZpY2VFbmRwb2ludCIlChRSZWdpc3Rl",
-            "clNlcnZpY2VSZXBseRINCgVlcnJvchgBIAEoBSJKChVSZXNvbHZlU2Vydmlj",
-            "ZVJlcXVlc3QSDwoHZ2FtZV9pZBgBIAEoCRIOCgZ0YXJnZXQYAiABKAkSEAoI",
-            "cm91dGVfaWQYAyABKAkiWAoTUmVzb2x2ZVNlcnZpY2VSZXBseRINCgVlcnJv",
-            "chgBIAEoBRIyCghlbmRwb2ludBgCIAEoCzIgLmdhbWVzZXJ2ZXIuY29yZS5T",
-            "ZXJ2aWNlRW5kcG9pbnQiZAoOQ2xpZW50RW52ZWxvcGUSDwoHZ2FtZV9pZBgB",
-            "IAEoCRIOCgZ0YXJnZXQYAiABKAkSEAoIcm91dGVfaWQYAyABKAkSDgoGb3Bj",
-            "b2RlGAQgASgFEg8KB3BheWxvYWQYBSABKAwiYQoMTG9naW5SZXF1ZXN0EhIK",
-            "CmxvZ2luX3R5cGUYASABKAkSEgoKY3JlZGVudGlhbBgCIAEoCRIRCglkZXZp",
-            "Y2VfaWQYAyABKAkSFgoOY2xpZW50X3ZlcnNpb24YBCABKAkiNwoKTG9naW5S",
-            "ZXBseRINCgVlcnJvchgBIAEoBRINCgV0b2tlbhgCIAEoCRILCgN1aWQYAyAB",
-            "KAMiUgoORm9yd2FyZFJlcXVlc3QSDQoFdG9rZW4YASABKAkSMQoIZW52ZWxv",
-            "cGUYAiABKAsyHy5nYW1lc2VydmVyLmNvcmUuQ2xpZW50RW52ZWxvcGUiPgoM",
-            "Rm9yd2FyZFJlcGx5Eg0KBWVycm9yGAEgASgFEg4KBm9wY29kZRgCIAEoBRIP",
-            "CgdwYXlsb2FkGAMgASgMIoIBCgtHYW1lUmVxdWVzdBILCgN1aWQYASABKAMS",
-            "EgoKc2Vzc2lvbl9pZBgCIAEoCRIPCgdnYW1lX2lkGAMgASgJEg4KBnRhcmdl",
-            "dBgEIAEoCRIQCghyb3V0ZV9pZBgFIAEoCRIOCgZvcGNvZGUYBiABKAUSDwoH",
-            "cGF5bG9hZBgHIAEoDCI+CgxHYW1lUmVzcG9uc2USDQoFZXJyb3IYASABKAUS",
-            "DgoGb3Bjb2RlGAIgASgFEg8KB3BheWxvYWQYAyABKAwy8QIKDUNlbnRlclNl",
-            "cnZpY2USQAoEQXV0aBIcLmdhbWVzZXJ2ZXIuY29yZS5BdXRoUmVxdWVzdBoa",
-            "LmdhbWVzZXJ2ZXIuY29yZS5BdXRoUmVwbHkSWwoNVmFsaWRhdGVUb2tlbhIl",
-            "LmdhbWVzZXJ2ZXIuY29yZS5WYWxpZGF0ZVRva2VuUmVxdWVzdBojLmdhbWVz",
-            "ZXJ2ZXIuY29yZS5WYWxpZGF0ZVRva2VuUmVwbHkSYQoPUmVnaXN0ZXJTZXJ2",
-            "aWNlEicuZ2FtZXNlcnZlci5jb3JlLlJlZ2lzdGVyU2VydmljZVJlcXVlc3Qa",
-            "JS5nYW1lc2VydmVyLmNvcmUuUmVnaXN0ZXJTZXJ2aWNlUmVwbHkSXgoOUmVz",
-            "b2x2ZVNlcnZpY2USJi5nYW1lc2VydmVyLmNvcmUuUmVzb2x2ZVNlcnZpY2VS",
-            "ZXF1ZXN0GiQuZ2FtZXNlcnZlci5jb3JlLlJlc29sdmVTZXJ2aWNlUmVwbHky",
-            "nQEKC0dhdGVTZXJ2aWNlEkMKBUxvZ2luEh0uZ2FtZXNlcnZlci5jb3JlLkxv",
-            "Z2luUmVxdWVzdBobLmdhbWVzZXJ2ZXIuY29yZS5Mb2dpblJlcGx5EkkKB0Zv",
-            "cndhcmQSHy5nYW1lc2VydmVyLmNvcmUuRm9yd2FyZFJlcXVlc3QaHS5nYW1l",
-            "c2VydmVyLmNvcmUuRm9yd2FyZFJlcGx5MlQKC0dhbWVJbmdyZXNzEkUKBkhh",
-            "bmRsZRIcLmdhbWVzZXJ2ZXIuY29yZS5HYW1lUmVxdWVzdBodLmdhbWVzZXJ2",
-            "ZXIuY29yZS5HYW1lUmVzcG9uc2VCG6oCGEdhbWVTZXJ2ZXIuQ29yZS5Qcm90",
-            "b2NvbGIGcHJvdG8z"));
+            "Cgxjb21tb24ucHJvdG8SD2dhbWVzZXJ2ZXIuY29yZSKwAQoPU2VydmljZUVu",
+            "ZHBvaW50Eg8KB2dhbWVfaWQYASABKAkSDgoGdGFyZ2V0GAIgASgJEhAKCHJv",
+            "dXRlX2lkGAMgASgJEg8KB2FkZHJlc3MYBCABKAkSQQoPZGlyZWN0X3Byb3Rv",
+            "Y29sGAUgASgOMiguZ2FtZXNlcnZlci5jb3JlLkRpcmVjdFRyYW5zcG9ydFBy",
+            "b3RvY29sEhYKDmRpcmVjdF9hZGRyZXNzGAYgASgJImAKC0F1dGhSZXF1ZXN0",
+            "EhIKCmxvZ2luX3R5cGUYASABKAkSEgoKY3JlZGVudGlhbBgCIAEoCRIRCglk",
+            "ZXZpY2VfaWQYAyABKAkSFgoOY2xpZW50X3ZlcnNpb24YBCABKAkiNgoJQXV0",
+            "aFJlcGx5Eg0KBWVycm9yGAEgASgFEg0KBXRva2VuGAIgASgJEgsKA3VpZBgD",
+            "IAEoAyIlChRWYWxpZGF0ZVRva2VuUmVxdWVzdBINCgV0b2tlbhgBIAEoCSIw",
+            "ChJWYWxpZGF0ZVRva2VuUmVwbHkSDQoFZXJyb3IYASABKAUSCwoDdWlkGAIg",
+            "ASgDIkwKFlJlZ2lzdGVyU2VydmljZVJlcXVlc3QSMgoIZW5kcG9pbnQYASAB",
+            "KAsyIC5nYW1lc2VydmVyLmNvcmUuU2VydmljZUVuZHBvaW50IiUKFFJlZ2lz",
+            "dGVyU2VydmljZVJlcGx5Eg0KBWVycm9yGAEgASgFIkoKFVJlc29sdmVTZXJ2",
+            "aWNlUmVxdWVzdBIPCgdnYW1lX2lkGAEgASgJEg4KBnRhcmdldBgCIAEoCRIQ",
+            "Cghyb3V0ZV9pZBgDIAEoCSJYChNSZXNvbHZlU2VydmljZVJlcGx5Eg0KBWVy",
+            "cm9yGAEgASgFEjIKCGVuZHBvaW50GAIgASgLMiAuZ2FtZXNlcnZlci5jb3Jl",
+            "LlNlcnZpY2VFbmRwb2ludCJRCg5DbGllbnRFbnZlbG9wZRIPCgdnYW1lX2lk",
+            "GAEgASgJEg4KBnRhcmdldBgCIAEoCRIQCghyb3V0ZV9pZBgDIAEoCRIMCgRk",
+            "YXRhGAQgASgMImEKDExvZ2luUmVxdWVzdBISCgpsb2dpbl90eXBlGAEgASgJ",
+            "EhIKCmNyZWRlbnRpYWwYAiABKAkSEQoJZGV2aWNlX2lkGAMgASgJEhYKDmNs",
+            "aWVudF92ZXJzaW9uGAQgASgJIjcKCkxvZ2luUmVwbHkSDQoFZXJyb3IYASAB",
+            "KAUSDQoFdG9rZW4YAiABKAkSCwoDdWlkGAMgASgDImAKHFByZXBhcmVSb29t",
+            "Q29ubmVjdGlvblJlcXVlc3QSDQoFdG9rZW4YASABKAkSDwoHZ2FtZV9pZBgC",
+            "IAEoCRIOCgZ0YXJnZXQYAyABKAkSEAoIcm91dGVfaWQYBCABKAki1QEKGlBy",
+            "ZXBhcmVSb29tQ29ubmVjdGlvblJlcGx5Eg0KBWVycm9yGAEgASgFEg8KB2dh",
+            "bWVfaWQYAiABKAkSDgoGdGFyZ2V0GAMgASgJEhAKCHJvdXRlX2lkGAQgASgJ",
+            "EkEKD2RpcmVjdF9wcm90b2NvbBgFIAEoDjIoLmdhbWVzZXJ2ZXIuY29yZS5E",
+            "aXJlY3RUcmFuc3BvcnRQcm90b2NvbBIMCgRob3N0GAYgASgJEgwKBHBvcnQY",
+            "ByABKAUSFgoOY29ubmVjdF90aWNrZXQYCCABKAkiUgoORm9yd2FyZFJlcXVl",
+            "c3QSDQoFdG9rZW4YASABKAkSMQoIZW52ZWxvcGUYAiABKAsyHy5nYW1lc2Vy",
+            "dmVyLmNvcmUuQ2xpZW50RW52ZWxvcGUiKwoMRm9yd2FyZFJlcGx5Eg0KBWVy",
+            "cm9yGAEgASgFEgwKBGRhdGEYAiABKAwibwoLR2FtZVJlcXVlc3QSCwoDdWlk",
+            "GAEgASgDEhIKCnNlc3Npb25faWQYAiABKAkSDwoHZ2FtZV9pZBgDIAEoCRIO",
+            "CgZ0YXJnZXQYBCABKAkSEAoIcm91dGVfaWQYBSABKAkSDAoEZGF0YRgGIAEo",
+            "DCIrCgxHYW1lUmVzcG9uc2USDQoFZXJyb3IYASABKAUSDAoEZGF0YRgCIAEo",
+            "DCqKAQoXRGlyZWN0VHJhbnNwb3J0UHJvdG9jb2wSKQolRElSRUNUX1RSQU5T",
+            "UE9SVF9QUk9UT0NPTF9VTlNQRUNJRklFRBAAEiEKHURJUkVDVF9UUkFOU1BP",
+            "UlRfUFJPVE9DT0xfVENQEAESIQodRElSRUNUX1RSQU5TUE9SVF9QUk9UT0NP",
+            "TF9LQ1AQAjLxAgoNQ2VudGVyU2VydmljZRJACgRBdXRoEhwuZ2FtZXNlcnZl",
+            "ci5jb3JlLkF1dGhSZXF1ZXN0GhouZ2FtZXNlcnZlci5jb3JlLkF1dGhSZXBs",
+            "eRJbCg1WYWxpZGF0ZVRva2VuEiUuZ2FtZXNlcnZlci5jb3JlLlZhbGlkYXRl",
+            "VG9rZW5SZXF1ZXN0GiMuZ2FtZXNlcnZlci5jb3JlLlZhbGlkYXRlVG9rZW5S",
+            "ZXBseRJhCg9SZWdpc3RlclNlcnZpY2USJy5nYW1lc2VydmVyLmNvcmUuUmVn",
+            "aXN0ZXJTZXJ2aWNlUmVxdWVzdBolLmdhbWVzZXJ2ZXIuY29yZS5SZWdpc3Rl",
+            "clNlcnZpY2VSZXBseRJeCg5SZXNvbHZlU2VydmljZRImLmdhbWVzZXJ2ZXIu",
+            "Y29yZS5SZXNvbHZlU2VydmljZVJlcXVlc3QaJC5nYW1lc2VydmVyLmNvcmUu",
+            "UmVzb2x2ZVNlcnZpY2VSZXBseTKSAgoLR2F0ZVNlcnZpY2USQwoFTG9naW4S",
+            "HS5nYW1lc2VydmVyLmNvcmUuTG9naW5SZXF1ZXN0GhsuZ2FtZXNlcnZlci5j",
+            "b3JlLkxvZ2luUmVwbHkScwoVUHJlcGFyZVJvb21Db25uZWN0aW9uEi0uZ2Ft",
+            "ZXNlcnZlci5jb3JlLlByZXBhcmVSb29tQ29ubmVjdGlvblJlcXVlc3QaKy5n",
+            "YW1lc2VydmVyLmNvcmUuUHJlcGFyZVJvb21Db25uZWN0aW9uUmVwbHkSSQoH",
+            "Rm9yd2FyZBIfLmdhbWVzZXJ2ZXIuY29yZS5Gb3J3YXJkUmVxdWVzdBodLmdh",
+            "bWVzZXJ2ZXIuY29yZS5Gb3J3YXJkUmVwbHkyVAoLR2FtZUluZ3Jlc3MSRQoG",
+            "SGFuZGxlEhwuZ2FtZXNlcnZlci5jb3JlLkdhbWVSZXF1ZXN0Gh0uZ2FtZXNl",
+            "cnZlci5jb3JlLkdhbWVSZXNwb25zZUIbqgIYR2FtZVNlcnZlci5Db3JlLlBy",
+            "b3RvY29sYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ServiceEndpoint), global::GameServer.Core.Protocol.ServiceEndpoint.Parser, new[]{ "GameId", "Target", "RouteId", "Address" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::GameServer.Core.Protocol.DirectTransportProtocol), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ServiceEndpoint), global::GameServer.Core.Protocol.ServiceEndpoint.Parser, new[]{ "GameId", "Target", "RouteId", "Address", "DirectProtocol", "DirectAddress" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.AuthRequest), global::GameServer.Core.Protocol.AuthRequest.Parser, new[]{ "LoginType", "Credential", "DeviceId", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.AuthReply), global::GameServer.Core.Protocol.AuthReply.Parser, new[]{ "Error", "Token", "Uid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ValidateTokenRequest), global::GameServer.Core.Protocol.ValidateTokenRequest.Parser, new[]{ "Token" }, null, null, null, null),
@@ -79,18 +92,29 @@ namespace GameServer.Core.Protocol {
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.RegisterServiceReply), global::GameServer.Core.Protocol.RegisterServiceReply.Parser, new[]{ "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ResolveServiceRequest), global::GameServer.Core.Protocol.ResolveServiceRequest.Parser, new[]{ "GameId", "Target", "RouteId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ResolveServiceReply), global::GameServer.Core.Protocol.ResolveServiceReply.Parser, new[]{ "Error", "Endpoint" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ClientEnvelope), global::GameServer.Core.Protocol.ClientEnvelope.Parser, new[]{ "GameId", "Target", "RouteId", "Opcode", "Payload" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ClientEnvelope), global::GameServer.Core.Protocol.ClientEnvelope.Parser, new[]{ "GameId", "Target", "RouteId", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.LoginRequest), global::GameServer.Core.Protocol.LoginRequest.Parser, new[]{ "LoginType", "Credential", "DeviceId", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.LoginReply), global::GameServer.Core.Protocol.LoginReply.Parser, new[]{ "Error", "Token", "Uid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionRequest), global::GameServer.Core.Protocol.PrepareRoomConnectionRequest.Parser, new[]{ "Token", "GameId", "Target", "RouteId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionReply), global::GameServer.Core.Protocol.PrepareRoomConnectionReply.Parser, new[]{ "Error", "GameId", "Target", "RouteId", "DirectProtocol", "Host", "Port", "ConnectTicket" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ForwardRequest), global::GameServer.Core.Protocol.ForwardRequest.Parser, new[]{ "Token", "Envelope" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ForwardReply), global::GameServer.Core.Protocol.ForwardReply.Parser, new[]{ "Error", "Opcode", "Payload" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameRequest), global::GameServer.Core.Protocol.GameRequest.Parser, new[]{ "Uid", "SessionId", "GameId", "Target", "RouteId", "Opcode", "Payload" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameResponse), global::GameServer.Core.Protocol.GameResponse.Parser, new[]{ "Error", "Opcode", "Payload" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ForwardReply), global::GameServer.Core.Protocol.ForwardReply.Parser, new[]{ "Error", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameRequest), global::GameServer.Core.Protocol.GameRequest.Parser, new[]{ "Uid", "SessionId", "GameId", "Target", "RouteId", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameResponse), global::GameServer.Core.Protocol.GameResponse.Parser, new[]{ "Error", "Data" }, null, null, null, null)
           }));
     }
     #endregion
 
   }
+  #region Enums
+  public enum DirectTransportProtocol {
+    [pbr::OriginalName("DIRECT_TRANSPORT_PROTOCOL_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("DIRECT_TRANSPORT_PROTOCOL_TCP")] Tcp = 1,
+    [pbr::OriginalName("DIRECT_TRANSPORT_PROTOCOL_KCP")] Kcp = 2,
+  }
+
+  #endregion
+
   #region Messages
   public sealed partial class ServiceEndpoint : pb::IMessage<ServiceEndpoint>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -125,6 +149,8 @@ namespace GameServer.Core.Protocol {
       target_ = other.target_;
       routeId_ = other.routeId_;
       address_ = other.address_;
+      directProtocol_ = other.directProtocol_;
+      directAddress_ = other.directAddress_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -177,6 +203,28 @@ namespace GameServer.Core.Protocol {
       }
     }
 
+    /// <summary>Field number for the "direct_protocol" field.</summary>
+    public const int DirectProtocolFieldNumber = 5;
+    private global::GameServer.Core.Protocol.DirectTransportProtocol directProtocol_ = global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::GameServer.Core.Protocol.DirectTransportProtocol DirectProtocol {
+      get { return directProtocol_; }
+      set {
+        directProtocol_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "direct_address" field.</summary>
+    public const int DirectAddressFieldNumber = 6;
+    private string directAddress_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DirectAddress {
+      get { return directAddress_; }
+      set {
+        directAddress_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ServiceEndpoint);
@@ -194,6 +242,8 @@ namespace GameServer.Core.Protocol {
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       if (Address != other.Address) return false;
+      if (DirectProtocol != other.DirectProtocol) return false;
+      if (DirectAddress != other.DirectAddress) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -204,6 +254,8 @@ namespace GameServer.Core.Protocol {
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (Address.Length != 0) hash ^= Address.GetHashCode();
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) hash ^= DirectProtocol.GetHashCode();
+      if (DirectAddress.Length != 0) hash ^= DirectAddress.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -236,6 +288,14 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(34);
         output.WriteString(Address);
       }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DirectProtocol);
+      }
+      if (DirectAddress.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(DirectAddress);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -261,6 +321,14 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(34);
         output.WriteString(Address);
       }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DirectProtocol);
+      }
+      if (DirectAddress.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(DirectAddress);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -281,6 +349,12 @@ namespace GameServer.Core.Protocol {
       }
       if (Address.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DirectProtocol);
+      }
+      if (DirectAddress.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DirectAddress);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -304,6 +378,12 @@ namespace GameServer.Core.Protocol {
       }
       if (other.Address.Length != 0) {
         Address = other.Address;
+      }
+      if (other.DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        DirectProtocol = other.DirectProtocol;
+      }
+      if (other.DirectAddress.Length != 0) {
+        DirectAddress = other.DirectAddress;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -335,6 +415,14 @@ namespace GameServer.Core.Protocol {
             Address = input.ReadString();
             break;
           }
+          case 40: {
+            DirectProtocol = (global::GameServer.Core.Protocol.DirectTransportProtocol) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            DirectAddress = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -363,6 +451,14 @@ namespace GameServer.Core.Protocol {
           }
           case 34: {
             Address = input.ReadString();
+            break;
+          }
+          case 40: {
+            DirectProtocol = (global::GameServer.Core.Protocol.DirectTransportProtocol) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            DirectAddress = input.ReadString();
             break;
           }
         }
@@ -2122,8 +2218,7 @@ namespace GameServer.Core.Protocol {
       gameId_ = other.gameId_;
       target_ = other.target_;
       routeId_ = other.routeId_;
-      opcode_ = other.opcode_;
-      payload_ = other.payload_;
+      data_ = other.data_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2165,25 +2260,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "opcode" field.</summary>
-    public const int OpcodeFieldNumber = 4;
-    private int opcode_;
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 4;
+    private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Opcode {
-      get { return opcode_; }
+    public pb::ByteString Data {
+      get { return data_; }
       set {
-        opcode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "payload" field.</summary>
-    public const int PayloadFieldNumber = 5;
-    private pb::ByteString payload_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Payload {
-      get { return payload_; }
-      set {
-        payload_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -2203,8 +2287,7 @@ namespace GameServer.Core.Protocol {
       if (GameId != other.GameId) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
-      if (Opcode != other.Opcode) return false;
-      if (Payload != other.Payload) return false;
+      if (Data != other.Data) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2214,8 +2297,7 @@ namespace GameServer.Core.Protocol {
       if (GameId.Length != 0) hash ^= GameId.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
-      if (Opcode != 0) hash ^= Opcode.GetHashCode();
-      if (Payload.Length != 0) hash ^= Payload.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2244,13 +2326,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(26);
         output.WriteString(RouteId);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2273,13 +2351,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(26);
         output.WriteString(RouteId);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -2299,11 +2373,8 @@ namespace GameServer.Core.Protocol {
       if (RouteId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(RouteId);
       }
-      if (Opcode != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Opcode);
-      }
-      if (Payload.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Payload);
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2325,11 +2396,8 @@ namespace GameServer.Core.Protocol {
       if (other.RouteId.Length != 0) {
         RouteId = other.RouteId;
       }
-      if (other.Opcode != 0) {
-        Opcode = other.Opcode;
-      }
-      if (other.Payload.Length != 0) {
-        Payload = other.Payload;
+      if (other.Data.Length != 0) {
+        Data = other.Data;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2357,12 +2425,8 @@ namespace GameServer.Core.Protocol {
             RouteId = input.ReadString();
             break;
           }
-          case 32: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 42: {
-            Payload = input.ReadBytes();
+          case 34: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -2391,12 +2455,8 @@ namespace GameServer.Core.Protocol {
             RouteId = input.ReadString();
             break;
           }
-          case 32: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 42: {
-            Payload = input.ReadBytes();
+          case 34: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -2930,6 +2990,710 @@ namespace GameServer.Core.Protocol {
 
   }
 
+  public sealed partial class PrepareRoomConnectionRequest : pb::IMessage<PrepareRoomConnectionRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareRoomConnectionRequest> _parser = new pb::MessageParser<PrepareRoomConnectionRequest>(() => new PrepareRoomConnectionRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<PrepareRoomConnectionRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionRequest(PrepareRoomConnectionRequest other) : this() {
+      token_ = other.token_;
+      gameId_ = other.gameId_;
+      target_ = other.target_;
+      routeId_ = other.routeId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionRequest Clone() {
+      return new PrepareRoomConnectionRequest(this);
+    }
+
+    /// <summary>Field number for the "token" field.</summary>
+    public const int TokenFieldNumber = 1;
+    private string token_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Token {
+      get { return token_; }
+      set {
+        token_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "game_id" field.</summary>
+    public const int GameIdFieldNumber = 2;
+    private string gameId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string GameId {
+      get { return gameId_; }
+      set {
+        gameId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "target" field.</summary>
+    public const int TargetFieldNumber = 3;
+    private string target_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Target {
+      get { return target_; }
+      set {
+        target_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "route_id" field.</summary>
+    public const int RouteIdFieldNumber = 4;
+    private string routeId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RouteId {
+      get { return routeId_; }
+      set {
+        routeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareRoomConnectionRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(PrepareRoomConnectionRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Token != other.Token) return false;
+      if (GameId != other.GameId) return false;
+      if (Target != other.Target) return false;
+      if (RouteId != other.RouteId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Token.Length != 0) hash ^= Token.GetHashCode();
+      if (GameId.Length != 0) hash ^= GameId.GetHashCode();
+      if (Target.Length != 0) hash ^= Target.GetHashCode();
+      if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Token.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Token);
+      }
+      if (GameId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(GameId);
+      }
+      if (Target.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Target);
+      }
+      if (RouteId.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(RouteId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Token.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Token);
+      }
+      if (GameId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(GameId);
+      }
+      if (Target.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Target);
+      }
+      if (RouteId.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(RouteId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Token.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Token);
+      }
+      if (GameId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(GameId);
+      }
+      if (Target.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
+      }
+      if (RouteId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RouteId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(PrepareRoomConnectionRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Token.Length != 0) {
+        Token = other.Token;
+      }
+      if (other.GameId.Length != 0) {
+        GameId = other.GameId;
+      }
+      if (other.Target.Length != 0) {
+        Target = other.Target;
+      }
+      if (other.RouteId.Length != 0) {
+        RouteId = other.RouteId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Token = input.ReadString();
+            break;
+          }
+          case 18: {
+            GameId = input.ReadString();
+            break;
+          }
+          case 26: {
+            Target = input.ReadString();
+            break;
+          }
+          case 34: {
+            RouteId = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Token = input.ReadString();
+            break;
+          }
+          case 18: {
+            GameId = input.ReadString();
+            break;
+          }
+          case 26: {
+            Target = input.ReadString();
+            break;
+          }
+          case 34: {
+            RouteId = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class PrepareRoomConnectionReply : pb::IMessage<PrepareRoomConnectionReply>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareRoomConnectionReply> _parser = new pb::MessageParser<PrepareRoomConnectionReply>(() => new PrepareRoomConnectionReply());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<PrepareRoomConnectionReply> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionReply() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionReply(PrepareRoomConnectionReply other) : this() {
+      error_ = other.error_;
+      gameId_ = other.gameId_;
+      target_ = other.target_;
+      routeId_ = other.routeId_;
+      directProtocol_ = other.directProtocol_;
+      host_ = other.host_;
+      port_ = other.port_;
+      connectTicket_ = other.connectTicket_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PrepareRoomConnectionReply Clone() {
+      return new PrepareRoomConnectionReply(this);
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 1;
+    private int error_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Error {
+      get { return error_; }
+      set {
+        error_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "game_id" field.</summary>
+    public const int GameIdFieldNumber = 2;
+    private string gameId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string GameId {
+      get { return gameId_; }
+      set {
+        gameId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "target" field.</summary>
+    public const int TargetFieldNumber = 3;
+    private string target_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Target {
+      get { return target_; }
+      set {
+        target_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "route_id" field.</summary>
+    public const int RouteIdFieldNumber = 4;
+    private string routeId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RouteId {
+      get { return routeId_; }
+      set {
+        routeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "direct_protocol" field.</summary>
+    public const int DirectProtocolFieldNumber = 5;
+    private global::GameServer.Core.Protocol.DirectTransportProtocol directProtocol_ = global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::GameServer.Core.Protocol.DirectTransportProtocol DirectProtocol {
+      get { return directProtocol_; }
+      set {
+        directProtocol_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "host" field.</summary>
+    public const int HostFieldNumber = 6;
+    private string host_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Host {
+      get { return host_; }
+      set {
+        host_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "port" field.</summary>
+    public const int PortFieldNumber = 7;
+    private int port_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Port {
+      get { return port_; }
+      set {
+        port_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "connect_ticket" field.</summary>
+    public const int ConnectTicketFieldNumber = 8;
+    private string connectTicket_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ConnectTicket {
+      get { return connectTicket_; }
+      set {
+        connectTicket_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareRoomConnectionReply);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(PrepareRoomConnectionReply other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Error != other.Error) return false;
+      if (GameId != other.GameId) return false;
+      if (Target != other.Target) return false;
+      if (RouteId != other.RouteId) return false;
+      if (DirectProtocol != other.DirectProtocol) return false;
+      if (Host != other.Host) return false;
+      if (Port != other.Port) return false;
+      if (ConnectTicket != other.ConnectTicket) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Error != 0) hash ^= Error.GetHashCode();
+      if (GameId.Length != 0) hash ^= GameId.GetHashCode();
+      if (Target.Length != 0) hash ^= Target.GetHashCode();
+      if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) hash ^= DirectProtocol.GetHashCode();
+      if (Host.Length != 0) hash ^= Host.GetHashCode();
+      if (Port != 0) hash ^= Port.GetHashCode();
+      if (ConnectTicket.Length != 0) hash ^= ConnectTicket.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Error != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Error);
+      }
+      if (GameId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(GameId);
+      }
+      if (Target.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Target);
+      }
+      if (RouteId.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(RouteId);
+      }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DirectProtocol);
+      }
+      if (Host.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Host);
+      }
+      if (Port != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(Port);
+      }
+      if (ConnectTicket.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(ConnectTicket);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Error != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Error);
+      }
+      if (GameId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(GameId);
+      }
+      if (Target.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Target);
+      }
+      if (RouteId.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(RouteId);
+      }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DirectProtocol);
+      }
+      if (Host.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Host);
+      }
+      if (Port != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(Port);
+      }
+      if (ConnectTicket.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(ConnectTicket);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Error != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Error);
+      }
+      if (GameId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(GameId);
+      }
+      if (Target.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
+      }
+      if (RouteId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RouteId);
+      }
+      if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DirectProtocol);
+      }
+      if (Host.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Host);
+      }
+      if (Port != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Port);
+      }
+      if (ConnectTicket.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ConnectTicket);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(PrepareRoomConnectionReply other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Error != 0) {
+        Error = other.Error;
+      }
+      if (other.GameId.Length != 0) {
+        GameId = other.GameId;
+      }
+      if (other.Target.Length != 0) {
+        Target = other.Target;
+      }
+      if (other.RouteId.Length != 0) {
+        RouteId = other.RouteId;
+      }
+      if (other.DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) {
+        DirectProtocol = other.DirectProtocol;
+      }
+      if (other.Host.Length != 0) {
+        Host = other.Host;
+      }
+      if (other.Port != 0) {
+        Port = other.Port;
+      }
+      if (other.ConnectTicket.Length != 0) {
+        ConnectTicket = other.ConnectTicket;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Error = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            GameId = input.ReadString();
+            break;
+          }
+          case 26: {
+            Target = input.ReadString();
+            break;
+          }
+          case 34: {
+            RouteId = input.ReadString();
+            break;
+          }
+          case 40: {
+            DirectProtocol = (global::GameServer.Core.Protocol.DirectTransportProtocol) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            Host = input.ReadString();
+            break;
+          }
+          case 56: {
+            Port = input.ReadInt32();
+            break;
+          }
+          case 66: {
+            ConnectTicket = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Error = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            GameId = input.ReadString();
+            break;
+          }
+          case 26: {
+            Target = input.ReadString();
+            break;
+          }
+          case 34: {
+            RouteId = input.ReadString();
+            break;
+          }
+          case 40: {
+            DirectProtocol = (global::GameServer.Core.Protocol.DirectTransportProtocol) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            Host = input.ReadString();
+            break;
+          }
+          case 56: {
+            Port = input.ReadInt32();
+            break;
+          }
+          case 66: {
+            ConnectTicket = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   public sealed partial class ForwardRequest : pb::IMessage<ForwardRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2942,7 +3706,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[12]; }
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3159,7 +3923,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[13]; }
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3177,8 +3941,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ForwardReply(ForwardReply other) : this() {
       error_ = other.error_;
-      opcode_ = other.opcode_;
-      payload_ = other.payload_;
+      data_ = other.data_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3198,25 +3961,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "opcode" field.</summary>
-    public const int OpcodeFieldNumber = 2;
-    private int opcode_;
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 2;
+    private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Opcode {
-      get { return opcode_; }
+    public pb::ByteString Data {
+      get { return data_; }
       set {
-        opcode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "payload" field.</summary>
-    public const int PayloadFieldNumber = 3;
-    private pb::ByteString payload_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Payload {
-      get { return payload_; }
-      set {
-        payload_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -3234,8 +3986,7 @@ namespace GameServer.Core.Protocol {
         return true;
       }
       if (Error != other.Error) return false;
-      if (Opcode != other.Opcode) return false;
-      if (Payload != other.Payload) return false;
+      if (Data != other.Data) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3243,8 +3994,7 @@ namespace GameServer.Core.Protocol {
     public override int GetHashCode() {
       int hash = 1;
       if (Error != 0) hash ^= Error.GetHashCode();
-      if (Opcode != 0) hash ^= Opcode.GetHashCode();
-      if (Payload.Length != 0) hash ^= Payload.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3265,13 +4015,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3286,13 +4032,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3306,11 +4048,8 @@ namespace GameServer.Core.Protocol {
       if (Error != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Error);
       }
-      if (Opcode != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Opcode);
-      }
-      if (Payload.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Payload);
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3326,11 +4065,8 @@ namespace GameServer.Core.Protocol {
       if (other.Error != 0) {
         Error = other.Error;
       }
-      if (other.Opcode != 0) {
-        Opcode = other.Opcode;
-      }
-      if (other.Payload.Length != 0) {
-        Payload = other.Payload;
+      if (other.Data.Length != 0) {
+        Data = other.Data;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3350,12 +4086,8 @@ namespace GameServer.Core.Protocol {
             Error = input.ReadInt32();
             break;
           }
-          case 16: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 26: {
-            Payload = input.ReadBytes();
+          case 18: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -3376,12 +4108,8 @@ namespace GameServer.Core.Protocol {
             Error = input.ReadInt32();
             break;
           }
-          case 16: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 26: {
-            Payload = input.ReadBytes();
+          case 18: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -3403,7 +4131,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[14]; }
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3425,8 +4153,7 @@ namespace GameServer.Core.Protocol {
       gameId_ = other.gameId_;
       target_ = other.target_;
       routeId_ = other.routeId_;
-      opcode_ = other.opcode_;
-      payload_ = other.payload_;
+      data_ = other.data_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3490,25 +4217,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "opcode" field.</summary>
-    public const int OpcodeFieldNumber = 6;
-    private int opcode_;
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 6;
+    private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Opcode {
-      get { return opcode_; }
+    public pb::ByteString Data {
+      get { return data_; }
       set {
-        opcode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "payload" field.</summary>
-    public const int PayloadFieldNumber = 7;
-    private pb::ByteString payload_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Payload {
-      get { return payload_; }
-      set {
-        payload_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -3530,8 +4246,7 @@ namespace GameServer.Core.Protocol {
       if (GameId != other.GameId) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
-      if (Opcode != other.Opcode) return false;
-      if (Payload != other.Payload) return false;
+      if (Data != other.Data) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3543,8 +4258,7 @@ namespace GameServer.Core.Protocol {
       if (GameId.Length != 0) hash ^= GameId.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
-      if (Opcode != 0) hash ^= Opcode.GetHashCode();
-      if (Payload.Length != 0) hash ^= Payload.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3581,13 +4295,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(42);
         output.WriteString(RouteId);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3618,13 +4328,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(42);
         output.WriteString(RouteId);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3650,11 +4356,8 @@ namespace GameServer.Core.Protocol {
       if (RouteId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(RouteId);
       }
-      if (Opcode != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Opcode);
-      }
-      if (Payload.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Payload);
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3682,11 +4385,8 @@ namespace GameServer.Core.Protocol {
       if (other.RouteId.Length != 0) {
         RouteId = other.RouteId;
       }
-      if (other.Opcode != 0) {
-        Opcode = other.Opcode;
-      }
-      if (other.Payload.Length != 0) {
-        Payload = other.Payload;
+      if (other.Data.Length != 0) {
+        Data = other.Data;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3722,12 +4422,8 @@ namespace GameServer.Core.Protocol {
             RouteId = input.ReadString();
             break;
           }
-          case 48: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 58: {
-            Payload = input.ReadBytes();
+          case 50: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -3764,12 +4460,8 @@ namespace GameServer.Core.Protocol {
             RouteId = input.ReadString();
             break;
           }
-          case 48: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 58: {
-            Payload = input.ReadBytes();
+          case 50: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -3791,7 +4483,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[15]; }
+      get { return global::GameServer.Core.Protocol.CommonReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3809,8 +4501,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public GameResponse(GameResponse other) : this() {
       error_ = other.error_;
-      opcode_ = other.opcode_;
-      payload_ = other.payload_;
+      data_ = other.data_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3830,25 +4521,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "opcode" field.</summary>
-    public const int OpcodeFieldNumber = 2;
-    private int opcode_;
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 2;
+    private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Opcode {
-      get { return opcode_; }
+    public pb::ByteString Data {
+      get { return data_; }
       set {
-        opcode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "payload" field.</summary>
-    public const int PayloadFieldNumber = 3;
-    private pb::ByteString payload_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Payload {
-      get { return payload_; }
-      set {
-        payload_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -3866,8 +4546,7 @@ namespace GameServer.Core.Protocol {
         return true;
       }
       if (Error != other.Error) return false;
-      if (Opcode != other.Opcode) return false;
-      if (Payload != other.Payload) return false;
+      if (Data != other.Data) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3875,8 +4554,7 @@ namespace GameServer.Core.Protocol {
     public override int GetHashCode() {
       int hash = 1;
       if (Error != 0) hash ^= Error.GetHashCode();
-      if (Opcode != 0) hash ^= Opcode.GetHashCode();
-      if (Payload.Length != 0) hash ^= Payload.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3897,13 +4575,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3918,13 +4592,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (Opcode != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Opcode);
-      }
-      if (Payload.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Payload);
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3938,11 +4608,8 @@ namespace GameServer.Core.Protocol {
       if (Error != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Error);
       }
-      if (Opcode != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Opcode);
-      }
-      if (Payload.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Payload);
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3958,11 +4625,8 @@ namespace GameServer.Core.Protocol {
       if (other.Error != 0) {
         Error = other.Error;
       }
-      if (other.Opcode != 0) {
-        Opcode = other.Opcode;
-      }
-      if (other.Payload.Length != 0) {
-        Payload = other.Payload;
+      if (other.Data.Length != 0) {
+        Data = other.Data;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3982,12 +4646,8 @@ namespace GameServer.Core.Protocol {
             Error = input.ReadInt32();
             break;
           }
-          case 16: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 26: {
-            Payload = input.ReadBytes();
+          case 18: {
+            Data = input.ReadBytes();
             break;
           }
         }
@@ -4008,12 +4668,8 @@ namespace GameServer.Core.Protocol {
             Error = input.ReadInt32();
             break;
           }
-          case 16: {
-            Opcode = input.ReadInt32();
-            break;
-          }
-          case 26: {
-            Payload = input.ReadBytes();
+          case 18: {
+            Data = input.ReadBytes();
             break;
           }
         }

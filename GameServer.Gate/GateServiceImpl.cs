@@ -32,6 +32,55 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         };
     }
 
+    public override async Task<PrepareRoomConnectionReply> PrepareRoomConnection(PrepareRoomConnectionRequest request, ServerCallContext context)
+    {
+        ValidateTokenReply validateReply = await _centerClient.ValidateTokenAsync(new ValidateTokenRequest
+        {
+            Token = request.Token,
+        });
+
+        if (validateReply.Error != ErrorCode.Success)
+        {
+            return new PrepareRoomConnectionReply { Error = ErrorCode.Unauthorized };
+        }
+
+        if (request.GameId.Length == 0 || request.Target.Length == 0)
+        {
+            return new PrepareRoomConnectionReply { Error = ErrorCode.InvalidRequest };
+        }
+
+        ResolveServiceReply resolveReply = await _centerClient.ResolveServiceAsync(new ResolveServiceRequest
+        {
+            GameId = request.GameId,
+            Target = request.Target,
+            RouteId = request.RouteId,
+        });
+
+        if (resolveReply.Error != ErrorCode.Success ||
+            resolveReply.Endpoint.DirectProtocol == DirectTransportProtocol.Unspecified ||
+            resolveReply.Endpoint.DirectAddress.Length == 0)
+        {
+            return new PrepareRoomConnectionReply { Error = ErrorCode.RouteNotFound };
+        }
+
+        if (!TryParseAddress(resolveReply.Endpoint.DirectAddress, out string host, out int port))
+        {
+            return new PrepareRoomConnectionReply { Error = ErrorCode.InvalidRequest };
+        }
+
+        return new PrepareRoomConnectionReply
+        {
+            Error = ErrorCode.Success,
+            GameId = resolveReply.Endpoint.GameId,
+            Target = resolveReply.Endpoint.Target,
+            RouteId = resolveReply.Endpoint.RouteId,
+            DirectProtocol = resolveReply.Endpoint.DirectProtocol,
+            Host = host,
+            Port = port,
+            ConnectTicket = request.Token,
+        };
+    }
+
     public override async Task<ForwardReply> Forward(ForwardRequest request, ServerCallContext context)
     {
         if (request.Envelope == null)
@@ -75,15 +124,27 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
             GameId = envelope.GameId,
             Target = envelope.Target,
             RouteId = envelope.RouteId,
-            Opcode = envelope.Opcode,
-            Payload = envelope.Payload,
+            Data = envelope.Data,
         });
 
         return new ForwardReply
         {
             Error = gameResponse.Error,
-            Opcode = gameResponse.Opcode,
-            Payload = gameResponse.Payload,
+            Data = gameResponse.Data,
         };
+    }
+
+    private static bool TryParseAddress(string address, out string host, out int port)
+    {
+        int splitIndex = address.LastIndexOf(':');
+        if (splitIndex <= 0 || splitIndex == address.Length - 1)
+        {
+            host = string.Empty;
+            port = 0;
+            return false;
+        }
+
+        host = address[..splitIndex];
+        return int.TryParse(address[(splitIndex + 1)..], out port);
     }
 }

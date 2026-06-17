@@ -13,6 +13,7 @@ service CenterService {
 
 service GateService {
   rpc Login (LoginRequest) returns (LoginReply);
+  rpc PrepareRoomConnection (PrepareRoomConnectionRequest) returns (PrepareRoomConnectionReply);
   rpc Forward (ForwardRequest) returns (ForwardReply);
 }
 
@@ -20,11 +21,19 @@ service GameIngress {
   rpc Handle (GameRequest) returns (GameResponse);
 }
 
+enum DirectTransportProtocol {
+  DIRECT_TRANSPORT_PROTOCOL_UNSPECIFIED = 0;
+  DIRECT_TRANSPORT_PROTOCOL_TCP = 1;
+  DIRECT_TRANSPORT_PROTOCOL_KCP = 2;
+}
+
 message ServiceEndpoint {
   string game_id = 1;
   string target = 2;
   string route_id = 3;
   string address = 4;
+  DirectTransportProtocol direct_protocol = 5;
+  string direct_address = 6;
 }
 
 message AuthRequest {
@@ -72,8 +81,7 @@ message ClientEnvelope {
   string game_id = 1;
   string target = 2;
   string route_id = 3;
-  int32 opcode = 4;
-  bytes payload = 5;
+  bytes data = 4;
 }
 
 message LoginRequest {
@@ -89,6 +97,24 @@ message LoginReply {
   int64 uid = 3;
 }
 
+message PrepareRoomConnectionRequest {
+  string token = 1;
+  string game_id = 2;
+  string target = 3;
+  string route_id = 4;
+}
+
+message PrepareRoomConnectionReply {
+  int32 error = 1;
+  string game_id = 2;
+  string target = 3;
+  string route_id = 4;
+  DirectTransportProtocol direct_protocol = 5;
+  string host = 6;
+  int32 port = 7;
+  string connect_ticket = 8;
+}
+
 message ForwardRequest {
   string token = 1;
   ClientEnvelope envelope = 2;
@@ -96,8 +122,7 @@ message ForwardRequest {
 
 message ForwardReply {
   int32 error = 1;
-  int32 opcode = 2;
-  bytes payload = 3;
+  bytes data = 2;
 }
 
 message GameRequest {
@@ -106,12 +131,10 @@ message GameRequest {
   string game_id = 3;
   string target = 4;
   string route_id = 5;
-  int32 opcode = 6;
-  bytes payload = 7;
+  bytes data = 6;
 }
 
 message GameResponse {
   int32 error = 1;
-  int32 opcode = 2;
-  bytes payload = 3;
+  bytes data = 2;
 }

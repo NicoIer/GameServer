@@ -5,7 +5,7 @@ public sealed class Game001RoomState
     private readonly Dictionary<string, HashSet<long>> _rooms = new();
     private readonly object _lock = new();
 
-    public string CreateRoom(long uid, string roomId)
+    public RoomStateResult CreateRoom(long uid, string roomId)
     {
         lock (_lock)
         {
@@ -16,35 +16,50 @@ public sealed class Game001RoomState
             }
 
             players.Add(uid);
-            return $"created room={roomId} players={players.Count}";
+            return new RoomStateResult(true, $"created room={roomId} players={players.Count}", players.Count);
         }
     }
 
-    public string JoinRoom(long uid, string roomId)
+    public RoomStateResult JoinRoom(long uid, string roomId)
     {
         lock (_lock)
         {
             if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
             {
-                return string.Empty;
+                return new RoomStateResult(false, $"room not found room={roomId}", 0);
             }
 
             players.Add(uid);
-            return $"joined room={roomId} players={players.Count}";
+            return new RoomStateResult(true, $"joined room={roomId} players={players.Count}", players.Count);
         }
     }
 
-    public string PingRoom(long uid, string roomId)
+    public RoomStateResult LeaveRoom(long uid, string roomId)
     {
         lock (_lock)
         {
-            int count = 0;
-            if (_rooms.TryGetValue(roomId, out HashSet<long>? players))
+            if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
             {
-                count = players.Count;
+                return new RoomStateResult(false, $"room not found room={roomId}", 0);
             }
 
-            return $"pong uid={uid} room={roomId} players={count}";
+            players.Remove(uid);
+            return new RoomStateResult(true, $"left room={roomId} players={players.Count}", players.Count);
+        }
+    }
+
+    public RoomStateResult PingRoom(long uid, string roomId)
+    {
+        lock (_lock)
+        {
+            if (!_rooms.TryGetValue(roomId, out HashSet<long>? players))
+            {
+                return new RoomStateResult(false, $"room not found room={roomId}", 0);
+            }
+
+            return new RoomStateResult(true, $"pong uid={uid} room={roomId} players={players.Count}", players.Count);
         }
     }
 }
+
+public readonly record struct RoomStateResult(bool Success, string Message, int PlayerCount);

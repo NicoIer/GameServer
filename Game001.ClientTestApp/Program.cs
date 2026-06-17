@@ -1,16 +1,13 @@
-﻿using System.Text;
+﻿using Game001.ClientTestApp;
 using GameServer.Core.Grpc;
+using GameServer.Core.Network;
 using GameServer.Core.Protocol;
-using Google.Protobuf;
 using Grpc.Net.Client;
 
 const string GameId = "Game001";
 const string TargetRoom = "room";
 const string DefaultRoomId = "room-001";
-const int CreateRoomOpcode = 1;
-const int JoinRoomOpcode = 2;
-const int PingRoomOpcode = 3;
-const int UnknownOpcode = 999;
+const ushort UnknownMessageId = 999;
 
 string gateAddress = ReadOption(args, "--gate-address", "GATE_ADDRESS", "http://127.0.0.1:5002");
 string loginType = ReadOption(args, "--login-type", "CLIENT_TEST_LOGIN_TYPE", "guest");
@@ -41,92 +38,123 @@ string token = loginReply.Token;
 long uid = loginReply.Uid;
 Console.WriteLine($"login ok uid={uid} token={token}");
 
-ForwardReply createReply = await Forward(
-    gateClient,
-    token,
-    gameId: GameId,
-    target: TargetRoom,
-    routeId: string.Empty,
-    opcode: CreateRoomOpcode,
-    payload: string.Empty);
-ExpectError("create room", createReply.Error, ErrorCode.Success);
-ExpectPayloadContains("create room", createReply, "created room=room-001");
+PrepareRoomConnectionReply prepareReply = await gateClient.PrepareRoomConnectionAsync(new PrepareRoomConnectionRequest
+{
+    Token = token,
+    GameId = GameId,
+    Target = TargetRoom,
+    RouteId = DefaultRoomId,
+});
+ExpectError("prepare room connection", prepareReply.Error, ErrorCode.Success);
+Expect("prepare protocol", prepareReply.DirectProtocol == DirectTransportProtocol.Tcp, $"unexpected protocol={prepareReply.DirectProtocol}");
+Expect("prepare endpoint", prepareReply.Host.Length > 0 && prepareReply.Port > 0, "invalid tcp endpoint");
+Expect("prepare ticket", prepareReply.ConnectTicket.Length > 0, "connect ticket is empty");
+Console.WriteLine($"room direct endpoint: {prepareReply.DirectProtocol} {prepareReply.Host}:{prepareReply.Port}");
 
-ForwardReply joinReply = await Forward(
-    gateClient,
-    token,
-    gameId: GameId,
-    target: TargetRoom,
-    routeId: DefaultRoomId,
-    opcode: JoinRoomOpcode,
-    payload: string.Empty);
-ExpectError("join room", joinReply.Error, ErrorCode.Success);
-ExpectPayloadContains("join room", joinReply, "joined room=room-001");
+PrepareRoomConnectionReply badPrepareReply = await gateClient.PrepareRoomConnectionAsync(new PrepareRoomConnectionRequest
+{
+    Token = "bad-token",
+    GameId = GameId,
+    Target = TargetRoom,
+    RouteId = DefaultRoomId,
+});
+ExpectError("bad prepare token", badPrepareReply.Error, ErrorCode.Unauthorized);
 
-ForwardReply pingReply = await Forward(
-    gateClient,
-    token,
-    gameId: GameId,
-    target: TargetRoom,
-    routeId: DefaultRoomId,
-    opcode: PingRoomOpcode,
-    payload: string.Empty);
-ExpectError("ping room", pingReply.Error, ErrorCode.Success);
-ExpectPayloadContains("ping room", pingReply, $"pong uid={uid} room=room-001");
+PrepareRoomConnectionReply unknownRoutePrepareReply = await gateClient.PrepareRoomConnectionAsync(new PrepareRoomConnectionRequest
+{
+    Token = token,
+    GameId = "MissingGame",
+    Target = TargetRoom,
+    RouteId = DefaultRoomId,
+});
+ExpectError("prepare unknown route", unknownRoutePrepareReply.Error, ErrorCode.RouteNotFound);
 
-ForwardReply badTokenReply = await Forward(
-    gateClient,
-    token: "bad-token",
-    gameId: GameId,
-    target: TargetRoom,
-    routeId: DefaultRoomId,
-    opcode: PingRoomOpcode,
-    payload: string.Empty);
-ExpectError("bad token", badTokenReply.Error, ErrorCode.Unauthorized);
+await using IRoomClientTransport roomTransport = await RoomClientTransportFactory.ConnectAsync(prepareReply);
 
-ForwardReply unknownRouteReply = await Forward(
-    gateClient,
-    token,
-    gameId: "MissingGame",
-    target: TargetRoom,
-    routeId: DefaultRoomId,
-    opcode: PingRoomOpcode,
-    payload: string.Empty);
-ExpectError("unknown route", unknownRouteReply.Error, ErrorCode.RouteNotFound);
+await roomTransport.WriteAsync(GamePacketSerializer.Pack(GameMessageIds.Game001RoomConnectRequest, new RoomConnectRequest
+{
+    ConnectTicket = prepareReply.ConnectTicket,
+    RoomId = DefaultRoomId,
+}));
 
-ForwardReply unknownOpcodeReply = await Forward(
-    gateClient,
-    token,
-    gameId: GameId,
-    target: TargetRoom,
-    routeId: DefaultRoomId,
-    opcode: UnknownOpcode,
-    payload: string.Empty);
-ExpectError("unknown opcode", unknownOpcodeReply.Error, ErrorCode.InvalidRequest);
+GamePacket connectionPacket = await ReadRequiredPacket(roomTransport, "room connect");
+Expect("room connect message", connectionPacket.MessageId == GameMessageIds.Game001RoomConnectionReply, $"unexpected message id={connectionPacket.MessageId}");
+RoomConnectionReply connectionReply = GamePacketSerializer.Unpack<RoomConnectionReply>(connectionPacket);
+ExpectError("room connect", connectionReply.Error, ErrorCode.Success);
+Expect("room connect uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
+Console.WriteLine($"room connected uid={connectionReply.Uid} room={connectionReply.RoomId}");
+
+RoomCommandReply createReply = await SendRoomCommand(
+    roomTransport,
+    GameMessageIds.Game001RoomCreateRequest,
+    new CreateRoomRequest { RoomId = DefaultRoomId },
+    "tcp create room");
+ExpectRoomReply("tcp create room", createReply, ErrorCode.Success, "created room=room-001");
+
+RoomCommandReply joinReply = await SendRoomCommand(
+    roomTransport,
+    GameMessageIds.Game001RoomJoinRequest,
+    new JoinRoomRequest { RoomId = DefaultRoomId },
+    "tcp join room");
+ExpectRoomReply("tcp join room", joinReply, ErrorCode.Success, "joined room=room-001");
+
+RoomCommandReply pingReply = await SendRoomCommand(
+    roomTransport,
+    GameMessageIds.Game001RoomPingRequest,
+    new RoomPingRequest
+    {
+        RoomId = DefaultRoomId,
+        ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+    },
+    "tcp ping room");
+ExpectRoomReply("tcp ping room", pingReply, ErrorCode.Success, $"pong uid={uid} room=room-001");
+
+RoomCommandReply leaveReply = await SendRoomCommand(
+    roomTransport,
+    GameMessageIds.Game001RoomLeaveRequest,
+    new LeaveRoomRequest { RoomId = DefaultRoomId },
+    "tcp leave room");
+ExpectRoomReply("tcp leave room", leaveReply, ErrorCode.Success, "left room=room-001");
+
+await roomTransport.WriteAsync(new GamePacket(UnknownMessageId, Array.Empty<byte>()));
+GamePacket unknownPacket = await ReadRequiredPacket(roomTransport, "tcp unknown message");
+Expect("tcp unknown message", unknownPacket.MessageId == GameMessageIds.Game001RoomReply, $"unexpected message id={unknownPacket.MessageId}");
+RoomCommandReply unknownReply = GamePacketSerializer.Unpack<RoomCommandReply>(unknownPacket);
+ExpectRoomReply("tcp unknown message", unknownReply, ErrorCode.InvalidRequest, "invalid room request");
 
 Console.WriteLine("All client headless checks passed.");
 
-static async Task<ForwardReply> Forward(
-    GateService.GateServiceClient gateClient,
-    string token,
-    string gameId,
-    string target,
-    string routeId,
-    int opcode,
-    string payload)
+static async Task<RoomCommandReply> SendRoomCommand<T>(
+    IRoomClientTransport transport,
+    ushort messageId,
+    T message,
+    string step)
+    where T : IGameMessage
 {
-    return await gateClient.ForwardAsync(new ForwardRequest
+    GamePacket request = GamePacketSerializer.Pack(messageId, message);
+    await transport.WriteAsync(request);
+
+    GamePacket replyPacket = await ReadRequiredPacket(transport, step);
+    Expect(step, replyPacket.MessageId == GameMessageIds.Game001RoomReply, $"unexpected message id={replyPacket.MessageId}");
+    return GamePacketSerializer.Unpack<RoomCommandReply>(replyPacket);
+}
+
+static async Task<GamePacket> ReadRequiredPacket(IRoomClientTransport transport, string step)
+{
+    GamePacket? packet = await transport.ReadAsync();
+    if (packet == null)
     {
-        Token = token,
-        Envelope = new ClientEnvelope
-        {
-            GameId = gameId,
-            Target = target,
-            RouteId = routeId,
-            Opcode = opcode,
-            Payload = ByteString.CopyFrom(Encoding.UTF8.GetBytes(payload)),
-        },
-    });
+        throw new InvalidOperationException($"{step} failed: connection closed");
+    }
+
+    return packet.Value;
+}
+
+static void ExpectRoomReply(string step, RoomCommandReply reply, int expectedError, string expectedMessage)
+{
+    ExpectError(step, reply.Error, expectedError);
+    Expect(step, reply.Message.Contains(expectedMessage, StringComparison.Ordinal), $"message '{reply.Message}' does not contain '{expectedMessage}'");
+    Console.WriteLine($"{step} reply: {reply.Message}");
 }
 
 static void ExpectError(string step, int actual, int expected)
@@ -137,13 +165,6 @@ static void ExpectError(string step, int actual, int expected)
     }
 
     Console.WriteLine($"{step} error ok: {actual}");
-}
-
-static void ExpectPayloadContains(string step, ForwardReply reply, string expected)
-{
-    string payload = Encoding.UTF8.GetString(reply.Payload.ToByteArray());
-    Expect(step, payload.Contains(expected, StringComparison.Ordinal), $"payload '{payload}' does not contain '{expected}'");
-    Console.WriteLine($"{step} payload: {payload}");
 }
 
 static void Expect(string step, bool condition, string message)
