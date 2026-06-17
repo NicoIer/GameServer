@@ -188,6 +188,44 @@ namespace Game001.Core
         Assert.Equal(1, CountOccurrences(generated, "center.Register<global::Game001.Core.RoomPingReq, global::Game001.Core.RoomPingRsp>(handlers.Handle);"));
     }
 
+    [Fact]
+    public void GeneratesHandlerBridgeForReqRspHandlers()
+    {
+        const string source = SharedTypes + """
+
+using GameServer.Core.Network;
+using Network;
+
+namespace Game001.Core
+{
+    [NetworkRequest(typeof(CreateRoomRsp))]
+    public partial struct CreateRoomReq : INetworkReq
+    {
+    }
+
+    public partial struct CreateRoomRsp : INetworkRsp
+    {
+    }
+}
+
+namespace Game001.Room
+{
+    public sealed partial class Game001RoomReqRspHandlers
+    {
+    }
+}
+""";
+
+        GeneratorDriverRunResult result = RunGenerator(source);
+        string generated = result.GeneratedTrees
+            .Select(x => x.GetText().ToString())
+            .Single(x => x.Contains("Game001RoomReqRspHandlers"));
+
+        Assert.Contains("public sealed partial class Game001RoomReqRspHandlers : global::Game001.Core.Generated.INetworkReqRspHandlers", generated);
+        Assert.Contains("return CreateRoomReqRsp.Handle(this, connectionId, req);", generated);
+        Assert.Contains("public static partial class CreateRoomReqRsp", generated);
+    }
+
     private static GeneratorDriverRunResult RunGenerator(string source)
     {
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
