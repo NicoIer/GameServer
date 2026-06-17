@@ -72,7 +72,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return CreateRoomNotFoundResponse(request, roomId);
         }
 
-        RspHead response = await room.Fiber.CallAsync(() => room.Module.HandleRequestAsync(connectionId, request));
+        RspHead response = await room.Value.Fiber.CallAsync(() => room.Value.Module.HandleRequestAsync(connectionId, request));
         if (ShouldBindConnectionRoom(request, response))
         {
             Connections.TrySetRoom(connectionId, roomId);
