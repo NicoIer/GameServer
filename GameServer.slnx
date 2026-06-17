@@ -7,14 +7,10 @@
   <Folder Name="/Game001/">
     <Project Path="Game001.Room/Game001.Room.csproj" />
   </Folder>
+  <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />
-  <Project Path="GameServer.Gate/GameServer.Gate.csproj" />
-  <Project Path="GameServer.Hall/GameServer.Hall.csproj" />
-  <Project Path="GameServer.Room/GameServer.Room.csproj" />
-  <Project Path="GameServer.Rpc\GameServer.Rpc.csproj" />
   <Project Path="GameServer.Startup\GameServer.Startup.csproj" />
-  <Project Path="GameServer.Tests/GameServer.Tests.csproj" />
   <Project Path="JoltPhysics.Tests/JoltPhysics.Tests.csproj" />
   <Project Path="JoltPhysics/JoltPhysics.csproj" />
   <Project Path="Luban/Luban.csproj" />

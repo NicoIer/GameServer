@@ -8,8 +8,4 @@
         <RootNamespace>App</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\GameServer.Rpc\GameServer.Rpc.csproj" />
-    </ItemGroup>
-
 </Project>
