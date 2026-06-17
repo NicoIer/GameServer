@@ -5,16 +5,15 @@ namespace Game001.Room;
 
 public sealed class Game001RoomServiceImpl : GameIngress.GameIngressBase
 {
-    private readonly Game001RoomReqRspDispatcher _dispatcher;
+    private readonly Game001RoomWorker _worker;
 
-    public Game001RoomServiceImpl(Game001RoomReqRspDispatcher dispatcher)
+    public Game001RoomServiceImpl(Game001RoomWorker worker)
     {
-        _dispatcher = dispatcher;
+        _worker = worker;
     }
 
-    public override Task<GameResponse> Handle(GameRequest request, ServerCallContext context)
+    public override async Task<GameResponse> Handle(GameRequest request, ServerCallContext context)
     {
-        GameResponse response = _dispatcher.HandleData(request.Uid, request.Data);
-        return Task.FromResult(response);
+        return await _worker.HandleDataAsync(request.Uid, request.Data);
     }
 }

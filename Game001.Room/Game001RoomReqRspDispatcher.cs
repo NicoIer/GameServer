@@ -30,7 +30,14 @@ public sealed class Game001RoomReqRspDispatcher
 
     public RspHead HandleRequest(int connectionId, ReqHead request)
     {
-        return _reqRspCenter.HandleRequest(connectionId, request);
+        try
+        {
+            return _reqRspCenter.HandleRequest(connectionId, request);
+        }
+        catch
+        {
+            return new RspHead(request.index, request.reqHash, 0, Network.ErrorCode.InternalError, "room request failed", default);
+        }
     }
 
     public GameResponse HandleData(long uid, ByteString data)

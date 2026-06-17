@@ -25,6 +25,7 @@ var game001RoomState = new Game001RoomState();
 var game001RoomConnections = new Game001RoomConnectionRegistry();
 var game001RoomReqRspHandlers = new Game001RoomReqRspHandlers(game001RoomConnections, game001RoomState);
 var game001RoomDispatcher = new Game001RoomReqRspDispatcher(game001RoomConnections, game001RoomReqRspHandlers);
+var game001RoomWorker = new Game001RoomWorker(game001RoomDispatcher);
 
 await using var centerServer = new GrpcServerRuntime(centerPort, services =>
 {
@@ -43,6 +44,7 @@ await using var game001RoomServer = new GrpcServerRuntime(game001RoomPort, servi
     services.AddSingleton(game001RoomConnections);
     services.AddSingleton(game001RoomReqRspHandlers);
     services.AddSingleton(game001RoomDispatcher);
+    services.AddSingleton(game001RoomWorker);
     services.AddSingleton<Game001RoomServiceImpl>();
 });
 game001RoomServer.MapGrpcService<Game001RoomServiceImpl>();
@@ -57,7 +59,7 @@ await using IGameRoomTransportServer game001RoomTransportServer = CreateGame001R
     game001RoomDirectProtocol,
     game001RoomTcpPort,
     roomCenterClient,
-    game001RoomDispatcher);
+    game001RoomWorker);
 
 await using var gateServer = new GrpcServerRuntime(gatePort, services =>
 {
@@ -68,6 +70,7 @@ await using var gateServer = new GrpcServerRuntime(gatePort, services =>
 gateServer.MapGrpcService<GateServiceImpl>();
 
 await centerServer.StartAsync();
+await game001RoomWorker.StartAsync();
 await game001RoomServer.StartAsync();
 await game001RoomTransportServer.StartAsync();
 await gateServer.StartAsync();
@@ -111,6 +114,7 @@ catch (OperationCanceledException)
 await gateServer.StopAsync();
 await game001RoomTransportServer.StopAsync();
 await game001RoomServer.StopAsync();
+await game001RoomWorker.StopAsync();
 await centerServer.StopAsync();
 
 startupCenterChannel.Dispose();
@@ -176,11 +180,11 @@ static IGameRoomTransportServer CreateGame001RoomTransportServer(
     DirectTransportProtocol protocol,
     int tcpPort,
     CenterService.CenterServiceClient centerClient,
-    Game001RoomReqRspDispatcher dispatcher)
+    Game001RoomWorker worker)
 {
     if (protocol == DirectTransportProtocol.Tcp)
     {
-        return new Game001RoomTcpServer(tcpPort, centerClient, dispatcher);
+        return new Game001RoomTcpServer(tcpPort, centerClient, worker);
     }
 
     throw new NotSupportedException($"unsupported Game001.Room direct transport protocol={protocol}");

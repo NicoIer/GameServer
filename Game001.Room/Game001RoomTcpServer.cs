@@ -10,16 +10,16 @@ namespace Game001.Room;
 public sealed class Game001RoomTcpServer : IGameRoomTransportServer
 {
     private readonly CenterService.CenterServiceClient _centerClient;
-    private readonly Game001RoomReqRspDispatcher _dispatcher;
+    private readonly Game001RoomWorker _worker;
     private readonly TcpListener _listener;
     private readonly CancellationTokenSource _shutdown = new();
     private Task? _acceptTask;
     private bool _stopped;
 
-    public Game001RoomTcpServer(int port, CenterService.CenterServiceClient centerClient, Game001RoomReqRspDispatcher dispatcher)
+    public Game001RoomTcpServer(int port, CenterService.CenterServiceClient centerClient, Game001RoomWorker worker)
     {
         _centerClient = centerClient;
-        _dispatcher = dispatcher;
+        _worker = worker;
         _listener = new TcpListener(IPAddress.Loopback, port);
         Address = $"127.0.0.1:{port}";
     }
@@ -108,7 +108,7 @@ public sealed class Game001RoomTcpServer : IGameRoomTransportServer
 
                 await WriteConnectionReplyAsync(stream, ErrorCode.Success, validateReply.Uid, connectRequest.RoomId, "connected", cancellationToken);
 
-                int connectionId = _dispatcher.AddConnection(validateReply.Uid, connectRequest.RoomId);
+                int connectionId = await _worker.AddConnectionAsync(validateReply.Uid, connectRequest.RoomId);
                 try
                 {
                     while (!cancellationToken.IsCancellationRequested)
@@ -119,13 +119,13 @@ public sealed class Game001RoomTcpServer : IGameRoomTransportServer
                             return;
                         }
 
-                        RspHead response = _dispatcher.HandleRequest(connectionId, request.Value);
+                        RspHead response = await _worker.HandleRequestAsync(connectionId, request.Value);
                         await GameTcpFrame.WriteAsync(stream, response, cancellationToken);
                     }
                 }
                 finally
                 {
-                    _dispatcher.RemoveConnection(connectionId);
+                    await _worker.RemoveConnectionAsync(connectionId);
                 }
             }
             catch (OperationCanceledException)
