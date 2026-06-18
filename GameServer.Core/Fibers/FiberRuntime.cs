@@ -21,27 +21,19 @@ public interface IFiberModule
     ValueTask OnStopAsync(CancellationToken cancellationToken);
 }
 
-public interface IFiberScheduler : IDisposable
+internal interface IFiberScheduler : IDisposable
 {
-    void Add(Fiber fiber);
+    void Add(int fiberId);
     void Remove(int fiberId);
-    void Wake(Fiber fiber);
 }
 
 public sealed class FiberSynchronizationContext : SynchronizationContext
 {
     private readonly ConcurrentQueue<FiberCallback> _queue = new();
-    private readonly Action _wake;
-
-    public FiberSynchronizationContext(Action wake)
-    {
-        _wake = wake;
-    }
 
     public override void Post(SendOrPostCallback d, object? state)
     {
         _queue.Enqueue(new FiberCallback(d, state));
-        _wake();
     }
 
     public override void Send(SendOrPostCallback d, object? state)
@@ -134,19 +126,19 @@ public sealed class Fiber
     private static Fiber? s_current;
 
     private readonly IFiberModule _module;
-    private readonly Action<Fiber> _wake;
     private readonly ConcurrentQueue<Action> _nextUpdateQueue = new();
     private readonly CancellationTokenSource _shutdown = new();
+    private int _started;
+    private int _stopping;
     private int _updating;
     private int _stopped;
 
-    internal Fiber(int fiberId, string name, IFiberModule module, Action<Fiber> wake)
+    internal Fiber(int fiberId, string name, IFiberModule module)
     {
         FiberId = fiberId;
         Name = name;
         _module = module;
-        _wake = wake;
-        SynchronizationContext = new FiberSynchronizationContext(() => _wake(this));
+        SynchronizationContext = new FiberSynchronizationContext();
     }
 
     public static Fiber? Current => s_current;
@@ -156,29 +148,28 @@ public sealed class Fiber
     public FiberAddress Address => new(FiberId, Name);
     public FiberSynchronizationContext SynchronizationContext { get; }
     public bool IsStopped => Volatile.Read(ref _stopped) != 0;
+    private bool IsStopping => Volatile.Read(ref _stopping) != 0;
+    private bool IsUnavailable => IsStopping || IsStopped;
 
     public async ValueTask StartAsync(CancellationToken cancellationToken)
     {
-        await _module.OnStartAsync(this, cancellationToken).ConfigureAwait(false);
+        var completion = new FiberCompletion<bool>();
+        SynchronizationContext.Post(_ =>
+        {
+            _ = ExecuteStartAsync(cancellationToken, completion);
+        }, completion);
+
+        await completion.Task.ConfigureAwait(false);
     }
 
     public async ValueTask StopAsync()
     {
-        if (Interlocked.Exchange(ref _stopped, 1) != 0)
-        {
-            return;
-        }
-
-        _shutdown.Cancel();
-        SynchronizationContext.Cancel();
-
-        await _module.OnStopAsync(CancellationToken.None).ConfigureAwait(false);
-        _shutdown.Dispose();
+        await StopOnFiberAsync().ConfigureAwait(false);
     }
 
     public void Post(Action action)
     {
-        if (IsStopped)
+        if (IsUnavailable)
         {
             return;
         }
@@ -188,7 +179,7 @@ public sealed class Fiber
 
     public Task PostAsync(Action action)
     {
-        if (IsStopped)
+        if (IsUnavailable)
         {
             return Task.FromCanceled(new CancellationToken(true));
         }
@@ -212,7 +203,7 @@ public sealed class Fiber
 
     public Task<T> CallAsync<T>(Func<T> action)
     {
-        if (IsStopped)
+        if (IsUnavailable)
         {
             return Task.FromCanceled<T>(new CancellationToken(true));
         }
@@ -235,7 +226,7 @@ public sealed class Fiber
 
     public Task<T> CallAsync<T>(Func<ValueTask<T>> action)
     {
-        if (IsStopped)
+        if (IsUnavailable)
         {
             return Task.FromCanceled<T>(new CancellationToken(true));
         }
@@ -251,7 +242,7 @@ public sealed class Fiber
 
     public void PostNextUpdate(Action action)
     {
-        if (IsStopped)
+        if (IsUnavailable)
         {
             return;
         }
@@ -275,8 +266,12 @@ public sealed class Fiber
             var context = new FiberUpdateContext(this, timeNowMs);
             DrainNextUpdateQueue();
             SynchronizationContext.Drain();
-            _module.OnUpdate(context);
-            _module.OnLateUpdate(context);
+            if (Volatile.Read(ref _started) != 0 && !IsUnavailable)
+            {
+                _module.OnUpdate(context);
+                _module.OnLateUpdate(context);
+            }
+
             SynchronizationContext.Drain();
             return true;
         }
@@ -286,6 +281,85 @@ public sealed class Fiber
             s_current = previousFiber;
             Volatile.Write(ref _updating, 0);
         }
+    }
+
+    internal async Task StopOnFiberAsync()
+    {
+        if (IsStopped)
+        {
+            return;
+        }
+
+        var completion = new FiberCompletion<bool>();
+        SynchronizationContext.Post(_ =>
+        {
+            _ = ExecuteStopAsync(completion);
+        }, completion);
+
+        await completion.Task.ConfigureAwait(false);
+    }
+
+    internal async Task StopInlineAsync()
+    {
+        if (IsStopped)
+        {
+            return;
+        }
+
+        Fiber? previousFiber = s_current;
+        System.Threading.SynchronizationContext? previousContext = System.Threading.SynchronizationContext.Current;
+        try
+        {
+            s_current = this;
+            System.Threading.SynchronizationContext.SetSynchronizationContext(SynchronizationContext);
+            await StopCoreAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            System.Threading.SynchronizationContext.SetSynchronizationContext(previousContext);
+            s_current = previousFiber;
+        }
+    }
+
+    private async Task ExecuteStartAsync(CancellationToken cancellationToken, FiberCompletion<bool> completion)
+    {
+        try
+        {
+            await _module.OnStartAsync(this, cancellationToken);
+            Volatile.Write(ref _started, 1);
+            completion.SetResult(true);
+        }
+        catch (Exception e)
+        {
+            completion.SetException(e);
+        }
+    }
+
+    private async Task ExecuteStopAsync(FiberCompletion<bool> completion)
+    {
+        try
+        {
+            await StopCoreAsync();
+            completion.SetResult(true);
+        }
+        catch (Exception e)
+        {
+            completion.SetException(e);
+        }
+    }
+
+    private async Task StopCoreAsync()
+    {
+        if (Interlocked.Exchange(ref _stopping, 1) != 0)
+        {
+            return;
+        }
+
+        _shutdown.Cancel();
+        await _module.OnStopAsync(CancellationToken.None);
+        SynchronizationContext.Cancel();
+        _shutdown.Dispose();
+        Volatile.Write(ref _stopped, 1);
     }
 
     private async Task ExecuteAsync<T>(Func<ValueTask<T>> action, FiberCompletion<T> completion)
@@ -336,14 +410,15 @@ public sealed class FiberManager : IDisposable
 {
     private readonly Dictionary<FiberSchedulerType, IFiberScheduler> _schedulers = new();
     private readonly ConcurrentDictionary<int, Fiber> _fibers = new();
+    private readonly ConcurrentDictionary<int, FiberSchedulerType> _fiberSchedulerTypes = new();
     private int _nextFiberId;
     private bool _disposed;
 
     public FiberManager(int threadPoolWorkerCount = 0)
     {
-        _schedulers[FiberSchedulerType.Main] = new MainFiberScheduler();
-        _schedulers[FiberSchedulerType.Thread] = new ThreadFiberScheduler();
-        _schedulers[FiberSchedulerType.ThreadPool] = new ThreadPoolFiberScheduler(threadPoolWorkerCount);
+        _schedulers[FiberSchedulerType.Main] = new MainFiberScheduler(this);
+        _schedulers[FiberSchedulerType.Thread] = new ThreadFiberScheduler(this);
+        _schedulers[FiberSchedulerType.ThreadPool] = new ThreadPoolFiberScheduler(this, threadPoolWorkerCount);
     }
 
     public async Task<Fiber> CreateAsync(
@@ -354,21 +429,25 @@ public sealed class FiberManager : IDisposable
     {
         ThrowIfDisposed();
         int fiberId = Interlocked.Increment(ref _nextFiberId);
-        var fiber = new Fiber(fiberId, name, module, Wake);
+        var fiber = new Fiber(fiberId, name, module);
         if (!_fibers.TryAdd(fiberId, fiber))
         {
             throw new InvalidOperationException($"duplicate fiber id={fiberId}");
         }
 
+        _fiberSchedulerTypes[fiberId] = schedulerType;
+        IFiberScheduler scheduler = _schedulers[schedulerType];
         try
         {
-            await fiber.StartAsync(cancellationToken);
-            IFiberScheduler scheduler = _schedulers[schedulerType];
-            scheduler.Add(fiber);
+            Task startTask = fiber.StartAsync(cancellationToken).AsTask();
+            scheduler.Add(fiberId);
+            await AwaitFiberTaskAsync(schedulerType, startTask).ConfigureAwait(false);
             return fiber;
         }
         catch
         {
+            scheduler.Remove(fiberId);
+            _fiberSchedulerTypes.TryRemove(fiberId, out _);
             _fibers.TryRemove(fiberId, out _);
             throw;
         }
@@ -381,17 +460,36 @@ public sealed class FiberManager : IDisposable
 
     public async Task RemoveAsync(int fiberId)
     {
-        if (!_fibers.TryRemove(fiberId, out Fiber? fiber))
+        if (!_fibers.TryGetValue(fiberId, out Fiber? fiber))
         {
             return;
         }
 
-        foreach (IFiberScheduler scheduler in _schedulers.Values)
+        bool hasSchedulerType = _fiberSchedulerTypes.TryGetValue(fiberId, out FiberSchedulerType schedulerType);
+        Task stopTask = fiber.StopOnFiberAsync();
+        if (hasSchedulerType)
         {
-            scheduler.Remove(fiberId);
+            await AwaitFiberTaskAsync(schedulerType, stopTask).ConfigureAwait(false);
+        }
+        else
+        {
+            await stopTask.ConfigureAwait(false);
         }
 
-        await fiber.StopAsync();
+        if (hasSchedulerType)
+        {
+            _schedulers[schedulerType].Remove(fiberId);
+        }
+        else
+        {
+            foreach (IFiberScheduler scheduler in _schedulers.Values)
+            {
+                scheduler.Remove(fiberId);
+            }
+        }
+
+        _fiberSchedulerTypes.TryRemove(fiberId, out _);
+        _fibers.TryRemove(fiberId, out _);
     }
 
     public void UpdateMain(long timeNowMs)
@@ -412,7 +510,7 @@ public sealed class FiberManager : IDisposable
         _disposed = true;
         foreach (Fiber fiber in _fibers.Values)
         {
-            fiber.StopAsync().AsTask().GetAwaiter().GetResult();
+            fiber.StopInlineAsync().GetAwaiter().GetResult();
         }
 
         foreach (IFiberScheduler scheduler in _schedulers.Values)
@@ -421,15 +519,8 @@ public sealed class FiberManager : IDisposable
         }
 
         _fibers.Clear();
+        _fiberSchedulerTypes.Clear();
         _schedulers.Clear();
-    }
-
-    private void Wake(Fiber fiber)
-    {
-        foreach (IFiberScheduler scheduler in _schedulers.Values)
-        {
-            scheduler.Wake(fiber);
-        }
     }
 
     private void ThrowIfDisposed()
@@ -439,72 +530,88 @@ public sealed class FiberManager : IDisposable
             throw new ObjectDisposedException(nameof(FiberManager));
         }
     }
+
+    internal Fiber? GetInternal(int fiberId)
+    {
+        _fibers.TryGetValue(fiberId, out Fiber? fiber);
+        return fiber;
+    }
+
+    internal bool IsDisposedInternal => Volatile.Read(ref _disposed);
+
+    private async Task AwaitFiberTaskAsync(FiberSchedulerType schedulerType, Task task)
+    {
+        if (schedulerType == FiberSchedulerType.Main && _schedulers[FiberSchedulerType.Main] is MainFiberScheduler scheduler)
+        {
+            while (!task.IsCompleted)
+            {
+                scheduler.Update(Environment.TickCount64);
+                await Task.Yield();
+            }
+        }
+
+        await task.ConfigureAwait(false);
+    }
 }
 
 internal sealed class MainFiberScheduler : IFiberScheduler
 {
-    private readonly ConcurrentDictionary<int, Fiber> _fibers = new();
-    private readonly ConcurrentQueue<int> _ready = new();
+    private readonly FiberManager _fiberManager;
+    private readonly ConcurrentDictionary<int, byte> _fiberIds = new();
 
-    public void Add(Fiber fiber)
+    public MainFiberScheduler(FiberManager fiberManager)
     {
-        _fibers[fiber.FiberId] = fiber;
-        Wake(fiber);
+        _fiberManager = fiberManager;
+    }
+
+    public void Add(int fiberId)
+    {
+        _fiberIds[fiberId] = 0;
     }
 
     public void Remove(int fiberId)
     {
-        _fibers.TryRemove(fiberId, out _);
-    }
-
-    public void Wake(Fiber fiber)
-    {
-        if (_fibers.ContainsKey(fiber.FiberId))
-        {
-            _ready.Enqueue(fiber.FiberId);
-        }
+        _fiberIds.TryRemove(fiberId, out _);
     }
 
     public void Update(long timeNowMs)
     {
-        foreach (Fiber fiber in _fibers.Values)
+        foreach (int fiberId in _fiberIds.Keys)
         {
-            if (!fiber.IsStopped && fiber.NextWakeTimeMs <= timeNowMs)
+            Fiber? fiber = _fiberManager.GetInternal(fiberId);
+            if (fiber == null || fiber.IsStopped)
             {
-                _ready.Enqueue(fiber.FiberId);
+                _fiberIds.TryRemove(fiberId, out _);
+                continue;
             }
-        }
 
-        int count = 0;
-        while (count < 4096 && _ready.TryDequeue(out int fiberId))
-        {
-            if (_fibers.TryGetValue(fiberId, out Fiber? fiber))
+            if (fiber.NextWakeTimeMs <= timeNowMs)
             {
                 fiber.RunOnce(timeNowMs);
-                if (!fiber.IsStopped && fiber.NextWakeTimeMs <= timeNowMs)
-                {
-                    _ready.Enqueue(fiber.FiberId);
-                }
             }
-
-            count++;
         }
     }
 
     public void Dispose()
     {
-        _fibers.Clear();
+        _fiberIds.Clear();
     }
 }
 
 internal sealed class ThreadFiberScheduler : IFiberScheduler
 {
     private readonly ConcurrentDictionary<int, ThreadFiberRunner> _runners = new();
+    private readonly FiberManager _fiberManager;
 
-    public void Add(Fiber fiber)
+    public ThreadFiberScheduler(FiberManager fiberManager)
     {
-        var runner = new ThreadFiberRunner(fiber);
-        if (_runners.TryAdd(fiber.FiberId, runner))
+        _fiberManager = fiberManager;
+    }
+
+    public void Add(int fiberId)
+    {
+        var runner = new ThreadFiberRunner(_fiberManager, fiberId);
+        if (_runners.TryAdd(fiberId, runner))
         {
             runner.Start();
         }
@@ -515,14 +622,6 @@ internal sealed class ThreadFiberScheduler : IFiberScheduler
         if (_runners.TryRemove(fiberId, out ThreadFiberRunner? runner))
         {
             runner.Dispose();
-        }
-    }
-
-    public void Wake(Fiber fiber)
-    {
-        if (_runners.TryGetValue(fiber.FiberId, out ThreadFiberRunner? runner))
-        {
-            runner.Wake();
         }
     }
 
@@ -538,18 +637,20 @@ internal sealed class ThreadFiberScheduler : IFiberScheduler
 
     private sealed class ThreadFiberRunner : IDisposable
     {
-        private readonly Fiber _fiber;
-        private readonly AutoResetEvent _wakeSignal = new(false);
+        private readonly FiberManager _fiberManager;
+        private readonly int _fiberId;
         private readonly CancellationTokenSource _shutdown = new();
         private readonly Thread _thread;
 
-        public ThreadFiberRunner(Fiber fiber)
+        public ThreadFiberRunner(FiberManager fiberManager, int fiberId)
         {
-            _fiber = fiber;
+            _fiberManager = fiberManager;
+            _fiberId = fiberId;
+            Fiber? fiber = _fiberManager.GetInternal(fiberId);
             _thread = new Thread(Run)
             {
                 IsBackground = true,
-                Name = $"Fiber-{fiber.FiberId}-{fiber.Name}",
+                Name = fiber == null ? $"Fiber-{fiberId}" : $"Fiber-{fiberId}-{fiber.Name}",
             };
         }
 
@@ -558,33 +659,32 @@ internal sealed class ThreadFiberScheduler : IFiberScheduler
             _thread.Start();
         }
 
-        public void Wake()
-        {
-            _wakeSignal.Set();
-        }
-
         public void Dispose()
         {
             _shutdown.Cancel();
-            _wakeSignal.Set();
             _thread.Join();
-            _wakeSignal.Dispose();
             _shutdown.Dispose();
         }
 
         private void Run()
         {
-            while (!_shutdown.IsCancellationRequested && !_fiber.IsStopped)
+            while (!_shutdown.IsCancellationRequested && !_fiberManager.IsDisposedInternal)
             {
-                long now = Environment.TickCount64;
-                if (_fiber.NextWakeTimeMs <= now)
+                Fiber? fiber = _fiberManager.GetInternal(_fiberId);
+                if (fiber == null || fiber.IsStopped)
                 {
-                    _fiber.RunOnce(now);
+                    return;
+                }
+
+                long now = Environment.TickCount64;
+                if (fiber.NextWakeTimeMs <= now)
+                {
+                    fiber.RunOnce(now);
                     now = Environment.TickCount64;
                 }
 
-                int sleepMs = FiberSchedulerSleep.GetSleepMs(now, _fiber.NextWakeTimeMs);
-                _wakeSignal.WaitOne(sleepMs);
+                int sleepMs = FiberSchedulerSleep.GetSleepMs(now, fiber.NextWakeTimeMs);
+                Thread.Sleep(sleepMs);
             }
         }
     }
@@ -592,8 +692,9 @@ internal sealed class ThreadFiberScheduler : IFiberScheduler
 
 internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
 {
-    private readonly ConcurrentDictionary<int, Fiber> _fibers = new();
-    private readonly ConcurrentDictionary<int, byte> _readySet = new();
+    private readonly FiberManager _fiberManager;
+    private readonly ConcurrentDictionary<int, byte> _fiberIds = new();
+    private readonly ConcurrentDictionary<int, long> _wakeTimes = new();
     private readonly ConcurrentQueue<int> _ready = new();
     private readonly PriorityQueue<int, long> _delayQueue = new();
     private readonly object _delayLock = new();
@@ -601,8 +702,9 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<Thread> _workers = new();
 
-    public ThreadPoolFiberScheduler(int workerCount)
+    public ThreadPoolFiberScheduler(FiberManager fiberManager, int workerCount)
     {
+        _fiberManager = fiberManager;
         int count = workerCount > 0 ? workerCount : Math.Max(1, Environment.ProcessorCount / 2);
         for (int i = 0; i < count; i++)
         {
@@ -616,25 +718,17 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
         }
     }
 
-    public void Add(Fiber fiber)
+    public void Add(int fiberId)
     {
-        _fibers[fiber.FiberId] = fiber;
-        Wake(fiber);
+        _fiberIds[fiberId] = 0;
+        _ready.Enqueue(fiberId);
+        _wakeSignal.Set();
     }
 
     public void Remove(int fiberId)
     {
-        _fibers.TryRemove(fiberId, out _);
-        _readySet.TryRemove(fiberId, out _);
-    }
-
-    public void Wake(Fiber fiber)
-    {
-        if (_fibers.ContainsKey(fiber.FiberId) && _readySet.TryAdd(fiber.FiberId, 0))
-        {
-            _ready.Enqueue(fiber.FiberId);
-            _wakeSignal.Set();
-        }
+        _fiberIds.TryRemove(fiberId, out _);
+        _wakeTimes.TryRemove(fiberId, out _);
     }
 
     public void Dispose()
@@ -648,32 +742,33 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
 
         _wakeSignal.Dispose();
         _shutdown.Dispose();
-        _fibers.Clear();
-        _readySet.Clear();
+        _fiberIds.Clear();
+        _wakeTimes.Clear();
     }
 
     private void Run()
     {
-        while (!_shutdown.IsCancellationRequested)
+        while (!_shutdown.IsCancellationRequested && !_fiberManager.IsDisposedInternal)
         {
             long now = Environment.TickCount64;
             MoveDueFibers(now);
 
             if (_ready.TryDequeue(out int fiberId))
             {
-                _readySet.TryRemove(fiberId, out _);
-                if (_fibers.TryGetValue(fiberId, out Fiber? fiber) && !fiber.IsStopped)
+                Fiber? fiber = _fiberManager.GetInternal(fiberId);
+                if (fiber != null && !fiber.IsStopped && _fiberIds.ContainsKey(fiberId))
                 {
                     try
                     {
-                        fiber.RunOnce(now);
+                        if (fiber.RunOnce(now))
+                        {
+                            ScheduleDelay(fiberId, fiber);
+                        }
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
-
-                    ScheduleDelay(fiber);
                 }
 
                 continue;
@@ -683,9 +778,9 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
         }
     }
 
-    private void ScheduleDelay(Fiber fiber)
+    private void ScheduleDelay(int fiberId, Fiber fiber)
     {
-        if (fiber.IsStopped)
+        if (fiber.IsStopped || !_fiberIds.ContainsKey(fiberId))
         {
             return;
         }
@@ -699,7 +794,8 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
 
         lock (_delayLock)
         {
-            _delayQueue.Enqueue(fiber.FiberId, wakeTime);
+            _wakeTimes[fiberId] = wakeTime;
+            _delayQueue.Enqueue(fiberId, wakeTime);
         }
 
         _wakeSignal.Set();
@@ -712,13 +808,18 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
             while (_delayQueue.TryPeek(out int fiberId, out long wakeTime) && wakeTime <= now)
             {
                 _delayQueue.Dequeue();
-                if (_fibers.ContainsKey(fiberId))
+                if (!_fiberIds.ContainsKey(fiberId))
                 {
-                    if (_readySet.TryAdd(fiberId, 0))
-                    {
-                        _ready.Enqueue(fiberId);
-                    }
+                    continue;
                 }
+
+                if (!_wakeTimes.TryGetValue(fiberId, out long currentWakeTime) || currentWakeTime != wakeTime)
+                {
+                    continue;
+                }
+
+                _wakeTimes.TryRemove(fiberId, out _);
+                _ready.Enqueue(fiberId);
             }
         }
     }
