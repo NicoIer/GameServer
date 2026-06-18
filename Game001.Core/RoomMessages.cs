@@ -75,6 +75,4 @@ public partial struct RoomPingRsp : INetworkRsp
 public partial struct RoomFullStatePush : IRoomPush
 {
     public RoomInfo Room;
-    public long[] Players;
-    public long[] DisconnectedPlayers;
 }

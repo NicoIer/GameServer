@@ -20,8 +20,6 @@ public sealed class RoomSyncSystem
         var push = new RoomFullStatePush
         {
             Room = _state.CreateRoomInfo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
-            Players = _state.Players.ToArray(),
-            DisconnectedPlayers = _state.DisconnectedPlayers.ToArray(),
         };
 
         _pushHub.Send(connectionId, push);
