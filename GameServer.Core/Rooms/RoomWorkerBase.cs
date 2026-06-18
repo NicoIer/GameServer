@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using GameServer.Core.Fibers;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
@@ -17,9 +18,8 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     private static readonly ushort RoomConnectRspHash = TypeId<RoomConnectRsp>.stableId16;
 
     private readonly FiberManager _fiberManager = new();
-    private readonly Dictionary<string, RoomRuntimeHandle> _rooms = new(StringComparer.Ordinal);
-    private readonly SemaphoreSlim _roomLock = new(1, 1);
-    private bool _stopped;
+    private readonly ConcurrentDictionary<string, Lazy<Task<RoomRuntimeHandle>>> _rooms = new(StringComparer.Ordinal);
+    private int _stopped;
 
     protected RoomWorkerBase(RoomConnectionRegistry connections, int roomFrameRate)
     {
@@ -32,7 +32,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     public Task<int> AddConnectionAsync(long uid, string roomId)
     {
-        if (_stopped)
+        if (IsStopped)
         {
             return Task.FromCanceled<int>(new CancellationToken(true));
         }
@@ -64,7 +64,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
     {
-        if (_stopped)
+        if (IsStopped)
         {
             return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InternalError, "room worker stopped", default);
         }
@@ -141,15 +141,16 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     public void Stop()
     {
-        _stopped = true;
+        Interlocked.Exchange(ref _stopped, 1);
     }
 
     public void Dispose()
     {
         Stop();
-        _roomLock.Dispose();
         _fiberManager.Dispose();
     }
+
+    private bool IsStopped => Volatile.Read(ref _stopped) != 0;
 
     protected abstract bool TryResolveRoomId(ReqHead request, RoomConnectionContext context, out string roomId);
     protected abstract bool IsCreateRoomRequest(ReqHead request);
@@ -175,20 +176,20 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     private async Task<RoomRuntimeHandle?> FindRoomAsync(string roomId)
     {
-        await _roomLock.WaitAsync();
-        try
+        if (!_rooms.TryGetValue(roomId, out Lazy<Task<RoomRuntimeHandle>>? roomTask))
         {
-            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle handle))
-            {
-                return handle;
-            }
-        }
-        finally
-        {
-            _roomLock.Release();
+            return null;
         }
 
-        return null;
+        try
+        {
+            return await roomTask.Value.ConfigureAwait(false);
+        }
+        catch
+        {
+            _rooms.TryRemove(roomId, out _);
+            return null;
+        }
     }
 
     private static async ValueTask<bool> HandleConnectionDisconnectedAsync(
@@ -202,24 +203,28 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     private async Task<RoomRuntimeHandle> GetOrCreateRoomAsync(string roomId)
     {
-        await _roomLock.WaitAsync();
+        Lazy<Task<RoomRuntimeHandle>> roomTask = _rooms.GetOrAdd(
+            roomId,
+            key => new Lazy<Task<RoomRuntimeHandle>>(
+                () => CreateRoomAsync(key),
+                LazyThreadSafetyMode.ExecutionAndPublication));
+
         try
         {
-            if (_rooms.TryGetValue(roomId, out RoomRuntimeHandle existing))
-            {
-                return existing;
-            }
-
-            TRoomModule module = CreateRoomModule(roomId);
-            Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, CreateRoomFiberName(roomId), module);
-            var handle = new RoomRuntimeHandle(fiber, module);
-            _rooms.Add(roomId, handle);
-            return handle;
+            return await roomTask.Value.ConfigureAwait(false);
         }
-        finally
+        catch
         {
-            _roomLock.Release();
+            _rooms.TryRemove(roomId, out _);
+            throw;
         }
+    }
+
+    private async Task<RoomRuntimeHandle> CreateRoomAsync(string roomId)
+    {
+        TRoomModule module = CreateRoomModule(roomId);
+        Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, CreateRoomFiberName(roomId), module);
+        return new RoomRuntimeHandle(fiber, module);
     }
 
     private async Task<RspHead> HandleRoomConnectAsync(int connectionId, ReqHead request)
@@ -240,17 +245,10 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return CreateRoomConnectErrorResponse(request, "room id is empty");
         }
 
-        await _roomLock.WaitAsync();
-        try
+        RoomRuntimeHandle? room = await FindRoomAsync(roomId);
+        if (room == null)
         {
-            if (!_rooms.ContainsKey(roomId))
-            {
-                return CreateRoomConnectErrorResponse(request, $"room not found room={roomId}");
-            }
-        }
-        finally
-        {
-            _roomLock.Release();
+            return CreateRoomConnectErrorResponse(request, $"room not found room={roomId}");
         }
 
         Connections.TrySetRoom(connectionId, roomId);

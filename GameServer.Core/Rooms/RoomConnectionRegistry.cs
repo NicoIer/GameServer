@@ -1,63 +1,46 @@
+using System.Collections.Concurrent;
+
 namespace GameServer.Core.Rooms;
 
 public sealed class RoomConnectionRegistry
 {
-    private readonly Dictionary<int, RoomConnectionContext> _connections = new();
-    private readonly object _lock = new();
+    private readonly ConcurrentDictionary<int, RoomConnectionContext> _connections = new();
     private int _nextConnectionId;
 
     public int Add(long uid, string roomId)
     {
-        lock (_lock)
-        {
-            int connectionId = ++_nextConnectionId;
-            _connections[connectionId] = new RoomConnectionContext(uid, roomId);
-            return connectionId;
-        }
+        int connectionId = Interlocked.Increment(ref _nextConnectionId);
+        _connections[connectionId] = new RoomConnectionContext(uid, roomId);
+        return connectionId;
     }
 
     public bool TryGet(int connectionId, out RoomConnectionContext context)
     {
-        lock (_lock)
-        {
-            return _connections.TryGetValue(connectionId, out context);
-        }
+        return _connections.TryGetValue(connectionId, out context);
     }
 
     public bool TrySetRoom(int connectionId, string roomId)
     {
-        lock (_lock)
+        while (_connections.TryGetValue(connectionId, out RoomConnectionContext context))
         {
-            if (!_connections.TryGetValue(connectionId, out RoomConnectionContext context))
+            RoomConnectionContext updated = context with { RoomId = roomId };
+            if (_connections.TryUpdate(connectionId, updated, context))
             {
-                return false;
+                return true;
             }
-
-            _connections[connectionId] = context with { RoomId = roomId };
-            return true;
         }
+
+        return false;
     }
 
     public void Remove(int connectionId)
     {
-        lock (_lock)
-        {
-            _connections.Remove(connectionId);
-        }
+        _connections.TryRemove(connectionId, out _);
     }
 
     public bool TryRemove(int connectionId, out RoomConnectionContext context)
     {
-        lock (_lock)
-        {
-            if (!_connections.TryGetValue(connectionId, out context))
-            {
-                return false;
-            }
-
-            _connections.Remove(connectionId);
-            return true;
-        }
+        return _connections.TryRemove(connectionId, out context);
     }
 }
 
