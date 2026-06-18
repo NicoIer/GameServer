@@ -1,0 +1,20 @@
+{
+  "name": "com.nicoier.zstd.unity",
+  "version": "1.0.0",
+  "displayName": "zstd.unity",
+  "description": "zstd compression for unity.",
+  "unity": "2021.3",
+  "dependencies": {
+  },
+  "keywords": [
+    "zstd",
+    "compression",
+    "unity",
+    "diff"
+  ],
+  "author": {
+    "name": "nicoier",
+    "email": "nicoier@163.com",
+    "url": "https://nicoier.github.io/"
+  }
+}

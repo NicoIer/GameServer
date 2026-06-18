@@ -17,8 +17,8 @@ public partial struct RoomInfo
 [MemoryPackable]
 public partial struct PatchMessage
 {
-    public long formId;
-    public long targetId;
+    public int sourceFrameId;
+    public int targetFrameId;
     public byte[] patch;
 }
 

@@ -1,0 +1,19 @@
+{
+    "name": "zstd.unity.samples",
+    "rootNamespace": "",
+    "references": [
+        "Unity.TextMeshPro",
+        "UniTask",
+        "zstd.unity",
+        "zstd.unity.patch"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

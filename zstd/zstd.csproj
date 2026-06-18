@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NativeArch>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</NativeArch>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="zstd\AssemblyInfo.cs" />
+        <Compile Include="zstd\generated\**\*.cs" />
+        <Compile Include="zstd\runtime\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+        <None Include="zstd\Plugins\native\mac\libzstd.dylib">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <Link>libzstd.dylib</Link>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+        <None Condition="'$(NativeArch)' == 'X64'" Include="zstd\Plugins\native\linux\x86_64\libzstd.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <Link>libzstd.so</Link>
+        </None>
+        <None Condition="'$(NativeArch)' == 'Arm64'" Include="zstd\Plugins\native\linux\arm64\libzstd.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <Link>libzstd.so</Link>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <None Condition="'$(NativeArch)' == 'X64'" Include="zstd\Plugins\native\win\x86_64\libzstd.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <Link>libzstd.dll</Link>
+        </None>
+    </ItemGroup>
+
+</Project>

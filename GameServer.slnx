@@ -19,4 +19,5 @@
   <Project Path="JoltPhysics/JoltPhysics.csproj" />
   <Project Path="Luban/Luban.csproj" />
   <Project Path="UnityToolkit/UnityToolkit.csproj" />
+  <Project Path="zstd/zstd.csproj" />
 </Solution>
