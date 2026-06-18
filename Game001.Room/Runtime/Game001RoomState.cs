@@ -15,7 +15,7 @@ public sealed class Game001RoomState
         RoomId = roomId;
     }
 
-    public void Update(long timeNowMs, int frame)
+    public void SetFrame(long timeNowMs, int frame)
     {
         Frame = frame;
         LastUpdateTimeMs = timeNowMs;

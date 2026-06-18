@@ -14,7 +14,7 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
         : base(roomId, roomFrameRate)
     {
         _connections = connections;
-        _room = new Game001Room(roomId, connections, pushHub);
+        _room = new Game001Room(roomId, pushHub);
     }
 
     protected override void RegisterHandlers(ReqRspServerCenter center)

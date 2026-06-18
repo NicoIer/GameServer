@@ -63,18 +63,19 @@ public partial struct RoomPingRsp : INetworkRsp
 {
 }
 
-public enum RoomPushType
+[MemoryPackable]
+public partial struct RoomFullStatePush : IRoomPush
 {
-    RoomCreated,
-    PlayerJoined,
-    PlayerLeft,
-    PlayerDisconnected,
+    public RoomInfo Room;
+    public long[] Players;
+    public long[] DisconnectedPlayers;
 }
 
 [MemoryPackable]
-public partial struct RoomEventPush : IRoomPush
+public partial struct RoomDeltaStatePush : IRoomPush
 {
-    public RoomPushType Type;
     public RoomInfo Room;
-    public long Uid;
+    public long[] JoinedPlayers;
+    public long[] LeftPlayers;
+    public long[] DisconnectedPlayers;
 }

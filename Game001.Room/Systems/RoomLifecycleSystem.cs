@@ -6,19 +6,20 @@ namespace Game001.Room.Systems;
 public sealed class RoomLifecycleSystem
 {
     private readonly Game001RoomState _state;
-    private readonly RoomReplicationSystem _replication;
+    private readonly RoomSyncSystem _sync;
 
-    public RoomLifecycleSystem(Game001RoomState state, RoomReplicationSystem replication)
+    public RoomLifecycleSystem(Game001RoomState state, RoomSyncSystem sync)
     {
         _state = state;
-        _replication = replication;
+        _sync = sync;
     }
 
     public string CreateRoom(int connectionId, long uid)
     {
         _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
-        _replication.SendRoomEvent(connectionId, RoomPushType.RoomCreated, uid);
+        _sync.MarkDirty();
+        _sync.SendFullState(connectionId);
         return $"created room={_state.RoomId} players={_state.Players.Count}";
     }
 
@@ -28,9 +29,10 @@ public sealed class RoomLifecycleSystem
         _state.DisconnectedPlayers.Remove(uid);
         if (added)
         {
-            _replication.SendRoomEvent(connectionId, RoomPushType.PlayerJoined, uid);
+            _sync.MarkDirty();
         }
 
+        _sync.SendFullState(connectionId);
         return $"joined room={_state.RoomId} players={_state.Players.Count}";
     }
 
@@ -40,7 +42,7 @@ public sealed class RoomLifecycleSystem
         _state.DisconnectedPlayers.Remove(uid);
         if (removed)
         {
-            _replication.SendRoomEvent(connectionId, RoomPushType.PlayerLeft, uid);
+            _sync.MarkDirty();
         }
 
         return $"left room={_state.RoomId} players={_state.Players.Count}";
@@ -50,7 +52,7 @@ public sealed class RoomLifecycleSystem
     {
         if (_state.Players.Contains(uid) && _state.DisconnectedPlayers.Add(uid))
         {
-            _replication.SendRoomEvent(connectionId, RoomPushType.PlayerDisconnected, uid);
+            _sync.MarkDirty();
         }
 
         return $"disconnected uid={uid} room={_state.RoomId} players={_state.Players.Count}";

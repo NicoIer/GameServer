@@ -13,9 +13,9 @@ public sealed class Game001RoomTests
     private const long Uid = 1001;
 
     [Fact]
-    public void CreateRoomAddsCreatorAndSendsRoomPush()
+    public void CreateRoomAddsCreatorAndSendsFullState()
     {
-        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomEventPush> pushes);
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, string.Empty);
 
         string message = room.CreateRoom(connectionId, Uid);
@@ -23,33 +23,40 @@ public sealed class Game001RoomTests
         Assert.Contains("created room=room-test", message, StringComparison.Ordinal);
         Assert.Single(room.State.Players);
         Assert.Contains(Uid, room.State.Players);
-        RoomEventPush push = Assert.Single(pushes);
-        Assert.Equal(RoomPushType.RoomCreated, push.Type);
-        Assert.Equal(Uid, push.Uid);
+        RoomFullStatePush push = Assert.Single(pushes);
         Assert.Equal(RoomId, push.Room.RoomId);
         Assert.Equal(1, push.Room.PlayerCount);
+        Assert.Equal(new[] { Uid }, push.Players);
+        Assert.Empty(push.DisconnectedPlayers);
     }
 
     [Fact]
-    public void JoinRoomIsIdempotentForPlayerCount()
+    public void JoinRoomSendsFullStateToJoinedConnection()
     {
-        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomEventPush> pushes);
+        const long otherUid = 1002;
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        int otherConnectionId = AddConnection(connections, pushHub, new List<RoomFullStatePush>(), otherUid, RoomId);
+        room.JoinRoom(otherConnectionId, otherUid);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
 
         string first = room.JoinRoom(connectionId, Uid);
         string second = room.JoinRoom(connectionId, Uid);
 
-        Assert.Contains("players=1", first, StringComparison.Ordinal);
-        Assert.Contains("players=1", second, StringComparison.Ordinal);
-        Assert.Single(room.State.Players);
-        RoomEventPush push = Assert.Single(pushes);
-        Assert.Equal(RoomPushType.PlayerJoined, push.Type);
+        Assert.Contains("players=2", first, StringComparison.Ordinal);
+        Assert.Contains("players=2", second, StringComparison.Ordinal);
+        Assert.Equal(2, room.State.Players.Count);
+        Assert.Equal(2, pushes.Count);
+        RoomFullStatePush push = pushes[0];
+        Assert.Equal(RoomId, push.Room.RoomId);
+        Assert.Equal(2, push.Room.PlayerCount);
+        Assert.Contains(Uid, push.Players);
+        Assert.Contains(otherUid, push.Players);
     }
 
     [Fact]
     public void LeaveRoomRemovesPlayerAndDisconnectedState()
     {
-        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomEventPush> pushes);
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
         room.JoinRoom(connectionId, Uid);
         room.DisconnectRoom(connectionId, Uid);
@@ -60,14 +67,13 @@ public sealed class Game001RoomTests
         Assert.Contains("players=0", message, StringComparison.Ordinal);
         Assert.DoesNotContain(Uid, room.State.Players);
         Assert.DoesNotContain(Uid, room.State.DisconnectedPlayers);
-        RoomEventPush push = Assert.Single(pushes);
-        Assert.Equal(RoomPushType.PlayerLeft, push.Type);
+        Assert.Empty(pushes);
     }
 
     [Fact]
     public void DisconnectOnlyMarksPlayersInRoom()
     {
-        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomEventPush> pushes);
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
 
         room.DisconnectRoom(connectionId, Uid);
@@ -81,12 +87,11 @@ public sealed class Game001RoomTests
         room.DisconnectRoom(connectionId, Uid);
 
         Assert.Contains(Uid, room.State.DisconnectedPlayers);
-        RoomEventPush push = Assert.Single(pushes);
-        Assert.Equal(RoomPushType.PlayerDisconnected, push.Type);
+        Assert.Empty(pushes);
     }
 
     [Fact]
-    public void UpdateAdvancesFrameAndTime()
+    public void UpdateSetsFrameAndTime()
     {
         Game001Room room = CreateRoom(out _, out _, out _);
 
@@ -99,27 +104,27 @@ public sealed class Game001RoomTests
     private static Game001Room CreateRoom(
         out RoomConnectionRegistry connections,
         out RoomPushHub pushHub,
-        out List<RoomEventPush> pushes)
+        out List<RoomFullStatePush> pushes)
     {
         connections = new RoomConnectionRegistry();
         pushHub = new RoomPushHub();
-        pushes = new List<RoomEventPush>();
-        return new Game001Room(RoomId, connections, pushHub);
+        pushes = new List<RoomFullStatePush>();
+        return new Game001Room(RoomId, pushHub);
     }
 
     private static int AddConnection(
         RoomConnectionRegistry connections,
         RoomPushHub pushHub,
-        List<RoomEventPush> pushes,
+        List<RoomFullStatePush> pushes,
         long uid,
         string roomId)
     {
         int connectionId = connections.Add(uid, roomId);
         pushHub.Register(connectionId, push =>
         {
-            if (push.PushHash == TypeId<RoomEventPush>.stableId16)
+            if (push.PushHash == TypeId<RoomFullStatePush>.stableId16)
             {
-                pushes.Add(MemoryPackSerializer.Deserialize<RoomEventPush>(push.Payload));
+                pushes.Add(MemoryPackSerializer.Deserialize<RoomFullStatePush>(push.Payload));
             }
         });
 

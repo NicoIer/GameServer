@@ -6,12 +6,13 @@ namespace Game001.Room.Runtime;
 public sealed class Game001Room
 {
     private readonly RoomLifecycleSystem _lifecycleSystem;
+    private readonly RoomSyncSystem _syncSystem;
 
-    public Game001Room(string roomId, RoomConnectionRegistry connections, RoomPushHub pushHub)
+    public Game001Room(string roomId, RoomPushHub pushHub)
     {
         State = new Game001RoomState(roomId);
-        var replicationSystem = new RoomReplicationSystem(connections, pushHub, State);
-        _lifecycleSystem = new RoomLifecycleSystem(State, replicationSystem);
+        _syncSystem = new RoomSyncSystem(pushHub, State);
+        _lifecycleSystem = new RoomLifecycleSystem(State, _syncSystem);
     }
 
     public Game001RoomState State { get; }
@@ -43,6 +44,7 @@ public sealed class Game001Room
 
     public void Update(long timeNowMs, int frame)
     {
-        State.Update(timeNowMs, frame);
+        State.SetFrame(timeNowMs, frame);
+        _syncSystem.Update(timeNowMs, frame);
     }
 }
