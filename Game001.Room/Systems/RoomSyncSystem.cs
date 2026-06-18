@@ -27,9 +27,9 @@ public sealed class RoomSyncSystem
         _pushHub.Send(connectionId, push);
     }
 
-    public void MarkDirty()
-    {
-    }
+    // public void MarkDirty()
+    // {
+    // }
 
     public void Update(long timeNowMs, int frame)
     {

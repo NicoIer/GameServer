@@ -18,7 +18,7 @@ public sealed class RoomLifecycleSystem
     {
         _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
-        _sync.MarkDirty();
+        // _sync.MarkDirty();
         _sync.SendFullState(connectionId);
         return $"created room={_state.RoomId} players={_state.Players.Count}";
     }
@@ -29,7 +29,7 @@ public sealed class RoomLifecycleSystem
         _state.DisconnectedPlayers.Remove(uid);
         if (added)
         {
-            _sync.MarkDirty();
+            // _sync.MarkDirty();
         }
 
         _sync.SendFullState(connectionId);
@@ -42,7 +42,7 @@ public sealed class RoomLifecycleSystem
         _state.DisconnectedPlayers.Remove(uid);
         if (removed)
         {
-            _sync.MarkDirty();
+            // _sync.MarkDirty();
         }
 
         return $"left room={_state.RoomId} players={_state.Players.Count}";
@@ -52,7 +52,7 @@ public sealed class RoomLifecycleSystem
     {
         if (_state.Players.Contains(uid) && _state.DisconnectedPlayers.Add(uid))
         {
-            _sync.MarkDirty();
+            // _sync.MarkDirty();
         }
 
         return $"disconnected uid={uid} room={_state.RoomId} players={_state.Players.Count}";

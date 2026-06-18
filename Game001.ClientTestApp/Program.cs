@@ -107,7 +107,7 @@ Console.WriteLine($"room handshake uid={connectionReply.Uid}");
     ++requestIndex,
     new CreateRoomReq { RoomId = DefaultRoomId },
     "tcp create room");
-ExpectRoomReply("tcp create room", createHead, "created room=room-001");
+ExpectRoomReply1("tcp create room", createHead, "created room=room-001");
 await ExpectFullStatePush(roomPushes, 1, uid, DefaultRoomId);
 
 (RoomConnectRsp roomConnectReply, RspHead roomConnectHead) = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
@@ -122,7 +122,7 @@ ExpectRoomReply("tcp connect room", roomConnectHead, roomConnectReply.RoomId, De
     ++requestIndex,
     new JoinRoomReq(),
     "tcp join room");
-ExpectRoomReply("tcp join room", joinHead, "joined room=room-001");
+ExpectRoomReply1("tcp join room", joinHead, "joined room=room-001");
 await ExpectFullStatePush(roomPushes, 2, uid, DefaultRoomId);
 
 (RoomPingRsp _, RspHead pingHead) = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
@@ -133,14 +133,14 @@ await ExpectFullStatePush(roomPushes, 2, uid, DefaultRoomId);
         ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
     },
     "tcp ping room");
-ExpectRoomReply("tcp ping room", pingHead, $"pong uid={uid} room=room-001");
+ExpectRoomReply1("tcp ping room", pingHead, $"pong uid={uid} room=room-001");
 
 (LeaveRoomRsp _, RspHead leaveHead) = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
     roomClient,
     ++requestIndex,
     new LeaveRoomReq(),
     "tcp leave room");
-ExpectRoomReply("tcp leave room", leaveHead, "left room=room-001");
+ExpectRoomReply1("tcp leave room", leaveHead, "left room=room-001");
 
 RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
 {
@@ -164,7 +164,7 @@ static async Task<(TRsp rsp, RspHead head)> SendRoomCommand<TReq, TRsp>(
     return await client.SendAsync<TReq, TRsp>(index, message);
 }
 
-static void ExpectRoomReply(string step, RspHead head, string expectedMessage)
+static void ExpectRoomReply1(string step, RspHead head, string expectedMessage)
 {
     ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
     Expect(step, head.errorMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{head.errorMessage}' does not contain '{expectedMessage}'");

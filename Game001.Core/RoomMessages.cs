@@ -15,6 +15,14 @@ public partial struct RoomInfo
 }
 
 [MemoryPackable]
+public partial struct PatchMessage
+{
+    public long formId;
+    public long targetId;
+    public byte[] patch;
+}
+
+[MemoryPackable]
 [NetworkRequest(typeof(CreateRoomRsp))]
 public partial struct CreateRoomReq : INetworkReq
 {
@@ -68,14 +76,5 @@ public partial struct RoomFullStatePush : IRoomPush
 {
     public RoomInfo Room;
     public long[] Players;
-    public long[] DisconnectedPlayers;
-}
-
-[MemoryPackable]
-public partial struct RoomDeltaStatePush : IRoomPush
-{
-    public RoomInfo Room;
-    public long[] JoinedPlayers;
-    public long[] LeftPlayers;
     public long[] DisconnectedPlayers;
 }
