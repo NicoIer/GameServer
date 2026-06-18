@@ -59,7 +59,8 @@ await using IGameRoomTransportServer game001RoomTransportServer = CreateGame001R
     game001RoomDirectProtocol,
     game001RoomTcpPort,
     roomCenterClient,
-    game001RoomWorker);
+    game001RoomWorker,
+    NetworkTickSleepMs);
 
 await using var gateServer = new GrpcServerRuntime(gatePort, services =>
 {
@@ -187,11 +188,12 @@ static IGameRoomTransportServer CreateGame001RoomTransportServer(
     DirectTransportProtocol protocol,
     int tcpPort,
     CenterService.CenterServiceClient centerClient,
-    Game001RoomWorker worker)
+    Game001RoomWorker worker,
+    int networkTickSleepMs)
 {
     if (protocol == DirectTransportProtocol.Tcp)
     {
-        return new TcpRoomTransportServer(tcpPort, centerClient, worker);
+        return new UnityRoomTransportServer(tcpPort, centerClient, worker, networkTickSleepMs);
     }
 
     throw new NotSupportedException($"unsupported Game001.Room direct transport protocol={protocol}");

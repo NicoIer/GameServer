@@ -37,22 +37,19 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
         if (request.reqHash == JoinRoomReqHash)
         {
             JoinRoomReq req = MemoryPackSerializer.Deserialize<JoinRoomReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, context.RoomId);
-            return true;
+            return TryResolveConnectedRoomId(req.RoomId, context.RoomId, out roomId);
         }
 
         if (request.reqHash == LeaveRoomReqHash)
         {
             LeaveRoomReq req = MemoryPackSerializer.Deserialize<LeaveRoomReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, context.RoomId);
-            return true;
+            return TryResolveConnectedRoomId(req.RoomId, context.RoomId, out roomId);
         }
 
         if (request.reqHash == RoomPingReqHash)
         {
             RoomPingReq req = MemoryPackSerializer.Deserialize<RoomPingReq>(request.payload);
-            roomId = ResolveRoomId(req.RoomId, context.RoomId);
-            return true;
+            return TryResolveConnectedRoomId(req.RoomId, context.RoomId, out roomId);
         }
 
         roomId = string.Empty;
@@ -66,8 +63,7 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 
     protected override bool ShouldBindConnectionRoom(ReqHead request, RspHead response)
     {
-        return response.error == NetworkErrorCode.Success &&
-               (request.reqHash == CreateRoomReqHash || request.reqHash == JoinRoomReqHash);
+        return false;
     }
 
     protected override bool ShouldClearConnectionRoom(ReqHead request, RspHead response)
@@ -146,5 +142,23 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
         }
 
         return DefaultRoomId;
+    }
+
+    private static bool TryResolveConnectedRoomId(string? messageRoomId, string contextRoomId, out string roomId)
+    {
+        if (!string.IsNullOrWhiteSpace(messageRoomId))
+        {
+            roomId = messageRoomId;
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(contextRoomId))
+        {
+            roomId = contextRoomId;
+            return true;
+        }
+
+        roomId = string.Empty;
+        return false;
     }
 }

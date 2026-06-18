@@ -1,8 +1,10 @@
 using GameServer.Core.Fibers;
+using GameServer.Core.Network;
 using GameServer.Core.Protocol;
 using Google.Protobuf;
 using MemoryPack;
 using Network;
+using UnityToolkit;
 using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
@@ -11,6 +13,9 @@ namespace GameServer.Core.Rooms;
 public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     where TRoomModule : RoomFiberModuleBase
 {
+    private static readonly ushort RoomConnectReqHash = TypeId<RoomConnectReq>.stableId16;
+    private static readonly ushort RoomConnectRspHash = TypeId<RoomConnectRsp>.stableId16;
+
     private readonly FiberManager _fiberManager = new();
     private readonly Dictionary<string, RoomRuntimeHandle> _rooms = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim _roomLock = new(1, 1);
@@ -51,6 +56,11 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         if (!Connections.TryGet(connectionId, out RoomConnectionContext context))
         {
             return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, $"missing room connection context connectionId={connectionId}", default);
+        }
+
+        if (request.reqHash == RoomConnectReqHash)
+        {
+            return await HandleRoomConnectAsync(connectionId, request);
         }
 
         string roomId;
@@ -180,6 +190,53 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         {
             _roomLock.Release();
         }
+    }
+
+    private async Task<RspHead> HandleRoomConnectAsync(int connectionId, ReqHead request)
+    {
+        RoomConnectReq req;
+        try
+        {
+            req = MemoryPackSerializer.Deserialize<RoomConnectReq>(request.payload);
+        }
+        catch
+        {
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, "invalid room connect payload", default);
+        }
+
+        string roomId = req.RoomId;
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return CreateRoomConnectResponse(request, ProtocolErrorCode.InvalidRequest, false, "room id is empty", string.Empty);
+        }
+
+        await _roomLock.WaitAsync();
+        try
+        {
+            if (!_rooms.ContainsKey(roomId))
+            {
+                return CreateRoomConnectResponse(request, ProtocolErrorCode.RoomNotFound, false, $"room not found room={roomId}", roomId);
+            }
+        }
+        finally
+        {
+            _roomLock.Release();
+        }
+
+        Connections.TrySetRoom(connectionId, roomId);
+        return CreateRoomConnectResponse(request, ProtocolErrorCode.Success, true, $"connected room={roomId}", roomId);
+    }
+
+    private static RspHead CreateRoomConnectResponse(ReqHead request, int error, bool success, string message, string roomId)
+    {
+        var rsp = new RoomConnectRsp
+        {
+            Error = error,
+            Success = success,
+            Message = message,
+            RoomId = roomId,
+        };
+        return new RspHead(request.index, request.reqHash, RoomConnectRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
     }
 
     private readonly record struct RoomRuntimeHandle(Fiber Fiber, TRoomModule Module);

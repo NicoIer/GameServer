@@ -52,28 +52,20 @@ namespace Network
         }
     }
 }
+
+namespace MemoryPack
+{
+    [System.AttributeUsage(System.AttributeTargets.Struct | System.AttributeTargets.Class)]
+    public sealed class MemoryPackableAttribute : System.Attribute
+    {
+    }
+}
 """;
 
     [Fact]
     public void GeneratesInitializerForNetworkRequest()
     {
-        const string source = SharedTypes + """
-
-using GameServer.Core.Network;
-using Network;
-
-namespace Game001.Core
-{
-    [NetworkRequest(typeof(CreateRoomRsp))]
-    public partial struct CreateRoomReq : INetworkReq
-    {
-    }
-
-    public partial struct CreateRoomRsp : INetworkRsp
-    {
-    }
-}
-""";
+        string source = SharedTypes + Game001RoomMessagesSource();
 
         GeneratorDriverRunResult result = RunGenerator(source);
         string generated = Assert.Single(result.GeneratedTrees).GetText().ToString();
@@ -85,27 +77,24 @@ namespace Game001.Core
     }
 
     [Fact]
+    public void GeneratesInitializerForGameServerCoreNetworkRequest()
+    {
+        string source = SharedTypes + GameServerCoreRoomConnectionMessagesSource();
+
+        GeneratorDriverRunResult result = RunGenerator(source, "GameServer.Core");
+        string generated = Assert.Single(result.GeneratedTrees).GetText().ToString();
+
+        Assert.Contains("namespace GameServer.Core.Generated;", generated);
+        Assert.Contains("center.Register<global::GameServer.Core.Network.RoomHandshakeReq, global::GameServer.Core.Network.RoomHandshakeRsp>(handlers.Handle);", generated);
+        Assert.Contains("center.Register<global::GameServer.Core.Network.RoomConnectReq, global::GameServer.Core.Network.RoomConnectRsp>(handlers.Handle);", generated);
+    }
+
+    [Fact]
     public void ReportsInvalidResponseType()
     {
-        const string source = SharedTypes + """
+        string source = SharedTypes + TestDataSource("TestGame.Core", "InvalidResponseMessages.cs");
 
-using GameServer.Core.Network;
-using Network;
-
-namespace Game001.Core
-{
-    [NetworkRequest(typeof(CreateRoomRsp))]
-    public partial struct CreateRoomReq : INetworkReq
-    {
-    }
-
-    public partial struct CreateRoomRsp
-    {
-    }
-}
-""";
-
-        GeneratorDriverRunResult result = RunGenerator(source);
+        GeneratorDriverRunResult result = RunGenerator(source, "TestGame.Core");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "GSRPC002");
     }
@@ -113,19 +102,9 @@ namespace Game001.Core
     [Fact]
     public void ReportsMissingNetworkRequestAttribute()
     {
-        const string source = SharedTypes + """
+        string source = SharedTypes + TestDataSource("TestGame.Core", "MissingAttributeMessages.cs");
 
-using Network;
-
-namespace Game001.Core
-{
-    public partial struct CreateRoomReq : INetworkReq
-    {
-    }
-}
-""";
-
-        GeneratorDriverRunResult result = RunGenerator(source);
+        GeneratorDriverRunResult result = RunGenerator(source, "TestGame.Core");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "GSRPC004");
     }
@@ -133,25 +112,9 @@ namespace Game001.Core
     [Fact]
     public void ReportsNetworkRequestAttributeOnNonRequestType()
     {
-        const string source = SharedTypes + """
+        string source = SharedTypes + TestDataSource("TestGame.Core", "InvalidRequestMessages.cs");
 
-using GameServer.Core.Network;
-using Network;
-
-namespace Game001.Core
-{
-    [NetworkRequest(typeof(CreateRoomRsp))]
-    public partial struct CreateRoomReq
-    {
-    }
-
-    public partial struct CreateRoomRsp : INetworkRsp
-    {
-    }
-}
-""";
-
-        GeneratorDriverRunResult result = RunGenerator(source);
+        GeneratorDriverRunResult result = RunGenerator(source, "TestGame.Core");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "GSRPC005");
     }
@@ -159,78 +122,112 @@ namespace Game001.Core
     [Fact]
     public void PartialRequestTypeRegistersOnce()
     {
-        const string source = SharedTypes + """
+        string source = SharedTypes + TestDataSource("TestGame.Core", "PartialRequestMessages.cs");
 
-using GameServer.Core.Network;
-using Network;
-
-namespace Game001.Core
-{
-    [NetworkRequest(typeof(RoomPingRsp))]
-    public partial struct RoomPingReq : INetworkReq
-    {
-    }
-
-    public partial struct RoomPingReq
-    {
-    }
-
-    public partial struct RoomPingRsp : INetworkRsp
-    {
-    }
-}
-""";
-
-        GeneratorDriverRunResult result = RunGenerator(source);
+        GeneratorDriverRunResult result = RunGenerator(source, "TestGame.Core");
         string generated = Assert.Single(result.GeneratedTrees).GetText().ToString();
 
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Id == "GSRPC003");
-        Assert.Equal(1, CountOccurrences(generated, "center.Register<global::Game001.Core.RoomPingReq, global::Game001.Core.RoomPingRsp>(handlers.Handle);"));
+        Assert.Equal(1, CountOccurrences(generated, "center.Register<global::TestGame.Core.RoomPingReq, global::TestGame.Core.RoomPingRsp>(handlers.Handle);"));
     }
 
     [Fact]
     public void GeneratesHandlerBridgeForReqRspHandlers()
     {
-        const string source = SharedTypes + """
-
-using GameServer.Core.Network;
-using Network;
-
-namespace Game001.Core
-{
-    [NetworkRequest(typeof(CreateRoomRsp))]
-    public partial struct CreateRoomReq : INetworkReq
-    {
-    }
-
-    public partial struct CreateRoomRsp : INetworkRsp
-    {
-    }
-}
-
+        string source = SharedTypes + Game001RoomMessagesSource() + """
 namespace Game001.Room
 {
     public sealed partial class Game001RoomReqRspHandlers
     {
+        public static partial class CreateRoomReqRsp
+        {
+        }
+
+        public static partial class JoinRoomReqRsp
+        {
+        }
+
+        public static partial class LeaveRoomReqRsp
+        {
+        }
     }
 }
 """;
 
         GeneratorDriverRunResult result = RunGenerator(source);
-        string generated = result.GeneratedTrees
-            .Select(x => x.GetText().ToString())
-            .Single(x => x.Contains("Game001RoomReqRspHandlers"));
+        SyntaxTree generatedTree = result.GeneratedTrees
+            .Single(x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.CreateRoomReqRsp.g.cs", StringComparison.Ordinal));
+        string generated = generatedTree.GetText().ToString();
 
         Assert.Contains("public sealed partial class Game001RoomReqRspHandlers : global::Game001.Core.Generated.INetworkReqRspHandlers", generated);
         Assert.Contains("return CreateRoomReqRsp.Handle(this, connectionId, req);", generated);
         Assert.Contains("public static partial class CreateRoomReqRsp", generated);
+        Assert.Contains(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.JoinRoomReqRsp.g.cs", StringComparison.Ordinal));
+        Assert.Contains(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.LeaveRoomReqRsp.g.cs", StringComparison.Ordinal));
     }
 
-    private static GeneratorDriverRunResult RunGenerator(string source)
+    [Fact]
+    public void HandlerBridgeOnlyGeneratesDeclaredNestedHandlers()
+    {
+        string source = SharedTypes + Game001RoomMessagesSource() + """
+namespace Game001.Room
+{
+    public sealed partial class Game001RoomReqRspHandlers
+    {
+        public static partial class CreateRoomReqRsp
+        {
+        }
+    }
+}
+""";
+
+        GeneratorDriverRunResult result = RunGenerator(source);
+
+        Assert.Contains(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.CreateRoomReqRsp.g.cs", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.JoinRoomReqRsp.g.cs", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.LeaveRoomReqRsp.g.cs", StringComparison.Ordinal));
+    }
+
+    private static string Game001RoomMessagesSource()
+    {
+        string path = FindRepositoryFile("Game001.Core", "RoomMessages.cs");
+        return File.ReadAllText(path);
+    }
+
+    private static string GameServerCoreRoomConnectionMessagesSource()
+    {
+        string path = FindRepositoryFile("GameServer.Core", "Network", "RoomConnectionMessages.cs");
+        return File.ReadAllText(path);
+    }
+
+    private static string TestDataSource(params string[] pathParts)
+    {
+        string path = FindRepositoryFile(new[] { "Analyzers", "Analyzers.Tests", "TestData" }.Concat(pathParts).ToArray());
+        return File.ReadAllText(path);
+    }
+
+    private static string FindRepositoryFile(params string[] pathParts)
+    {
+        string? directory = AppContext.BaseDirectory;
+        while (!string.IsNullOrEmpty(directory))
+        {
+            string path = Path.Combine(new[] { directory }.Concat(pathParts).ToArray());
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            directory = Directory.GetParent(directory)?.FullName;
+        }
+
+        throw new FileNotFoundException("Could not find repository file.", Path.Combine(pathParts));
+    }
+
+    private static GeneratorDriverRunResult RunGenerator(string source, string assemblyName = "Game001.Core")
     {
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
         CSharpCompilation compilation = CSharpCompilation.Create(
-            "Game001.Core",
+            assemblyName,
             new[] { syntaxTree },
             GetReferences(),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

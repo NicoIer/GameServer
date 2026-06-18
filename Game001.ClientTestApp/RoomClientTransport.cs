@@ -1,69 +1,125 @@
-using System.Net.Sockets;
-using GameServer.Core.Network;
+using System.Collections.Concurrent;
 using GameServer.Core.Protocol;
+using MemoryPack;
+using Network;
+using Network.Client;
+using UnityToolkit;
+using NetworkErrorCode = Network.ErrorCode;
 
 namespace Game001.ClientTestApp;
 
-public interface IRoomClientTransport : IAsyncDisposable
+public sealed class ReqRspNetworkClient : IAsyncDisposable
 {
-    DirectTransportProtocol Protocol { get; }
+    private readonly NetworkClient _client;
+    private readonly CancellationTokenSource _shutdown = new();
+    private readonly ConcurrentDictionary<ushort, TaskCompletionSource<RspHead>> _pending = new();
+    private Task? _runTask;
 
-    Task WriteAsync<T>(T message)
-        where T : struct;
-
-    Task<T?> ReadAsync<T>()
-        where T : struct;
-}
-
-public static class RoomClientTransportFactory
-{
-    public static Task<IRoomClientTransport> ConnectAsync(PrepareRoomConnectionReply connection)
-    {
-        if (connection.DirectProtocol == DirectTransportProtocol.Tcp)
-        {
-            return TcpRoomClientTransport.ConnectAsync(connection.Host, connection.Port);
-        }
-
-        throw new NotSupportedException($"unsupported room transport protocol={connection.DirectProtocol}");
-    }
-}
-
-public sealed class TcpRoomClientTransport : IRoomClientTransport
-{
-    private readonly TcpClient _client;
-    private readonly NetworkStream _stream;
-
-    private TcpRoomClientTransport(TcpClient client)
+    private ReqRspNetworkClient(NetworkClient client)
     {
         _client = client;
-        _stream = client.GetStream();
+        _client.AddMsgHandler<RspHead>(OnRspHead);
     }
 
     public DirectTransportProtocol Protocol => DirectTransportProtocol.Tcp;
 
-    public static async Task<IRoomClientTransport> ConnectAsync(string host, int port)
+    public static async Task<ReqRspNetworkClient> ConnectAsync(PrepareRoomConnectionReply connection)
     {
-        var client = new TcpClient();
-        await client.ConnectAsync(host, port);
-        return new TcpRoomClientTransport(client);
+        if (connection.DirectProtocol != DirectTransportProtocol.Tcp)
+        {
+            throw new NotSupportedException($"unsupported room transport protocol={connection.DirectProtocol}");
+        }
+
+        var socket = new TelepathyClientSocket();
+        var connected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        socket.OnConnected += () => connected.TrySetResult();
+
+        var client = new NetworkClient(socket, 1000, false);
+        var result = new ReqRspNetworkClient(client);
+        client.Run(new Uri($"tcp4://{connection.Host}:{connection.Port}"), false);
+        result._runTask = Task.Run(result.Run);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await connected.Task.WaitAsync(timeout.Token);
+        return result;
     }
 
-    public Task WriteAsync<T>(T message)
-        where T : struct
+    public async Task<TRsp> SendAsync<TReq, TRsp>(ushort index, TReq message)
+        where TReq : INetworkReq
+        where TRsp : INetworkRsp
     {
-        return GameTcpFrame.WriteAsync(_stream, message);
+        byte[] payload = MemoryPackSerializer.Serialize(message);
+        ReqHead request = new ReqHead
+        {
+            reqHash = TypeId<TReq>.stableId16,
+            index = index,
+            payload = new ArraySegment<byte>(payload),
+        };
+
+        RspHead response = await SendRawAsync(request);
+        if (response.reqHash != request.reqHash)
+        {
+            throw new InvalidOperationException($"unexpected req hash={response.reqHash}");
+        }
+
+        if (response.error != NetworkErrorCode.Success)
+        {
+            throw new InvalidOperationException($"unexpected network error={response.error} {response.errorMessage}");
+        }
+
+        if (response.rspHash != TypeId<TRsp>.stableId16)
+        {
+            throw new InvalidOperationException($"unexpected rsp hash={response.rspHash}");
+        }
+
+        return MemoryPackSerializer.Deserialize<TRsp>(response.payload);
     }
 
-    public Task<T?> ReadAsync<T>()
-        where T : struct
+    public async Task<RspHead> SendRawAsync(ReqHead request)
     {
-        return GameTcpFrame.ReadAsync<T>(_stream);
+        var completion = new TaskCompletionSource<RspHead>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!_pending.TryAdd(request.index, completion))
+        {
+            throw new InvalidOperationException($"duplicate request index={request.index}");
+        }
+
+        _client.Send(request, true);
+        return await completion.Task;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        _stream.Dispose();
+        _shutdown.Cancel();
+        _client.Stop();
+
+        if (_runTask != null)
+        {
+            await _runTask;
+        }
+
         _client.Dispose();
-        return ValueTask.CompletedTask;
+        _shutdown.Dispose();
+    }
+
+    private void Run()
+    {
+        while (!_shutdown.IsCancellationRequested)
+        {
+            Thread.Sleep(1);
+            if (_shutdown.IsCancellationRequested)
+            {
+                break;
+            }
+
+            _client.OnUpdate(0.001f);
+        }
+    }
+
+    private void OnRspHead(in RspHead response)
+    {
+        if (_pending.TryRemove(response.index, out TaskCompletionSource<RspHead>? completion))
+        {
+            completion.TrySetResult(response);
+        }
     }
 }

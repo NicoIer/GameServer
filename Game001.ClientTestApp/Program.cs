@@ -4,9 +4,7 @@ using GameServer.Core.Grpc;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
 using Grpc.Net.Client;
-using MemoryPack;
 using Network;
-using UnityToolkit;
 using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
@@ -77,101 +75,79 @@ PrepareRoomConnectionReply unknownRoutePrepareReply = await gateClient.PrepareRo
 });
 ExpectError("prepare unknown route", unknownRoutePrepareReply.Error, ProtocolErrorCode.RouteNotFound);
 
-await using IRoomClientTransport roomTransport = await RoomClientTransportFactory.ConnectAsync(prepareReply);
+await using ReqRspNetworkClient roomClient = await ReqRspNetworkClient.ConnectAsync(prepareReply);
 
-await roomTransport.WriteAsync(GamePacketSerializer.Pack(GameMessageIds.RoomConnectRequest, new RoomConnectRequest
-{
-    ConnectTicket = prepareReply.ConnectTicket,
-    RoomId = DefaultRoomId,
-}));
-
-GamePacket connectionPacket = await ReadRequiredMessage<GamePacket>(roomTransport, "room connect");
-Expect("room connect message", connectionPacket.MessageId == GameMessageIds.RoomConnectionReply, $"unexpected message id={connectionPacket.MessageId}");
-RoomConnectionReply connectionReply = GamePacketSerializer.Unpack<RoomConnectionReply>(connectionPacket);
-ExpectError("room connect", connectionReply.Error, ProtocolErrorCode.Success);
-Expect("room connect uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
-Console.WriteLine($"room connected uid={connectionReply.Uid} room={connectionReply.RoomId}");
+RoomHandshakeRsp connectionReply = await SendRoomCommand<RoomHandshakeReq, RoomHandshakeRsp>(
+    roomClient,
+    ++requestIndex,
+    new RoomHandshakeReq
+    {
+        ConnectTicket = prepareReply.ConnectTicket,
+    },
+    "room handshake");
+ExpectError("room handshake", connectionReply.Error, ProtocolErrorCode.Success);
+Expect("room handshake uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
+Console.WriteLine($"room handshake uid={connectionReply.Uid}");
 
 CreateRoomRsp createReply = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
-    roomTransport,
+    roomClient,
     ++requestIndex,
     new CreateRoomReq { RoomId = DefaultRoomId },
     "tcp create room");
 ExpectRoomReply("tcp create room", createReply.Error, createReply.Message, ProtocolErrorCode.Success, "created room=room-001");
 
-JoinRoomRsp joinReply = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
-    roomTransport,
+RoomConnectRsp roomConnectReply = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
+    roomClient,
     ++requestIndex,
-    new JoinRoomReq { RoomId = DefaultRoomId },
+    new RoomConnectReq { RoomId = DefaultRoomId },
+    "tcp connect room");
+ExpectRoomReply("tcp connect room", roomConnectReply.Error, roomConnectReply.Message, ProtocolErrorCode.Success, "connected room=room-001");
+
+JoinRoomRsp joinReply = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
+    roomClient,
+    ++requestIndex,
+    new JoinRoomReq(),
     "tcp join room");
 ExpectRoomReply("tcp join room", joinReply.Error, joinReply.Message, ProtocolErrorCode.Success, "joined room=room-001");
 
 RoomPingRsp pingReply = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
-    roomTransport,
+    roomClient,
     ++requestIndex,
     new RoomPingReq
     {
-        RoomId = DefaultRoomId,
         ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
     },
     "tcp ping room");
 ExpectRoomReply("tcp ping room", pingReply.Error, pingReply.Message, ProtocolErrorCode.Success, $"pong uid={uid} room=room-001");
 
 LeaveRoomRsp leaveReply = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
-    roomTransport,
+    roomClient,
     ++requestIndex,
-    new LeaveRoomReq { RoomId = DefaultRoomId },
+    new LeaveRoomReq(),
     "tcp leave room");
 ExpectRoomReply("tcp leave room", leaveReply.Error, leaveReply.Message, ProtocolErrorCode.Success, "left room=room-001");
 
-await roomTransport.WriteAsync(new ReqHead
+RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
 {
     reqHash = UnknownReqHash,
     index = ++requestIndex,
     payload = ArraySegment<byte>.Empty,
 });
-RspHead unknownReply = await ReadRequiredMessage<RspHead>(roomTransport, "tcp unknown request");
 Expect("tcp unknown request", unknownReply.error == NetworkErrorCode.NotSupported, $"unexpected network error={unknownReply.error}");
 Console.WriteLine($"tcp unknown request network error ok: {unknownReply.error}");
 
 Console.WriteLine("All client headless checks passed.");
 
 static async Task<TRsp> SendRoomCommand<TReq, TRsp>(
-    IRoomClientTransport transport,
+    ReqRspNetworkClient client,
     ushort index,
     TReq message,
     string step)
     where TReq : INetworkReq
     where TRsp : INetworkRsp
 {
-    byte[] payload = MemoryPackSerializer.Serialize(message);
-    ReqHead request = new ReqHead
-    {
-        reqHash = TypeId<TReq>.stableId16,
-        index = index,
-        payload = new ArraySegment<byte>(payload),
-    };
-
-    await transport.WriteAsync(request);
-
-    RspHead reply = await ReadRequiredMessage<RspHead>(transport, step);
-    Expect(step, reply.index == request.index, $"unexpected response index={reply.index}");
-    Expect(step, reply.reqHash == request.reqHash, $"unexpected req hash={reply.reqHash}");
-    Expect(step, reply.rspHash == TypeId<TRsp>.stableId16, $"unexpected rsp hash={reply.rspHash}");
-    Expect(step, reply.error == NetworkErrorCode.Success, $"unexpected network error={reply.error} {reply.errorMessage}");
-    return MemoryPackSerializer.Deserialize<TRsp>(reply.payload);
-}
-
-static async Task<T> ReadRequiredMessage<T>(IRoomClientTransport transport, string step)
-    where T : struct
-{
-    T? message = await transport.ReadAsync<T>();
-    if (message == null)
-    {
-        throw new InvalidOperationException($"{step} failed: connection closed");
-    }
-
-    return message.Value;
+    TRsp response = await client.SendAsync<TReq, TRsp>(index, message);
+    return response;
 }
 
 static void ExpectRoomReply(string step, int actualError, string actualMessage, int expectedError, string expectedMessage)
