@@ -26,4 +26,10 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
     {
         _state.Update(timeNowMs, frame);
     }
+
+    public override ValueTask HandleConnectionDisconnectedAsync(int connectionId, RoomConnectionContext context)
+    {
+        _state.DisconnectRoom(context.Uid);
+        return ValueTask.CompletedTask;
+    }
 }

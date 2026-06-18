@@ -67,6 +67,11 @@ public abstract class RoomFiberModuleBase : IFiberModule
         }
     }
 
+    public virtual ValueTask HandleConnectionDisconnectedAsync(int connectionId, RoomConnectionContext context)
+    {
+        return ValueTask.CompletedTask;
+    }
+
     protected abstract void RegisterHandlers(ReqRspServerCenter center);
     protected abstract void OnRoomUpdate(long timeNowMs, int frame);
 }

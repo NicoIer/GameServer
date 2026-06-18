@@ -45,6 +45,20 @@ public sealed class RoomConnectionRegistry
             _connections.Remove(connectionId);
         }
     }
+
+    public bool TryRemove(int connectionId, out RoomConnectionContext context)
+    {
+        lock (_lock)
+        {
+            if (!_connections.TryGetValue(connectionId, out context))
+            {
+                return false;
+            }
+
+            _connections.Remove(connectionId);
+            return true;
+        }
+    }
 }
 
 public readonly record struct RoomConnectionContext(long Uid, string RoomId);

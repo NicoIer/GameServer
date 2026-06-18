@@ -40,10 +40,26 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         return Task.FromResult(Connections.Add(uid, roomId));
     }
 
-    public Task RemoveConnectionAsync(int connectionId)
+    public async Task RemoveConnectionAsync(int connectionId)
     {
-        Connections.Remove(connectionId);
-        return Task.CompletedTask;
+        if (!Connections.TryRemove(connectionId, out RoomConnectionContext context))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(context.RoomId))
+        {
+            return;
+        }
+
+        RoomRuntimeHandle? room = await FindRoomAsync(context.RoomId);
+        if (room == null)
+        {
+            return;
+        }
+
+        RoomRuntimeHandle handle = room.Value;
+        await handle.Fiber.CallAsync(() => HandleConnectionDisconnectedAsync(handle, connectionId, context));
     }
 
     public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
@@ -154,6 +170,11 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return await GetOrCreateRoomAsync(roomId);
         }
 
+        return await FindRoomAsync(roomId);
+    }
+
+    private async Task<RoomRuntimeHandle?> FindRoomAsync(string roomId)
+    {
         await _roomLock.WaitAsync();
         try
         {
@@ -168,6 +189,15 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
 
         return null;
+    }
+
+    private static async ValueTask<bool> HandleConnectionDisconnectedAsync(
+        RoomRuntimeHandle handle,
+        int connectionId,
+        RoomConnectionContext context)
+    {
+        await handle.Module.HandleConnectionDisconnectedAsync(connectionId, context);
+        return true;
     }
 
     private async Task<RoomRuntimeHandle> GetOrCreateRoomAsync(string roomId)
