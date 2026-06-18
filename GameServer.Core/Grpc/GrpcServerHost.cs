@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace GameServer.Core.Grpc;
 
@@ -16,6 +17,9 @@ public sealed class GrpcServerHost
         {
             ApplicationName = typeof(GrpcServerHost).Assembly.GetName().Name,
         });
+
+        builder.Logging.ClearProviders();
+        builder.Logging.AddSerilog(GameServer.Core.Log.SerilogLogger, dispose: false);
 
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(5));
         builder.Services.AddSingleton<IHostLifetime, NullLifetime>();

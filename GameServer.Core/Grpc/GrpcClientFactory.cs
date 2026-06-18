@@ -1,9 +1,16 @@
 using Grpc.Net.Client;
+using Microsoft.Extensions.Logging;
 
 namespace GameServer.Core.Grpc;
 
 public static class GrpcClientFactory
 {
+    private static readonly ILoggerFactory LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(logging =>
+    {
+        logging.ClearProviders();
+        logging.AddSerilog(GameServer.Core.Log.SerilogLogger, dispose: false);
+    });
+
     public static GrpcChannel CreateChannel(string address)
     {
         var handler = new SocketsHttpHandler
@@ -14,6 +21,10 @@ public static class GrpcClientFactory
             KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
         };
 
-        return GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpHandler = handler });
+        return GrpcChannel.ForAddress(address, new GrpcChannelOptions
+        {
+            HttpHandler = handler,
+            LoggerFactory = LoggerFactory,
+        });
     }
 }
