@@ -14,9 +14,6 @@ public partial struct CreateRoomReq : INetworkReq
 [MemoryPackable]
 public partial struct CreateRoomRsp : INetworkRsp
 {
-    public int Error;
-    public bool Success;
-    public string Message;
     public string RoomId;
     public int PlayerCount;
     public long ServerTimeMs;
@@ -32,9 +29,6 @@ public partial struct JoinRoomReq : INetworkReq
 [MemoryPackable]
 public partial struct JoinRoomRsp : INetworkRsp
 {
-    public int Error;
-    public bool Success;
-    public string Message;
     public string RoomId;
     public int PlayerCount;
     public long ServerTimeMs;
@@ -50,9 +44,6 @@ public partial struct LeaveRoomReq : INetworkReq
 [MemoryPackable]
 public partial struct LeaveRoomRsp : INetworkRsp
 {
-    public int Error;
-    public bool Success;
-    public string Message;
     public string RoomId;
     public int PlayerCount;
     public long ServerTimeMs;
@@ -69,9 +60,6 @@ public partial struct RoomPingReq : INetworkReq
 [MemoryPackable]
 public partial struct RoomPingRsp : INetworkRsp
 {
-    public int Error;
-    public bool Success;
-    public string Message;
     public string RoomId;
     public int PlayerCount;
     public long ServerTimeMs;

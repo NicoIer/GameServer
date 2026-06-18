@@ -207,7 +207,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         string roomId = req.RoomId;
         if (string.IsNullOrWhiteSpace(roomId))
         {
-            return CreateRoomConnectResponse(request, ProtocolErrorCode.InvalidRequest, false, "room id is empty", string.Empty);
+            return CreateRoomConnectErrorResponse(request, "room id is empty");
         }
 
         await _roomLock.WaitAsync();
@@ -215,7 +215,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         {
             if (!_rooms.ContainsKey(roomId))
             {
-                return CreateRoomConnectResponse(request, ProtocolErrorCode.RoomNotFound, false, $"room not found room={roomId}", roomId);
+                return CreateRoomConnectErrorResponse(request, $"room not found room={roomId}");
             }
         }
         finally
@@ -224,19 +224,21 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
 
         Connections.TrySetRoom(connectionId, roomId);
-        return CreateRoomConnectResponse(request, ProtocolErrorCode.Success, true, $"connected room={roomId}", roomId);
+        return CreateRoomConnectResponse(request, $"connected room={roomId}", roomId);
     }
 
-    private static RspHead CreateRoomConnectResponse(ReqHead request, int error, bool success, string message, string roomId)
+    private static RspHead CreateRoomConnectResponse(ReqHead request, string message, string roomId)
     {
         var rsp = new RoomConnectRsp
         {
-            Error = error,
-            Success = success,
-            Message = message,
             RoomId = roomId,
         };
-        return new RspHead(request.index, request.reqHash, RoomConnectRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+        return new RspHead(request.index, request.reqHash, RoomConnectRspHash, NetworkErrorCode.Success, message, MemoryPackSerializer.Serialize(rsp));
+    }
+
+    private static RspHead CreateRoomConnectErrorResponse(ReqHead request, string message)
+    {
+        return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, message, default);
     }
 
     private readonly record struct RoomRuntimeHandle(Fiber Fiber, TRoomModule Module);

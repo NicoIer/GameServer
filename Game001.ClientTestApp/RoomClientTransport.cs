@@ -44,7 +44,7 @@ public sealed class ReqRspNetworkClient : IAsyncDisposable
         return result;
     }
 
-    public async Task<TRsp> SendAsync<TReq, TRsp>(ushort index, TReq message)
+    public async Task<(TRsp rsp, RspHead head)> SendAsync<TReq, TRsp>(ushort index, TReq message)
         where TReq : INetworkReq
         where TRsp : INetworkRsp
     {
@@ -72,7 +72,7 @@ public sealed class ReqRspNetworkClient : IAsyncDisposable
             throw new InvalidOperationException($"unexpected rsp hash={response.rspHash}");
         }
 
-        return MemoryPackSerializer.Deserialize<TRsp>(response.payload);
+        return (MemoryPackSerializer.Deserialize<TRsp>(response.payload), response);
     }
 
     public async Task<RspHead> SendRawAsync(ReqHead request)

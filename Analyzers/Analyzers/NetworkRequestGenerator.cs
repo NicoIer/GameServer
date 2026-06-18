@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Analyzers;
 
 [Generator]
-public sealed class NetworkRequestGenerator : ISourceGenerator
+public sealed class NetworkRequestGenerator : IIncrementalGenerator
 {
     private const string NetworkRequestAttributeName = "GameServer.Core.Network.NetworkRequestAttribute";
     private const string NetworkReqName = "Network.INetworkReq";
@@ -41,14 +42,6 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
         DiagnosticSeverity.Error,
         true);
 
-    private static readonly DiagnosticDescriptor MissingAttributeRule = new(
-        "GSRPC004",
-        "Missing NetworkRequest attribute",
-        "Request {0} implements Network.INetworkReq and must be marked with NetworkRequestAttribute",
-        "NetworkRequestGenerator",
-        DiagnosticSeverity.Error,
-        true);
-
     private static readonly DiagnosticDescriptor InvalidRequestRule = new(
         "GSRPC005",
         "Invalid network request type",
@@ -57,23 +50,35 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
         DiagnosticSeverity.Error,
         true);
 
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new Receiver());
+        IncrementalValuesProvider<TypeDeclarationSyntax> candidateDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => node is TypeDeclarationSyntax declaration &&
+                (declaration.AttributeLists.Count > 0 || IsReqRspHandlerDeclaration(declaration)),
+            static (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node);
+
+        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<TypeDeclarationSyntax> Declarations)> input =
+            context.CompilationProvider.Combine(candidateDeclarations.Collect());
+
+        context.RegisterSourceOutput(input, static (sourceContext, item) =>
+        {
+            Execute(sourceContext, item.Compilation, item.Declarations);
+        });
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private static bool IsReqRspHandlerDeclaration(TypeDeclarationSyntax declaration)
     {
-        if (context.SyntaxReceiver is not Receiver receiver)
-        {
-            return;
-        }
+        return declaration is ClassDeclarationSyntax classDeclaration &&
+            classDeclaration.Identifier.ValueText.EndsWith("ReqRspHandlers", StringComparison.Ordinal);
+    }
 
-        INamedTypeSymbol? attributeType = context.Compilation.GetTypeByMetadataName(NetworkRequestAttributeName);
-        INamedTypeSymbol? reqType = context.Compilation.GetTypeByMetadataName(NetworkReqName);
-        INamedTypeSymbol? rspType = context.Compilation.GetTypeByMetadataName(NetworkRspName);
-        INamedTypeSymbol? centerType = context.Compilation.GetTypeByMetadataName(ReqRspServerCenterName);
-        INamedTypeSymbol? errorCodeType = context.Compilation.GetTypeByMetadataName(ErrorCodeName);
+    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDeclarationSyntax> candidates)
+    {
+        INamedTypeSymbol? attributeType = compilation.GetTypeByMetadataName(NetworkRequestAttributeName);
+        INamedTypeSymbol? reqType = compilation.GetTypeByMetadataName(NetworkReqName);
+        INamedTypeSymbol? rspType = compilation.GetTypeByMetadataName(NetworkRspName);
+        INamedTypeSymbol? centerType = compilation.GetTypeByMetadataName(ReqRspServerCenterName);
+        INamedTypeSymbol? errorCodeType = compilation.GetTypeByMetadataName(ErrorCodeName);
 
         if (attributeType == null || reqType == null || rspType == null || centerType == null || errorCodeType == null)
         {
@@ -89,38 +94,55 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
             return;
         }
 
+        List<RequestPair> pairs = GetCurrentPairs(context, compilation, candidates, attributeType, reqType, rspType);
+        if (pairs.Count > 0)
+        {
+            string rootNamespace = compilation.AssemblyName ?? "NetworkRequests";
+            string generatedNamespace = $"{rootNamespace}.Generated";
+            string source = Generate(generatedNamespace, pairs);
+            context.AddSource("NetworkReqRspInitializer.g.cs", SourceText.From(source, Encoding.UTF8));
+        }
+
+        List<RequestPair> handlerPairs = GetReferencedPairs(compilation, attributeType, reqType, rspType);
+        handlerPairs.AddRange(pairs);
+        if (handlerPairs.Count == 0)
+        {
+            return;
+        }
+
+        GenerateHandlerBridges(context, compilation, candidates, handlerPairs);
+    }
+
+    private static List<RequestPair> GetCurrentPairs(
+        SourceProductionContext context,
+        Compilation compilation,
+        ImmutableArray<TypeDeclarationSyntax> candidates,
+        INamedTypeSymbol attributeType,
+        INamedTypeSymbol reqType,
+        INamedTypeSymbol rspType)
+    {
         var pairs = new List<RequestPair>();
         var seen = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
-        foreach (TypeDeclarationSyntax declaration in receiver.Candidates)
+        foreach (TypeDeclarationSyntax declaration in candidates)
         {
-            SemanticModel model = context.Compilation.GetSemanticModel(declaration.SyntaxTree);
-            if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol requestSymbol)
-            {
-                continue;
-            }
-
-            if (!SymbolEqualityComparer.Default.Equals(requestSymbol.ContainingAssembly, context.Compilation.Assembly))
+            SemanticModel model = compilation.GetSemanticModel(declaration.SyntaxTree);
+            if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol requestSymbol ||
+                !SymbolEqualityComparer.Default.Equals(requestSymbol.ContainingAssembly, compilation.Assembly))
             {
                 continue;
             }
 
             AttributeData? attribute = requestSymbol.GetAttributes()
                 .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attributeType));
-
-            if (!Implements(requestSymbol, reqType))
+            if (attribute == null)
             {
-                if (attribute != null)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(InvalidRequestRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
-                }
-
                 continue;
             }
 
-            if (attribute == null)
+            if (!Implements(requestSymbol, reqType))
             {
-                context.ReportDiagnostic(Diagnostic.Create(MissingAttributeRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
+                context.ReportDiagnostic(Diagnostic.Create(InvalidRequestRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
                 continue;
             }
 
@@ -147,22 +169,7 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
             pairs.Add(new RequestPair(requestSymbol, responseSymbol));
         }
 
-        if (pairs.Count > 0)
-        {
-            string rootNamespace = context.Compilation.AssemblyName ?? "NetworkRequests";
-            string generatedNamespace = $"{rootNamespace}.Generated";
-            string source = Generate(generatedNamespace, pairs);
-            context.AddSource("NetworkReqRspInitializer.g.cs", SourceText.From(source, Encoding.UTF8));
-        }
-
-        List<RequestPair> handlerPairs = GetReferencedPairs(context.Compilation, attributeType, reqType, rspType);
-        handlerPairs.AddRange(pairs);
-        if (handlerPairs.Count == 0)
-        {
-            return;
-        }
-
-        GenerateHandlerBridges(context, receiver.Candidates, handlerPairs);
+        return pairs;
     }
 
     private static string Generate(string generatedNamespace, List<RequestPair> pairs)
@@ -203,21 +210,30 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
         return sb.ToString();
     }
 
-    private static void GenerateHandlerBridges(GeneratorExecutionContext context, List<TypeDeclarationSyntax> candidates, List<RequestPair> pairs)
+    private static void GenerateHandlerBridges(
+        SourceProductionContext context,
+        Compilation compilation,
+        ImmutableArray<TypeDeclarationSyntax> candidates,
+        List<RequestPair> pairs)
     {
         var handlerSymbols = new List<INamedTypeSymbol>();
+        var seenHandlers = new HashSet<string>(StringComparer.Ordinal);
         foreach (TypeDeclarationSyntax declaration in candidates)
         {
-            SemanticModel model = context.Compilation.GetSemanticModel(declaration.SyntaxTree);
+            SemanticModel model = compilation.GetSemanticModel(declaration.SyntaxTree);
             if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol symbol ||
                 symbol.TypeKind != TypeKind.Class ||
-                !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, context.Compilation.Assembly) ||
+                !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, compilation.Assembly) ||
                 !symbol.Name.EndsWith("ReqRspHandlers", StringComparison.Ordinal))
             {
                 continue;
             }
 
-            handlerSymbols.Add(symbol);
+            string handlerName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (seenHandlers.Add(handlerName))
+            {
+                handlerSymbols.Add(symbol);
+            }
         }
 
         if (handlerSymbols.Count == 0)
@@ -388,19 +404,6 @@ public sealed class NetworkRequestGenerator : ISourceGenerator
     private static string TypeName(ITypeSymbol symbol)
     {
         return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-    }
-
-    private sealed class Receiver : ISyntaxReceiver
-    {
-        public List<TypeDeclarationSyntax> Candidates { get; } = new();
-
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is TypeDeclarationSyntax typeDeclaration)
-            {
-                Candidates.Add(typeDeclaration);
-            }
-        }
     }
 
     private readonly struct RequestPair

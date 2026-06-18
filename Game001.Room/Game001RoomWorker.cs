@@ -3,7 +3,6 @@ using GameServer.Core.Rooms;
 using MemoryPack;
 using Network;
 using UnityToolkit;
-using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
 namespace Game001.Room;
@@ -16,9 +15,6 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
     private static readonly ushort JoinRoomReqHash = TypeId<JoinRoomReq>.stableId16;
     private static readonly ushort LeaveRoomReqHash = TypeId<LeaveRoomReq>.stableId16;
     private static readonly ushort RoomPingReqHash = TypeId<RoomPingReq>.stableId16;
-    private static readonly ushort JoinRoomRspHash = TypeId<JoinRoomRsp>.stableId16;
-    private static readonly ushort LeaveRoomRspHash = TypeId<LeaveRoomRsp>.stableId16;
-    private static readonly ushort RoomPingRspHash = TypeId<RoomPingRsp>.stableId16;
 
     public Game001RoomWorker(RoomConnectionRegistry connections, int roomFrameRate)
         : base(connections, roomFrameRate)
@@ -76,44 +72,17 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
         string message = $"room not found room={roomId}";
         if (request.reqHash == JoinRoomReqHash)
         {
-            var rsp = new JoinRoomRsp
-            {
-                Error = ProtocolErrorCode.RoomNotFound,
-                Success = false,
-                Message = message,
-                RoomId = roomId,
-                PlayerCount = 0,
-                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            };
-            return new RspHead(request.index, request.reqHash, JoinRoomRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, message, default);
         }
 
         if (request.reqHash == LeaveRoomReqHash)
         {
-            var rsp = new LeaveRoomRsp
-            {
-                Error = ProtocolErrorCode.RoomNotFound,
-                Success = false,
-                Message = message,
-                RoomId = roomId,
-                PlayerCount = 0,
-                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            };
-            return new RspHead(request.index, request.reqHash, LeaveRoomRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, message, default);
         }
 
         if (request.reqHash == RoomPingReqHash)
         {
-            var rsp = new RoomPingRsp
-            {
-                Error = ProtocolErrorCode.RoomNotFound,
-                Success = false,
-                Message = message,
-                RoomId = roomId,
-                PlayerCount = 0,
-                ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            };
-            return new RspHead(request.index, request.reqHash, RoomPingRspHash, NetworkErrorCode.Success, string.Empty, MemoryPackSerializer.Serialize(rsp));
+            return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, message, default);
         }
 
         return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, message, default);

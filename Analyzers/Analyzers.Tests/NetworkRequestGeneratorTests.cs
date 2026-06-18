@@ -77,16 +77,14 @@ namespace MemoryPack
     }
 
     [Fact]
-    public void GeneratesInitializerForGameServerCoreNetworkRequest()
+    public void DoesNotGenerateInitializerForUnmarkedGameServerCoreConnectionMessages()
     {
         string source = SharedTypes + GameServerCoreRoomConnectionMessagesSource();
 
         GeneratorDriverRunResult result = RunGenerator(source, "GameServer.Core");
-        string generated = Assert.Single(result.GeneratedTrees).GetText().ToString();
 
-        Assert.Contains("namespace GameServer.Core.Generated;", generated);
-        Assert.Contains("center.Register<global::GameServer.Core.Network.RoomHandshakeReq, global::GameServer.Core.Network.RoomHandshakeRsp>(handlers.Handle);", generated);
-        Assert.Contains("center.Register<global::GameServer.Core.Network.RoomConnectReq, global::GameServer.Core.Network.RoomConnectRsp>(handlers.Handle);", generated);
+        Assert.Empty(result.GeneratedTrees);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -100,13 +98,14 @@ namespace MemoryPack
     }
 
     [Fact]
-    public void ReportsMissingNetworkRequestAttribute()
+    public void UnmarkedNetworkRequestIsIgnored()
     {
         string source = SharedTypes + TestDataSource("TestGame.Core", "MissingAttributeMessages.cs");
 
         GeneratorDriverRunResult result = RunGenerator(source, "TestGame.Core");
 
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "GSRPC004");
+        Assert.Empty(result.GeneratedTrees);
+        Assert.Empty(result.Diagnostics);
     }
 
     [Fact]
@@ -186,6 +185,30 @@ namespace Game001.Room
         Assert.Contains(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.CreateRoomReqRsp.g.cs", StringComparison.Ordinal));
         Assert.DoesNotContain(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.JoinRoomReqRsp.g.cs", StringComparison.Ordinal));
         Assert.DoesNotContain(result.GeneratedTrees, x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.LeaveRoomReqRsp.g.cs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void HandlerBridgeDoesNotDuplicateSourceForPartialHandlerDeclarations()
+    {
+        string source = SharedTypes + Game001RoomMessagesSource() + """
+namespace Game001.Room
+{
+    public sealed partial class Game001RoomReqRspHandlers
+    {
+    }
+
+    public sealed partial class Game001RoomReqRspHandlers
+    {
+        public static partial class CreateRoomReqRsp
+        {
+        }
+    }
+}
+""";
+
+        GeneratorDriverRunResult result = RunGenerator(source);
+
+        Assert.Equal(1, result.GeneratedTrees.Count(x => x.FilePath.EndsWith("Handlers/Game001RoomReqRspHandlers.CreateRoomReqRsp.g.cs", StringComparison.Ordinal)));
     }
 
     private static string Game001RoomMessagesSource()

@@ -4,7 +4,6 @@ using Network;
 namespace GameServer.Core.Network;
 
 [MemoryPackable]
-[NetworkRequest(typeof(RoomHandshakeRsp))]
 public partial struct RoomHandshakeReq : INetworkReq
 {
     public string ConnectTicket;
@@ -13,13 +12,10 @@ public partial struct RoomHandshakeReq : INetworkReq
 [MemoryPackable]
 public partial struct RoomHandshakeRsp : INetworkRsp
 {
-    public int Error;
     public long Uid;
-    public string Message;
 }
 
 [MemoryPackable]
-[NetworkRequest(typeof(RoomConnectRsp))]
 public partial struct RoomConnectReq : INetworkReq
 {
     public string RoomId;
@@ -28,8 +24,5 @@ public partial struct RoomConnectReq : INetworkReq
 [MemoryPackable]
 public partial struct RoomConnectRsp : INetworkRsp
 {
-    public int Error;
-    public bool Success;
-    public string Message;
     public string RoomId;
 }

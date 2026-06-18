@@ -77,7 +77,7 @@ ExpectError("prepare unknown route", unknownRoutePrepareReply.Error, ProtocolErr
 
 await using ReqRspNetworkClient roomClient = await ReqRspNetworkClient.ConnectAsync(prepareReply);
 
-RoomHandshakeRsp connectionReply = await SendRoomCommand<RoomHandshakeReq, RoomHandshakeRsp>(
+(RoomHandshakeRsp connectionReply, RspHead handshakeHead) = await SendRoomCommand<RoomHandshakeReq, RoomHandshakeRsp>(
     roomClient,
     ++requestIndex,
     new RoomHandshakeReq
@@ -85,32 +85,33 @@ RoomHandshakeRsp connectionReply = await SendRoomCommand<RoomHandshakeReq, RoomH
         ConnectTicket = prepareReply.ConnectTicket,
     },
     "room handshake");
-ExpectError("room handshake", connectionReply.Error, ProtocolErrorCode.Success);
+ExpectNetworkError("room handshake", handshakeHead.error, NetworkErrorCode.Success);
+Expect("room handshake message", handshakeHead.errorMessage.Contains("handshake ok", StringComparison.Ordinal), $"unexpected message='{handshakeHead.errorMessage}'");
 Expect("room handshake uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
 Console.WriteLine($"room handshake uid={connectionReply.Uid}");
 
-CreateRoomRsp createReply = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
+(CreateRoomRsp createReply, RspHead createHead) = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
     roomClient,
     ++requestIndex,
     new CreateRoomReq { RoomId = DefaultRoomId },
     "tcp create room");
-ExpectRoomReply("tcp create room", createReply.Error, createReply.Message, ProtocolErrorCode.Success, "created room=room-001");
+ExpectRoomReply("tcp create room", createHead, createReply.RoomId, DefaultRoomId, "created room=room-001");
 
-RoomConnectRsp roomConnectReply = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
+(RoomConnectRsp roomConnectReply, RspHead roomConnectHead) = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
     roomClient,
     ++requestIndex,
     new RoomConnectReq { RoomId = DefaultRoomId },
     "tcp connect room");
-ExpectRoomReply("tcp connect room", roomConnectReply.Error, roomConnectReply.Message, ProtocolErrorCode.Success, "connected room=room-001");
+ExpectRoomReply("tcp connect room", roomConnectHead, roomConnectReply.RoomId, DefaultRoomId, "connected room=room-001");
 
-JoinRoomRsp joinReply = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
+(JoinRoomRsp joinReply, RspHead joinHead) = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
     roomClient,
     ++requestIndex,
     new JoinRoomReq(),
     "tcp join room");
-ExpectRoomReply("tcp join room", joinReply.Error, joinReply.Message, ProtocolErrorCode.Success, "joined room=room-001");
+ExpectRoomReply("tcp join room", joinHead, joinReply.RoomId, DefaultRoomId, "joined room=room-001");
 
-RoomPingRsp pingReply = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
+(RoomPingRsp pingReply, RspHead pingHead) = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
     roomClient,
     ++requestIndex,
     new RoomPingReq
@@ -118,14 +119,14 @@ RoomPingRsp pingReply = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
         ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
     },
     "tcp ping room");
-ExpectRoomReply("tcp ping room", pingReply.Error, pingReply.Message, ProtocolErrorCode.Success, $"pong uid={uid} room=room-001");
+ExpectRoomReply("tcp ping room", pingHead, pingReply.RoomId, DefaultRoomId, $"pong uid={uid} room=room-001");
 
-LeaveRoomRsp leaveReply = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
+(LeaveRoomRsp leaveReply, RspHead leaveHead) = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
     roomClient,
     ++requestIndex,
     new LeaveRoomReq(),
     "tcp leave room");
-ExpectRoomReply("tcp leave room", leaveReply.Error, leaveReply.Message, ProtocolErrorCode.Success, "left room=room-001");
+ExpectRoomReply("tcp leave room", leaveHead, leaveReply.RoomId, DefaultRoomId, "left room=room-001");
 
 RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
 {
@@ -138,7 +139,7 @@ Console.WriteLine($"tcp unknown request network error ok: {unknownReply.error}")
 
 Console.WriteLine("All client headless checks passed.");
 
-static async Task<TRsp> SendRoomCommand<TReq, TRsp>(
+static async Task<(TRsp rsp, RspHead head)> SendRoomCommand<TReq, TRsp>(
     ReqRspNetworkClient client,
     ushort index,
     TReq message,
@@ -146,15 +147,15 @@ static async Task<TRsp> SendRoomCommand<TReq, TRsp>(
     where TReq : INetworkReq
     where TRsp : INetworkRsp
 {
-    TRsp response = await client.SendAsync<TReq, TRsp>(index, message);
-    return response;
+    return await client.SendAsync<TReq, TRsp>(index, message);
 }
 
-static void ExpectRoomReply(string step, int actualError, string actualMessage, int expectedError, string expectedMessage)
+static void ExpectRoomReply(string step, RspHead head, string roomId, string expectedRoomId, string expectedMessage)
 {
-    ExpectError(step, actualError, expectedError);
-    Expect(step, actualMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{actualMessage}' does not contain '{expectedMessage}'");
-    Console.WriteLine($"{step} reply: {actualMessage}");
+    ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
+    Expect(step, roomId == expectedRoomId, $"expected room={expectedRoomId}, actual={roomId}");
+    Expect(step, head.errorMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{head.errorMessage}' does not contain '{expectedMessage}'");
+    Console.WriteLine($"{step} reply: {head.errorMessage}");
 }
 
 static void ExpectError(string step, int actual, int expected)
@@ -165,6 +166,16 @@ static void ExpectError(string step, int actual, int expected)
     }
 
     Console.WriteLine($"{step} error ok: {actual}");
+}
+
+static void ExpectNetworkError(string step, NetworkErrorCode actual, NetworkErrorCode expected)
+{
+    if (actual != expected)
+    {
+        throw new InvalidOperationException($"{step} failed: expected network error={expected}, actual={actual}");
+    }
+
+    Console.WriteLine($"{step} network error ok: {actual}");
 }
 
 static void Expect(string step, bool condition, string message)

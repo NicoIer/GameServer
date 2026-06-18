@@ -1,6 +1,5 @@
 using Game001.Core;
 using GameServer.Core.Rooms;
-using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
 namespace Game001.Room;
@@ -32,41 +31,29 @@ public sealed partial class Game001RoomReqRspHandlers
         return false;
     }
 
-    private static void FillResponse(ref CreateRoomRsp rsp, int error, string roomId, RoomStateResult result)
+    private static void FillResponse(ref CreateRoomRsp rsp, string roomId, RoomStateResult result)
     {
-        rsp.Error = error;
-        rsp.Success = result.Success;
-        rsp.Message = result.Message;
         rsp.RoomId = roomId;
         rsp.PlayerCount = result.PlayerCount;
         rsp.ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
-    private static void FillResponse(ref JoinRoomRsp rsp, int error, string roomId, RoomStateResult result)
+    private static void FillResponse(ref JoinRoomRsp rsp, string roomId, RoomStateResult result)
     {
-        rsp.Error = error;
-        rsp.Success = result.Success;
-        rsp.Message = result.Message;
         rsp.RoomId = roomId;
         rsp.PlayerCount = result.PlayerCount;
         rsp.ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
-    private static void FillResponse(ref LeaveRoomRsp rsp, int error, string roomId, RoomStateResult result)
+    private static void FillResponse(ref LeaveRoomRsp rsp, string roomId, RoomStateResult result)
     {
-        rsp.Error = error;
-        rsp.Success = result.Success;
-        rsp.Message = result.Message;
         rsp.RoomId = roomId;
         rsp.PlayerCount = result.PlayerCount;
         rsp.ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
-    private static void FillResponse(ref RoomPingRsp rsp, int error, string roomId, RoomStateResult result)
+    private static void FillResponse(ref RoomPingRsp rsp, string roomId, RoomStateResult result)
     {
-        rsp.Error = error;
-        rsp.Success = result.Success;
-        rsp.Message = result.Message;
         rsp.RoomId = roomId;
         rsp.PlayerCount = result.PlayerCount;
         rsp.ServerTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -81,14 +68,14 @@ public sealed partial class Game001RoomReqRspHandlers
         {
             if (!self.TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
             {
-                var invalidRsp = new CreateRoomRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+                var invalidRsp = new CreateRoomRsp();
                 return new ValueTask<(CreateRoomRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
             }
 
             RoomStateResult result = self._state.CreateRoom(context.Uid);
             var rsp = new CreateRoomRsp();
-            FillResponse(ref rsp, ProtocolErrorCode.Success, self._state.RoomId, result);
-            return new ValueTask<(CreateRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, string.Empty));
+            FillResponse(ref rsp, self._state.RoomId, result);
+            return new ValueTask<(CreateRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, result.Message));
         }
     }
 
@@ -103,14 +90,14 @@ public sealed partial class Game001RoomReqRspHandlers
 
             if (!self.TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
             {
-                var invalidRsp = new RoomPingRsp { Error = ProtocolErrorCode.InvalidRequest, Message = errorMsg };
+                var invalidRsp = new RoomPingRsp();
                 return (invalidRsp, errorCode, errorMsg);
             }
 
             RoomStateResult result = self._state.PingRoom(context.Uid);
             var rsp = new RoomPingRsp();
-            FillResponse(ref rsp, ProtocolErrorCode.Success, self._state.RoomId, result);
-            return (rsp, NetworkErrorCode.Success, string.Empty);
+            FillResponse(ref rsp, self._state.RoomId, result);
+            return (rsp, NetworkErrorCode.Success, result.Message);
         }
     }
 }

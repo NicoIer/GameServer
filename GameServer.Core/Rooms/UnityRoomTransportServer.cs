@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using GameServer.Core.Generated;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
 using Network;
@@ -33,8 +32,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
         _server.AddMsgHandler<ReqHead>(OnReqHead);
         _server.socket.OnDisconnected += OnDisconnected;
 
-        var handlers = new RoomHandshakeReqRspHandlers(this);
-        NetworkReqRspInitializer.RegisterAll(_connectCenter, handlers);
+        _connectCenter.Register<RoomHandshakeReq, RoomHandshakeRsp>(HandshakeAsync);
 
         Address = $"127.0.0.1:{port}";
     }
@@ -133,12 +131,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     {
         if (_workerConnectionIds.ContainsKey(connectionId))
         {
-            var alreadyConnected = new RoomHandshakeRsp
-            {
-                Error = ProtocolErrorCode.InvalidRequest,
-                Message = "room connection already authenticated",
-            };
-            return (alreadyConnected, NetworkErrorCode.Success, string.Empty);
+            return (new RoomHandshakeRsp(), NetworkErrorCode.InvalidArgument, "room connection already authenticated");
         }
 
         ValidateTokenReply validateReply = await _centerClient.ValidateTokenAsync(new ValidateTokenRequest
@@ -148,55 +141,20 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
 
         if (validateReply.Error != ProtocolErrorCode.Success)
         {
-            var unauthorized = new RoomHandshakeRsp
-            {
-                Error = ProtocolErrorCode.Unauthorized,
-                Message = "unauthorized",
-            };
-            return (unauthorized, NetworkErrorCode.Success, string.Empty);
+            return (new RoomHandshakeRsp(), NetworkErrorCode.InvalidArgument, "unauthorized");
         }
 
         int workerConnectionId = await _worker.AddConnectionAsync(validateReply.Uid, string.Empty);
         if (!_workerConnectionIds.TryAdd(connectionId, workerConnectionId))
         {
             await _worker.RemoveConnectionAsync(workerConnectionId);
-            var alreadyConnected = new RoomHandshakeRsp
-            {
-                Error = ProtocolErrorCode.InvalidRequest,
-                Uid = validateReply.Uid,
-                Message = "room connection already authenticated",
-            };
-            return (alreadyConnected, NetworkErrorCode.Success, string.Empty);
+            return (new RoomHandshakeRsp { Uid = validateReply.Uid }, NetworkErrorCode.InvalidArgument, "room connection already authenticated");
         }
 
         var connected = new RoomHandshakeRsp
         {
-            Error = ProtocolErrorCode.Success,
             Uid = validateReply.Uid,
-            Message = "handshake ok",
         };
-        return (connected, NetworkErrorCode.Success, string.Empty);
-    }
-
-}
-
-public sealed partial class RoomHandshakeReqRspHandlers
-{
-    private readonly UnityRoomTransportServer _server;
-
-    public RoomHandshakeReqRspHandlers(UnityRoomTransportServer server)
-    {
-        _server = server;
-    }
-
-    public static partial class RoomHandshakeReqRsp
-    {
-        public static ValueTask<(RoomHandshakeRsp rsp, NetworkErrorCode errorCode, string errorMsg)> Handle(
-            RoomHandshakeReqRspHandlers self,
-            int connectionId,
-            RoomHandshakeReq req)
-        {
-            return self._server.HandshakeAsync(connectionId, req);
-        }
+        return (connected, NetworkErrorCode.Success, "handshake ok");
     }
 }
