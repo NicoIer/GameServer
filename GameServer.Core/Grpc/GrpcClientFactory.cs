@@ -1,5 +1,6 @@
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace GameServer.Core.Grpc;
 

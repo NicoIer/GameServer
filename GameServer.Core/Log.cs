@@ -1,4 +1,5 @@
 using Serilog;
+using UnityToolkit;
 
 namespace GameServer.Core;
 
@@ -20,7 +21,11 @@ public static class Log
         Directory.CreateDirectory(logDirectory);
 
         Serilog.Log.Logger = new LoggerConfiguration()
+#if RELEASE
             .MinimumLevel.Information()
+#else
+            .MinimumLevel.Debug()
+#endif
             .Enrich.FromLogContext()
             .WriteTo.Async(writeTo => writeTo.Console(outputTemplate: OutputTemplate))
             .WriteTo.Async(writeTo => writeTo.File(
@@ -39,6 +44,15 @@ public static class Log
             .CreateLogger();
 
         _logger = Serilog.Log.Logger.ForContext("SourceContext", "GameServer.Core.Log");
+        RedirectToolkitLog();
+    }
+
+    private static void RedirectToolkitLog()
+    {
+        ToolkitLog.writeLog = false;
+        ToolkitLog.infoAction = Info;
+        ToolkitLog.warningAction = Warning;
+        ToolkitLog.errorAction = Error;
     }
 
     public static void Info(string message)

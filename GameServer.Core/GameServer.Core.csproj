@@ -7,6 +7,10 @@
         <RootNamespace>Core</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Google.Protobuf" Version="3.35.1" />
       <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
