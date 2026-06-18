@@ -33,8 +33,23 @@ public sealed class RoomConnectionRegistry
         return false;
     }
 
+    public List<int> GetRoomConnectionIds(string roomId)
+    {
+        var result = new List<int>();
+        foreach (KeyValuePair<int, RoomConnectionContext> item in _connections)
+        {
+            if (item.Value.RoomId == roomId)
+            {
+                result.Add(item.Key);
+            }
+        }
+
+        return result;
+    }
+
     public void Remove(int connectionId)
     {
+        // Push senders are owned by RoomWorkerBase.RemoveConnectionAsync for direct transports.
         _connections.TryRemove(connectionId, out _);
     }
 

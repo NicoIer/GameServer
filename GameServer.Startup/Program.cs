@@ -27,7 +27,8 @@ string game001RoomAddress = $"http://127.0.0.1:{game001RoomPort}";
 
 var centerRegistry = new CenterRegistry();
 var game001RoomConnections = new RoomConnectionRegistry();
-var game001RoomWorker = new Game001RoomWorker(game001RoomConnections, game001RoomFrameRate);
+var game001RoomPushHub = new RoomPushHub();
+var game001RoomWorker = new Game001RoomWorker(game001RoomConnections, game001RoomPushHub, game001RoomFrameRate);
 await using var game001RoomUpdateRunner = new Game001RoomUpdateRunner(game001RoomWorker, NetworkTickSleepMs);
 
 await using var centerServer = new GrpcServerRuntime(centerPort, services =>
@@ -44,6 +45,7 @@ centerServer.MapGrpcService<CenterServiceImpl>();
 await using var game001RoomServer = new GrpcServerRuntime(game001RoomPort, services =>
 {
     services.AddSingleton(game001RoomConnections);
+    services.AddSingleton(game001RoomPushHub);
     services.AddSingleton(game001RoomWorker);
     services.AddSingleton<Game001RoomServiceImpl>();
 });

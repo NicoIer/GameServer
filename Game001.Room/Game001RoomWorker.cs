@@ -16,8 +16,8 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
     private static readonly ushort LeaveRoomReqHash = TypeId<LeaveRoomReq>.stableId16;
     private static readonly ushort RoomPingReqHash = TypeId<RoomPingReq>.stableId16;
 
-    public Game001RoomWorker(RoomConnectionRegistry connections, int roomFrameRate)
-        : base(connections, roomFrameRate)
+    public Game001RoomWorker(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
+        : base(connections, pushHub, roomFrameRate)
     {
     }
 
@@ -59,7 +59,7 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 
     protected override bool ShouldBindConnectionRoom(ReqHead request, RspHead response)
     {
-        return false;
+        return response.error == NetworkErrorCode.Success && (request.reqHash == CreateRoomReqHash || request.reqHash == JoinRoomReqHash);
     }
 
     protected override bool ShouldClearConnectionRoom(ReqHead request, RspHead response)
@@ -90,7 +90,7 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 
     protected override Game001RoomFiberModule CreateRoomModule(string roomId)
     {
-        return new Game001RoomFiberModule(roomId, Connections, RoomFrameRate);
+        return new Game001RoomFiberModule(roomId, Connections, PushHub, RoomFrameRate);
     }
 
     protected override string CreateRoomFiberName(string roomId)

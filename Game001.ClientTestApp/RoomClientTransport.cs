@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using GameServer.Core.Rooms;
 using GameServer.Core.Protocol;
 using MemoryPack;
 using Network;
@@ -19,9 +20,11 @@ public sealed class ReqRspNetworkClient : IAsyncDisposable
     {
         _client = client;
         _client.AddMsgHandler<RspHead>(OnRspHead);
+        _client.AddMsgHandler<RoomPushHead>(OnRoomPushHead);
     }
 
     public DirectTransportProtocol Protocol => DirectTransportProtocol.Tcp;
+    public event Action<RoomPushHead>? RoomPushReceived;
 
     public static async Task<ReqRspNetworkClient> ConnectAsync(PrepareRoomConnectionReply connection)
     {
@@ -121,5 +124,10 @@ public sealed class ReqRspNetworkClient : IAsyncDisposable
         {
             completion.TrySetResult(response);
         }
+    }
+
+    private void OnRoomPushHead(in RoomPushHead push)
+    {
+        RoomPushReceived?.Invoke(push);
     }
 }

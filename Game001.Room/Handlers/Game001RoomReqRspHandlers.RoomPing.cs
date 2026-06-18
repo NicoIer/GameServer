@@ -18,9 +18,8 @@ public sealed partial class Game001RoomReqRspHandlers
             return (invalidRsp, errorCode, errorMsg);
         }
 
-        RoomStateResult result = _state.PingRoom(context.Uid);
+        string message = _room.PingRoom(context.Uid);
         var rsp = new RoomPingRsp();
-        FillResponse(ref rsp, _state.RoomId, result);
-        return (rsp, NetworkErrorCode.Success, result.Message);
+        return (rsp, NetworkErrorCode.Success, message);
     }
 }

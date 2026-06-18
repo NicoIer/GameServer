@@ -1,10 +1,14 @@
-﻿using Game001.ClientTestApp;
+﻿using System.Collections.Concurrent;
+using Game001.ClientTestApp;
 using Game001.Core;
 using GameServer.Core.Grpc;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
+using GameServer.Core.Rooms;
 using Grpc.Net.Client;
+using MemoryPack;
 using Network;
+using UnityToolkit;
 using ProtocolErrorCode = GameServer.Core.Protocol.ErrorCode;
 using NetworkErrorCode = Network.ErrorCode;
 
@@ -76,6 +80,14 @@ PrepareRoomConnectionReply unknownRoutePrepareReply = await gateClient.PrepareRo
 ExpectError("prepare unknown route", unknownRoutePrepareReply.Error, ProtocolErrorCode.RouteNotFound);
 
 await using ReqRspNetworkClient roomClient = await ReqRspNetworkClient.ConnectAsync(prepareReply);
+var roomPushes = new ConcurrentBag<RoomEventPush>();
+roomClient.RoomPushReceived += push =>
+{
+    if (push.PushHash == TypeId<RoomEventPush>.stableId16)
+    {
+        roomPushes.Add(MemoryPackSerializer.Deserialize<RoomEventPush>(push.Payload));
+    }
+};
 
 (RoomHandshakeRsp connectionReply, RspHead handshakeHead) = await SendRoomCommand<RoomHandshakeReq, RoomHandshakeRsp>(
     roomClient,
@@ -90,12 +102,13 @@ Expect("room handshake message", handshakeHead.errorMessage.Contains("handshake 
 Expect("room handshake uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
 Console.WriteLine($"room handshake uid={connectionReply.Uid}");
 
-(CreateRoomRsp createReply, RspHead createHead) = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
+(CreateRoomRsp _, RspHead createHead) = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
     roomClient,
     ++requestIndex,
     new CreateRoomReq { RoomId = DefaultRoomId },
     "tcp create room");
-ExpectRoomReply("tcp create room", createHead, createReply.RoomId, DefaultRoomId, "created room=room-001");
+ExpectRoomReply("tcp create room", createHead, "created room=room-001");
+await ExpectRoomPush(roomPushes, RoomPushType.RoomCreated, uid, DefaultRoomId);
 
 (RoomConnectRsp roomConnectReply, RspHead roomConnectHead) = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
     roomClient,
@@ -104,14 +117,14 @@ ExpectRoomReply("tcp create room", createHead, createReply.RoomId, DefaultRoomId
     "tcp connect room");
 ExpectRoomReply("tcp connect room", roomConnectHead, roomConnectReply.RoomId, DefaultRoomId, "connected room=room-001");
 
-(JoinRoomRsp joinReply, RspHead joinHead) = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
+(JoinRoomRsp _, RspHead joinHead) = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
     roomClient,
     ++requestIndex,
     new JoinRoomReq(),
     "tcp join room");
-ExpectRoomReply("tcp join room", joinHead, joinReply.RoomId, DefaultRoomId, "joined room=room-001");
+ExpectRoomReply("tcp join room", joinHead, "joined room=room-001");
 
-(RoomPingRsp pingReply, RspHead pingHead) = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
+(RoomPingRsp _, RspHead pingHead) = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
     roomClient,
     ++requestIndex,
     new RoomPingReq
@@ -119,14 +132,15 @@ ExpectRoomReply("tcp join room", joinHead, joinReply.RoomId, DefaultRoomId, "joi
         ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
     },
     "tcp ping room");
-ExpectRoomReply("tcp ping room", pingHead, pingReply.RoomId, DefaultRoomId, $"pong uid={uid} room=room-001");
+ExpectRoomReply("tcp ping room", pingHead, $"pong uid={uid} room=room-001");
 
-(LeaveRoomRsp leaveReply, RspHead leaveHead) = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
+(LeaveRoomRsp _, RspHead leaveHead) = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
     roomClient,
     ++requestIndex,
     new LeaveRoomReq(),
     "tcp leave room");
-ExpectRoomReply("tcp leave room", leaveHead, leaveReply.RoomId, DefaultRoomId, "left room=room-001");
+ExpectRoomReply("tcp leave room", leaveHead, "left room=room-001");
+await ExpectRoomPush(roomPushes, RoomPushType.PlayerLeft, uid, DefaultRoomId);
 
 RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
 {
@@ -150,12 +164,38 @@ static async Task<(TRsp rsp, RspHead head)> SendRoomCommand<TReq, TRsp>(
     return await client.SendAsync<TReq, TRsp>(index, message);
 }
 
+static void ExpectRoomReply(string step, RspHead head, string expectedMessage)
+{
+    ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
+    Expect(step, head.errorMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{head.errorMessage}' does not contain '{expectedMessage}'");
+    Console.WriteLine($"{step} reply: {head.errorMessage}");
+}
+
 static void ExpectRoomReply(string step, RspHead head, string roomId, string expectedRoomId, string expectedMessage)
 {
     ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
     Expect(step, roomId == expectedRoomId, $"expected room={expectedRoomId}, actual={roomId}");
     Expect(step, head.errorMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{head.errorMessage}' does not contain '{expectedMessage}'");
     Console.WriteLine($"{step} reply: {head.errorMessage}");
+}
+
+static async Task ExpectRoomPush(ConcurrentBag<RoomEventPush> pushes, RoomPushType type, long uid, string roomId)
+{
+    for (int i = 0; i < 100; i++)
+    {
+        foreach (RoomEventPush push in pushes)
+        {
+            if (push.Type == type && push.Uid == uid && push.Room.RoomId == roomId)
+            {
+                Console.WriteLine($"room push ok: {type} uid={uid} room={roomId}");
+                return;
+            }
+        }
+
+        await Task.Delay(10);
+    }
+
+    throw new InvalidOperationException($"missing room push type={type} uid={uid} room={roomId}");
 }
 
 static void ExpectError(string step, int actual, int expected)

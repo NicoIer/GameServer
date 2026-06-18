@@ -151,6 +151,8 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
             return (new RoomHandshakeRsp { Uid = validateReply.Uid }, NetworkErrorCode.InvalidArgument, "room connection already authenticated");
         }
 
+        _worker.PushHub.Register(workerConnectionId, push => _server.Send(connectionId, push));
+
         var connected = new RoomHandshakeRsp
         {
             Uid = validateReply.Uid,

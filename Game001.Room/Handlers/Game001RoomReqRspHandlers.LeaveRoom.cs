@@ -16,9 +16,8 @@ public sealed partial class Game001RoomReqRspHandlers
             return new ValueTask<(LeaveRoomRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
         }
 
-        RoomStateResult result = _state.LeaveRoom(context.Uid);
+        string message = _room.LeaveRoom(connectionId, context.Uid);
         var rsp = new LeaveRoomRsp();
-        FillResponse(ref rsp, _state.RoomId, result);
-        return new ValueTask<(LeaveRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, result.Message));
+        return new ValueTask<(LeaveRoomRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, message));
     }
 }

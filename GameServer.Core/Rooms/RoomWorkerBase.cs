@@ -21,13 +21,15 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     private readonly ConcurrentDictionary<string, Lazy<Task<RoomRuntimeHandle>>> _rooms = new(StringComparer.Ordinal);
     private int _stopped;
 
-    protected RoomWorkerBase(RoomConnectionRegistry connections, int roomFrameRate)
+    protected RoomWorkerBase(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
     {
         Connections = connections;
+        PushHub = pushHub;
         RoomFrameRate = roomFrameRate;
     }
 
     protected RoomConnectionRegistry Connections { get; }
+    public RoomPushHub PushHub { get; }
     protected int RoomFrameRate { get; }
 
     public Task<int> AddConnectionAsync(long uid, string roomId)
@@ -46,6 +48,8 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         {
             return;
         }
+
+        PushHub.Unregister(connectionId);
 
         if (string.IsNullOrWhiteSpace(context.RoomId))
         {
