@@ -116,7 +116,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
             response = await _worker.HandleRequestAsync(workerConnectionId, request);
         }
 
-        _server.Send(connectionId, response, true);
+        _server.Send(connectionId, response);
     }
 
     private void OnDisconnected(int connectionId)
