@@ -50,11 +50,18 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
+    private static readonly DiagnosticDescriptor DuplicateResponseRule = new(
+        "GSRPC008",
+        "Duplicate network response",
+        "Request {0} references response {1}, which is already used by request {2}",
+        "NetworkRequestGenerator",
+        DiagnosticSeverity.Error,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValuesProvider<TypeDeclarationSyntax> candidateDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => node is TypeDeclarationSyntax declaration &&
-                (declaration.AttributeLists.Count > 0 || IsReqRspHandlerDeclaration(declaration)),
+            static (node, _) => node is TypeDeclarationSyntax { AttributeLists.Count: > 0 },
             static (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node);
 
         IncrementalValueProvider<(Compilation Compilation, ImmutableArray<TypeDeclarationSyntax> Declarations)> input =
@@ -64,12 +71,6 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         {
             Execute(sourceContext, item.Compilation, item.Declarations);
         });
-    }
-
-    private static bool IsReqRspHandlerDeclaration(TypeDeclarationSyntax declaration)
-    {
-        return declaration is ClassDeclarationSyntax classDeclaration &&
-            classDeclaration.Identifier.ValueText.EndsWith("ReqRspHandlers", StringComparison.Ordinal);
     }
 
     private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDeclarationSyntax> candidates)
@@ -95,22 +96,16 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         }
 
         List<RequestPair> pairs = GetCurrentPairs(context, compilation, candidates, attributeType, reqType, rspType);
-        if (pairs.Count > 0)
-        {
-            string rootNamespace = compilation.AssemblyName ?? "NetworkRequests";
-            string generatedNamespace = $"{rootNamespace}.Generated";
-            string source = Generate(generatedNamespace, pairs);
-            context.AddSource("NetworkReqRspInitializer.g.cs", SourceText.From(source, Encoding.UTF8));
-        }
-
-        List<RequestPair> handlerPairs = GetReferencedPairs(compilation, attributeType, reqType, rspType);
-        handlerPairs.AddRange(pairs);
-        if (handlerPairs.Count == 0)
+        if (pairs.Count == 0)
         {
             return;
         }
 
-        GenerateHandlerBridges(context, compilation, candidates, handlerPairs);
+        string rootNamespace = compilation.AssemblyName ?? "NetworkRequests";
+        string generatedNamespace = $"{rootNamespace}.Generated";
+        string handlerInterfaceName = GetHandlerInterfaceName(rootNamespace);
+        string source = Generate(generatedNamespace, handlerInterfaceName, pairs);
+        context.AddSource("NetworkReqRspInitializer.g.cs", SourceText.From(source, Encoding.UTF8));
     }
 
     private static List<RequestPair> GetCurrentPairs(
@@ -122,7 +117,8 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         INamedTypeSymbol rspType)
     {
         var pairs = new List<RequestPair>();
-        var seen = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
+        var seenRequests = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
+        var seenResponses = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
         foreach (TypeDeclarationSyntax declaration in candidates)
         {
@@ -155,7 +151,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
             }
 
             string requestName = requestSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            if (seen.TryGetValue(requestName, out INamedTypeSymbol existingRequest))
+            if (seenRequests.TryGetValue(requestName, out INamedTypeSymbol existingRequest))
             {
                 if (!SymbolEqualityComparer.Default.Equals(existingRequest, requestSymbol))
                 {
@@ -165,14 +161,28 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
                 continue;
             }
 
-            seen.Add(requestName, requestSymbol);
+            string responseName = responseSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (seenResponses.TryGetValue(responseName, out INamedTypeSymbol existingResponseRequest) &&
+                !SymbolEqualityComparer.Default.Equals(existingResponseRequest, requestSymbol))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DuplicateResponseRule,
+                    declaration.Identifier.GetLocation(),
+                    requestSymbol.ToDisplayString(),
+                    responseSymbol.ToDisplayString(),
+                    existingResponseRequest.ToDisplayString()));
+                continue;
+            }
+
+            seenRequests.Add(requestName, requestSymbol);
+            seenResponses.Add(responseName, requestSymbol);
             pairs.Add(new RequestPair(requestSymbol, responseSymbol));
         }
 
         return pairs;
     }
 
-    private static string Generate(string generatedNamespace, List<RequestPair> pairs)
+    private static string Generate(string generatedNamespace, string handlerInterfaceName, List<RequestPair> pairs)
     {
         var sb = new StringBuilder();
         sb.AppendLine("// <auto-generated />");
@@ -180,13 +190,16 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine($"namespace {generatedNamespace};");
         sb.AppendLine();
-        sb.AppendLine("public interface INetworkReqRspHandlers");
+        sb.Append("public interface ");
+        sb.AppendLine(handlerInterfaceName);
         sb.AppendLine("{");
         foreach (RequestPair pair in pairs)
         {
             sb.Append("    global::System.Threading.Tasks.ValueTask<(");
             sb.Append(TypeName(pair.Response));
-            sb.Append(" rsp, global::Network.ErrorCode errorCode, string errorMsg)> Handle(int connectionId, ");
+            sb.Append(" rsp, global::Network.ErrorCode errorCode, string errorMsg)> ");
+            sb.Append(GetHandlerMethodName(pair.Request.Name));
+            sb.Append("(int connectionId, ");
             sb.Append(TypeName(pair.Request));
             sb.Append(" req);");
             sb.AppendLine();
@@ -195,7 +208,9 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("public static class NetworkReqRspInitializer");
         sb.AppendLine("{");
-        sb.AppendLine("    public static void RegisterAll(global::Network.ReqRspServerCenter center, INetworkReqRspHandlers handlers)");
+        sb.Append("    public static void RegisterAll(global::Network.ReqRspServerCenter center, ");
+        sb.Append(handlerInterfaceName);
+        sb.AppendLine(" handlers)");
         sb.AppendLine("    {");
         foreach (RequestPair pair in pairs)
         {
@@ -203,192 +218,40 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
             sb.Append(TypeName(pair.Request));
             sb.Append(", ");
             sb.Append(TypeName(pair.Response));
-            sb.AppendLine(">(handlers.Handle);");
+            sb.Append(">(handlers.");
+            sb.Append(GetHandlerMethodName(pair.Request.Name));
+            sb.AppendLine(");");
         }
         sb.AppendLine("    }");
         sb.AppendLine("}");
         return sb.ToString();
     }
 
-    private static void GenerateHandlerBridges(
-        SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<TypeDeclarationSyntax> candidates,
-        List<RequestPair> pairs)
+    private static string GetHandlerInterfaceName(string assemblyName)
     {
-        var handlerSymbols = new List<INamedTypeSymbol>();
-        var seenHandlers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (TypeDeclarationSyntax declaration in candidates)
-        {
-            SemanticModel model = compilation.GetSemanticModel(declaration.SyntaxTree);
-            if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol symbol ||
-                symbol.TypeKind != TypeKind.Class ||
-                !SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, compilation.Assembly) ||
-                !symbol.Name.EndsWith("ReqRspHandlers", StringComparison.Ordinal))
-            {
-                continue;
-            }
+        string gameName = assemblyName.EndsWith(".Core", StringComparison.Ordinal)
+            ? assemblyName.Substring(0, assemblyName.Length - ".Core".Length)
+            : assemblyName;
 
-            string handlerName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            if (seenHandlers.Add(handlerName))
-            {
-                handlerSymbols.Add(symbol);
-            }
+        int dotIndex = gameName.LastIndexOf('.');
+        if (dotIndex >= 0)
+        {
+            gameName = gameName.Substring(dotIndex + 1);
         }
 
-        if (handlerSymbols.Count == 0)
-        {
-            return;
-        }
-
-        foreach (INamedTypeSymbol handlerSymbol in handlerSymbols)
-        {
-            string handlerNamespace = handlerSymbol.ContainingNamespace.IsGlobalNamespace
-                ? string.Empty
-                : handlerSymbol.ContainingNamespace.ToDisplayString();
-            var nestedHandlerNames = new HashSet<string>(StringComparer.Ordinal);
-            foreach (INamedTypeSymbol nestedType in handlerSymbol.GetTypeMembers())
-            {
-                if (nestedType.TypeKind == TypeKind.Class)
-                {
-                    nestedHandlerNames.Add(nestedType.Name);
-                }
-            }
-
-            foreach (RequestPair pair in pairs)
-            {
-                string nestedName = GetHandlerNestedName(pair.Request.Name);
-                if (!nestedHandlerNames.Contains(nestedName))
-                {
-                    continue;
-                }
-
-                string interfaceNamespace = GetGeneratedNamespace(pair.Request.ContainingAssembly.Name);
-                var sb = new StringBuilder();
-                sb.AppendLine("// <auto-generated />");
-                sb.AppendLine("#nullable enable");
-                sb.AppendLine();
-                if (handlerNamespace.Length > 0)
-                {
-                    sb.AppendLine($"namespace {handlerNamespace};");
-                    sb.AppendLine();
-                }
-
-                sb.Append("public sealed partial class ");
-                sb.Append(handlerSymbol.Name);
-                sb.Append(" : global::");
-                sb.Append(interfaceNamespace);
-                sb.AppendLine(".INetworkReqRspHandlers");
-                sb.AppendLine("{");
-                sb.Append("    public global::System.Threading.Tasks.ValueTask<(");
-                sb.Append(TypeName(pair.Response));
-                sb.Append(" rsp, global::Network.ErrorCode errorCode, string errorMsg)> Handle(int connectionId, ");
-                sb.Append(TypeName(pair.Request));
-                sb.AppendLine(" req)");
-                sb.AppendLine("    {");
-                sb.Append("        return ");
-                sb.Append(nestedName);
-                sb.AppendLine(".Handle(this, connectionId, req);");
-                sb.AppendLine("    }");
-                sb.AppendLine();
-                sb.Append("    public static partial class ");
-                sb.Append(nestedName);
-                sb.AppendLine();
-                sb.AppendLine("    {");
-                sb.AppendLine("    }");
-                sb.AppendLine("}");
-
-                string hintName = $"Handlers/{handlerSymbol.Name}.{nestedName}.g.cs";
-                context.AddSource(hintName, SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
-        }
+        return $"I{gameName}Handler";
     }
 
-    private static List<RequestPair> GetReferencedPairs(
-        Compilation compilation,
-        INamedTypeSymbol attributeType,
-        INamedTypeSymbol reqType,
-        INamedTypeSymbol rspType)
+    private static string GetHandlerMethodName(string requestTypeName)
     {
-        var pairs = new List<RequestPair>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (MetadataReference reference in compilation.References)
-        {
-            if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
-            {
-                continue;
-            }
+        string methodName = requestTypeName.EndsWith("Req", StringComparison.Ordinal)
+            ? requestTypeName.Substring(0, requestTypeName.Length - 3)
+            : requestTypeName;
 
-            CollectNamespacePairs(assembly.GlobalNamespace, attributeType, reqType, rspType, pairs, seen);
-        }
-
-        return pairs;
+        return $"Handle{methodName}";
     }
 
-    private static void CollectNamespacePairs(
-        INamespaceSymbol namespaceSymbol,
-        INamedTypeSymbol attributeType,
-        INamedTypeSymbol reqType,
-        INamedTypeSymbol rspType,
-        List<RequestPair> pairs,
-        HashSet<string> seen)
-    {
-        foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
-        {
-            CollectTypePairs(type, attributeType, reqType, rspType, pairs, seen);
-        }
-
-        foreach (INamespaceSymbol child in namespaceSymbol.GetNamespaceMembers())
-        {
-            CollectNamespacePairs(child, attributeType, reqType, rspType, pairs, seen);
-        }
-    }
-
-    private static void CollectTypePairs(
-        INamedTypeSymbol type,
-        INamedTypeSymbol attributeType,
-        INamedTypeSymbol reqType,
-        INamedTypeSymbol rspType,
-        List<RequestPair> pairs,
-        HashSet<string> seen)
-    {
-        AttributeData? attribute = type.GetAttributes()
-            .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attributeType));
-        if (attribute != null &&
-            Implements(type, reqType) &&
-            attribute.ConstructorArguments.Length > 0 &&
-            attribute.ConstructorArguments[0].Value is INamedTypeSymbol responseSymbol &&
-            Implements(responseSymbol, rspType))
-        {
-            string requestName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            if (seen.Add(requestName))
-            {
-                pairs.Add(new RequestPair(type, responseSymbol));
-            }
-        }
-
-        foreach (INamedTypeSymbol nestedType in type.GetTypeMembers())
-        {
-            CollectTypePairs(nestedType, attributeType, reqType, rspType, pairs, seen);
-        }
-    }
-
-    private static string GetGeneratedNamespace(string assemblyName)
-    {
-        return $"{assemblyName}.Generated";
-    }
-
-    private static string GetHandlerNestedName(string requestTypeName)
-    {
-        if (requestTypeName.EndsWith("Req", StringComparison.Ordinal))
-        {
-            return requestTypeName.Substring(0, requestTypeName.Length - 3) + "ReqRsp";
-        }
-
-        return requestTypeName + "ReqRsp";
-    }
-
-    private static bool Implements(INamedTypeSymbol type, INamedTypeSymbol interfaceType)
+    private static bool Implements(ITypeSymbol type, INamedTypeSymbol interfaceType)
     {
         foreach (INamedTypeSymbol item in type.AllInterfaces)
         {
