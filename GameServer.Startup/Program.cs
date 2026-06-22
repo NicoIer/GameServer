@@ -29,7 +29,7 @@ var centerRegistry = new CenterRegistry();
 var game001RoomConnections = new RoomConnectionRegistry();
 var game001RoomPushHub = new RoomPushHub();
 var game001RoomWorker = new Game001RoomWorker(game001RoomConnections, game001RoomPushHub, game001RoomFrameRate);
-await using var game001RoomUpdateRunner = new Game001RoomUpdateRunner(game001RoomWorker, NetworkTickSleepMs);
+await using var game001RoomUpdateRunner = new RoomWorkerUpdateRunner(game001RoomWorker, NetworkTickSleepMs);
 
 await using var centerServer = new GrpcServerRuntime(centerPort, services =>
 {

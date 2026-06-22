@@ -1,14 +1,14 @@
-namespace Game001.Room;
+namespace GameServer.Core.Rooms;
 
-public sealed class Game001RoomUpdateRunner : IAsyncDisposable
+public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
 {
-    private readonly Game001RoomWorker _worker;
+    private readonly IRoomWorker _worker;
     private readonly int _networkTickSleepMs;
     private readonly CancellationTokenSource _shutdown = new();
     private Task? _runTask;
     private bool _stopped;
 
-    public Game001RoomUpdateRunner(Game001RoomWorker worker, int networkTickSleepMs)
+    public RoomWorkerUpdateRunner(IRoomWorker worker, int networkTickSleepMs)
     {
         _worker = worker;
         _networkTickSleepMs = networkTickSleepMs;
