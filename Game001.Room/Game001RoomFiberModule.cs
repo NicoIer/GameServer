@@ -17,6 +17,8 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
         _room = new Game001Room(roomId, pushHub);
     }
 
+    public override RoomLifecycleState LifecycleState => _room.LifecycleState;
+
     protected override void RegisterHandlers(ReqRspServerCenter center)
     {
         var handlers = new Game001RoomReqRspHandlers(_connections, _room, FrameAwaiter);
@@ -32,5 +34,20 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
     {
         _room.DisconnectRoom(connectionId, context.Uid);
         return ValueTask.CompletedTask;
+    }
+
+    public override bool ShouldCloseRoom(long timeNowMs)
+    {
+        return _room.ShouldCloseRoom(timeNowMs);
+    }
+
+    public override void BeginCloseRoom(long timeNowMs)
+    {
+        _room.BeginCloseRoom(timeNowMs);
+    }
+
+    protected override void OnRoomStopped()
+    {
+        _room.CloseRoom(Environment.TickCount64);
     }
 }

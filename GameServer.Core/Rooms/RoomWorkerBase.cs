@@ -19,6 +19,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     private readonly FiberManager _fiberManager = new();
     private readonly ConcurrentDictionary<string, Lazy<Task<RoomRuntimeHandle>>> _rooms = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, byte> _closingRooms = new(StringComparer.Ordinal);
     private int _stopped;
 
     protected RoomWorkerBase(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
@@ -64,6 +65,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
         RoomRuntimeHandle handle = room.Value;
         await handle.Fiber.CallAsync(() => HandleConnectionDisconnectedAsync(handle, connectionId, context));
+        TryQueueRoomClose(context.RoomId, handle, Environment.TickCount64);
     }
 
     public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
@@ -102,6 +104,12 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return CreateRoomNotFoundResponse(request, route);
         }
 
+        if (room.Value.Module.LifecycleState == RoomLifecycleState.Closing ||
+            room.Value.Module.LifecycleState == RoomLifecycleState.Closed)
+        {
+            return CreateRoomNotFoundResponse(request, route);
+        }
+
         RspHead response = await room.Value.Fiber.CallAsync(() => room.Value.Module.HandleRequestAsync(connectionId, request));
         if (response.error == NetworkErrorCode.Success && route.SuccessConnectionAction == RoomRequestConnectionAction.BindRoom)
         {
@@ -112,6 +120,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             Connections.TrySetRoom(connectionId, string.Empty);
         }
 
+        TryQueueRoomClose(route.RoomId, room.Value, Environment.TickCount64);
         return response;
     }
 
@@ -141,6 +150,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     public void Update(long timeNowMs)
     {
         _fiberManager.UpdateMain(timeNowMs);
+        QueueClosingRooms(timeNowMs);
     }
 
     public void Stop()
@@ -195,6 +205,109 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         {
             _rooms.TryRemove(roomId, out _);
             return null;
+        }
+    }
+
+    private void QueueClosingRooms(long timeNowMs)
+    {
+        foreach (KeyValuePair<string, Lazy<Task<RoomRuntimeHandle>>> item in _rooms)
+        {
+            Lazy<Task<RoomRuntimeHandle>> roomTask = item.Value;
+            if (!roomTask.IsValueCreated || !roomTask.Value.IsCompletedSuccessfully)
+            {
+                continue;
+            }
+
+            RoomRuntimeHandle handle = roomTask.Value.Result;
+            if (handle.Module.ShouldCloseRoom(timeNowMs))
+            {
+                TryQueueRoomClose(item.Key, roomTask, handle, timeNowMs);
+            }
+        }
+    }
+
+    private void TryQueueRoomClose(string roomId, RoomRuntimeHandle handle, long timeNowMs)
+    {
+        if (!_rooms.TryGetValue(roomId, out Lazy<Task<RoomRuntimeHandle>>? roomTask))
+        {
+            return;
+        }
+
+        if (!handle.Module.ShouldCloseRoom(timeNowMs))
+        {
+            return;
+        }
+
+        TryQueueRoomClose(roomId, roomTask, handle, timeNowMs);
+    }
+
+    private void TryQueueRoomClose(
+        string roomId,
+        Lazy<Task<RoomRuntimeHandle>> roomTask,
+        RoomRuntimeHandle handle,
+        long timeNowMs)
+    {
+        if (!_closingRooms.TryAdd(roomId, 0))
+        {
+            return;
+        }
+
+        _ = CloseRoomAsync(roomId, roomTask, handle, timeNowMs);
+    }
+
+    private async Task CloseRoomAsync(
+        string roomId,
+        Lazy<Task<RoomRuntimeHandle>> roomTask,
+        RoomRuntimeHandle handle,
+        long timeNowMs)
+    {
+        try
+        {
+            Exception? beginCloseException = null;
+            bool shouldClose;
+            try
+            {
+                shouldClose = await handle.Fiber.CallAsync(() =>
+                {
+                    if (!handle.Module.ShouldCloseRoom(timeNowMs))
+                    {
+                        return false;
+                    }
+
+                    handle.Module.BeginCloseRoom(timeNowMs);
+                    return true;
+                });
+            }
+            catch (Exception e)
+            {
+                beginCloseException = e;
+                shouldClose = handle.Module.ShouldCloseRoom(timeNowMs);
+            }
+
+            if (!shouldClose)
+            {
+                return;
+            }
+
+            var item = new KeyValuePair<string, Lazy<Task<RoomRuntimeHandle>>>(roomId, roomTask);
+            if (!((ICollection<KeyValuePair<string, Lazy<Task<RoomRuntimeHandle>>>>)_rooms).Remove(item))
+            {
+                return;
+            }
+
+            await _fiberManager.RemoveAsync(handle.Fiber.FiberId);
+            if (beginCloseException != null)
+            {
+                Console.WriteLine(beginCloseException);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            _closingRooms.TryRemove(roomId, out _);
         }
     }
 

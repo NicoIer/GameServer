@@ -17,6 +17,7 @@ public abstract class RoomFiberModuleBase : IFiberModule
     }
 
     public string RoomId { get; }
+    public virtual RoomLifecycleState LifecycleState => RoomLifecycleState.Active;
     protected RoomFrameAwaiter FrameAwaiter { get; } = new();
 
     public ValueTask OnStartAsync(Fiber fiber, CancellationToken cancellationToken)
@@ -52,6 +53,7 @@ public abstract class RoomFiberModuleBase : IFiberModule
     public ValueTask OnStopAsync(CancellationToken cancellationToken)
     {
         FrameAwaiter.Cancel();
+        OnRoomStopped();
         return ValueTask.CompletedTask;
     }
 
@@ -72,6 +74,21 @@ public abstract class RoomFiberModuleBase : IFiberModule
         return ValueTask.CompletedTask;
     }
 
+    public virtual bool ShouldCloseRoom(long timeNowMs)
+    {
+        RoomLifecycleState lifecycleState = LifecycleState;
+        return lifecycleState == RoomLifecycleState.Empty ||
+               lifecycleState == RoomLifecycleState.Closing ||
+               lifecycleState == RoomLifecycleState.Closed;
+    }
+
+    public virtual void BeginCloseRoom(long timeNowMs)
+    {
+    }
+
     protected abstract void RegisterHandlers(ReqRspServerCenter center);
     protected abstract void OnRoomUpdate(long timeNowMs, int frame);
+    protected virtual void OnRoomStopped()
+    {
+    }
 }

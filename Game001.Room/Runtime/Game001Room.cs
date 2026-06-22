@@ -16,6 +16,7 @@ public sealed class Game001Room
     }
 
     public Game001RoomState State { get; }
+    public RoomLifecycleState LifecycleState => State.LifecycleState;
 
     public string CreateRoom(int connectionId, long uid)
     {
@@ -45,6 +46,22 @@ public sealed class Game001Room
     public void Update(long timeNowMs, int frame)
     {
         State.SetFrame(timeNowMs, frame);
+        _lifecycleSystem.Update(timeNowMs);
         _syncSystem.Update(timeNowMs, frame);
+    }
+
+    public bool ShouldCloseRoom(long timeNowMs)
+    {
+        return _lifecycleSystem.ShouldCloseRoom(timeNowMs);
+    }
+
+    public void BeginCloseRoom(long timeNowMs)
+    {
+        _lifecycleSystem.BeginCloseRoom(timeNowMs);
+    }
+
+    public void CloseRoom(long timeNowMs)
+    {
+        _lifecycleSystem.CloseRoom(timeNowMs);
     }
 }
