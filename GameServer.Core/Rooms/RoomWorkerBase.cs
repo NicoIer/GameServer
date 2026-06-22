@@ -83,10 +83,10 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return await HandleRoomConnectAsync(connectionId, request);
         }
 
-        string roomId;
+        RoomRequestRoute route;
         try
         {
-            if (!TryResolveRoomId(request, context, out roomId))
+            if (!RequestRouter.TryResolve(request, context, out route))
             {
                 return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.NotSupported, "room request is not registered", default);
             }
@@ -96,18 +96,18 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, "invalid room request payload", default);
         }
 
-        RoomRuntimeHandle? room = await ResolveRoomAsync(request, roomId);
+        RoomRuntimeHandle? room = await ResolveRoomAsync(route);
         if (room == null)
         {
-            return CreateRoomNotFoundResponse(request, roomId);
+            return CreateRoomNotFoundResponse(request, route);
         }
 
         RspHead response = await room.Value.Fiber.CallAsync(() => room.Value.Module.HandleRequestAsync(connectionId, request));
-        if (ShouldBindConnectionRoom(request, response))
+        if (response.error == NetworkErrorCode.Success && route.SuccessConnectionAction == RoomRequestConnectionAction.BindRoom)
         {
-            Connections.TrySetRoom(connectionId, roomId);
+            Connections.TrySetRoom(connectionId, route.RoomId);
         }
-        else if (ShouldClearConnectionRoom(request, response))
+        else if (response.error == NetworkErrorCode.Success && route.SuccessConnectionAction == RoomRequestConnectionAction.ClearRoom)
         {
             Connections.TrySetRoom(connectionId, string.Empty);
         }
@@ -156,11 +156,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     private bool IsStopped => Volatile.Read(ref _stopped) != 0;
 
-    protected abstract bool TryResolveRoomId(ReqHead request, RoomConnectionContext context, out string roomId);
-    protected abstract bool IsCreateRoomRequest(ReqHead request);
-    protected abstract bool ShouldBindConnectionRoom(ReqHead request, RspHead response);
-    protected abstract bool ShouldClearConnectionRoom(ReqHead request, RspHead response);
-    protected abstract RspHead CreateRoomNotFoundResponse(ReqHead request, string roomId);
+    protected abstract RoomRequestRouter RequestRouter { get; }
     protected abstract TRoomModule CreateRoomModule(string roomId);
 
     protected virtual string CreateRoomFiberName(string roomId)
@@ -168,14 +164,20 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         return $"RoomRoot.{roomId}";
     }
 
-    private async Task<RoomRuntimeHandle?> ResolveRoomAsync(ReqHead request, string roomId)
+    private async Task<RoomRuntimeHandle?> ResolveRoomAsync(RoomRequestRoute route)
     {
-        if (IsCreateRoomRequest(request))
+        if (route.CanCreateRoom)
         {
-            return await GetOrCreateRoomAsync(roomId);
+            return await GetOrCreateRoomAsync(route.RoomId);
         }
 
-        return await FindRoomAsync(roomId);
+        return await FindRoomAsync(route.RoomId);
+    }
+
+    private static RspHead CreateRoomNotFoundResponse(ReqHead request, RoomRequestRoute route)
+    {
+        string message = $"room not found room={route.RoomId}";
+        return new RspHead(request.index, request.reqHash, 0, route.RoomNotFoundErrorCode, message, default);
     }
 
     private async Task<RoomRuntimeHandle?> FindRoomAsync(string roomId)
