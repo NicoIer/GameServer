@@ -31,6 +31,8 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
     protected RoomConnectionRegistry Connections { get; }
     public RoomPushHub PushHub { get; }
+    public int RoomCount => _rooms.Count;
+    public int ClosingRoomCount => _closingRooms.Count;
     protected int RoomFrameRate { get; }
 
     public Task<int> AddConnectionAsync(long uid, string roomId)

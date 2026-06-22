@@ -1,22 +1,38 @@
+using System.Diagnostics;
+
 namespace GameServer.Core.Rooms;
+
+public readonly record struct RoomWorkerUpdateRunnerMetrics(
+    long TickCount,
+    long ExceptionCount,
+    TimeSpan LastTickElapsed,
+    TimeSpan MaxTickElapsed,
+    int RoomCount,
+    int ClosingRoomCount);
 
 public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
 {
     private readonly IRoomWorker _worker;
-    private readonly int _networkTickSleepMs;
+    private readonly TimeSpan _networkTickInterval;
     private readonly CancellationTokenSource _shutdown = new();
     private Task? _runTask;
     private bool _stopped;
+    private long _tickCount;
+    private long _exceptionCount;
+    private long _lastTickElapsedTicks;
+    private long _maxTickElapsedTicks;
+    private int _roomCount;
+    private int _closingRoomCount;
 
     public RoomWorkerUpdateRunner(IRoomWorker worker, int networkTickSleepMs)
     {
         _worker = worker;
-        _networkTickSleepMs = networkTickSleepMs;
+        _networkTickInterval = TimeSpan.FromMilliseconds(Math.Max(1, networkTickSleepMs));
     }
 
     public Task StartAsync()
     {
-        _runTask = Task.Run(Run);
+        _runTask = Task.Run(RunAsync);
         return Task.CompletedTask;
     }
 
@@ -44,23 +60,68 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
         _shutdown.Dispose();
     }
 
-    private void Run()
+    public RoomWorkerUpdateRunnerMetrics GetMetrics()
     {
-        while (!_shutdown.IsCancellationRequested)
+        return new RoomWorkerUpdateRunnerMetrics(
+            Interlocked.Read(ref _tickCount),
+            Interlocked.Read(ref _exceptionCount),
+            TimeSpan.FromTicks(Interlocked.Read(ref _lastTickElapsedTicks)),
+            TimeSpan.FromTicks(Interlocked.Read(ref _maxTickElapsedTicks)),
+            Volatile.Read(ref _roomCount),
+            Volatile.Read(ref _closingRoomCount));
+    }
+
+    private async Task RunAsync()
+    {
+        using var timer = new PeriodicTimer(_networkTickInterval);
+        try
         {
-            Thread.Sleep(_networkTickSleepMs);
-            if (_shutdown.IsCancellationRequested)
+            while (await timer.WaitForNextTickAsync(_shutdown.Token))
             {
-                break;
+                RunTick();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void RunTick()
+    {
+        long startTimestamp = Stopwatch.GetTimestamp();
+        try
+        {
+            _worker.Update(Environment.TickCount64);
+        }
+        catch (Exception e)
+        {
+            Interlocked.Increment(ref _exceptionCount);
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+            Interlocked.Increment(ref _tickCount);
+            Interlocked.Exchange(ref _lastTickElapsedTicks, elapsed.Ticks);
+            UpdateMaxTickElapsed(elapsed.Ticks);
+            Volatile.Write(ref _roomCount, _worker.RoomCount);
+            Volatile.Write(ref _closingRoomCount, _worker.ClosingRoomCount);
+        }
+    }
+
+    private void UpdateMaxTickElapsed(long elapsedTicks)
+    {
+        while (true)
+        {
+            long current = Interlocked.Read(ref _maxTickElapsedTicks);
+            if (elapsedTicks <= current)
+            {
+                return;
             }
 
-            try
+            if (Interlocked.CompareExchange(ref _maxTickElapsedTicks, elapsedTicks, current) == current)
             {
-                _worker.Update(Environment.TickCount64);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
+                return;
             }
         }
     }

@@ -19,7 +19,8 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     private readonly ReqRspServerCenter _connectCenter = new();
     private readonly ConcurrentDictionary<int, int> _workerConnectionIds = new();
     private readonly CancellationTokenSource _shutdown = new();
-    private readonly int _networkTickSleepMs;
+    private readonly TimeSpan _networkTickInterval;
+    private readonly float _networkTickDeltaSeconds;
     private Task? _runTask;
     private bool _stopped;
 
@@ -27,7 +28,9 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     {
         _centerClient = centerClient;
         _worker = worker;
-        _networkTickSleepMs = networkTickSleepMs;
+        int networkTickIntervalMs = Math.Max(1, networkTickSleepMs);
+        _networkTickInterval = TimeSpan.FromMilliseconds(networkTickIntervalMs);
+        _networkTickDeltaSeconds = networkTickIntervalMs / 1000f;
         _server = new NetworkServer(new TelepathyServerSocket((ushort)port), 1000, false);
         _server.AddMsgHandler<ReqHead>(OnReqHead);
         _server.socket.OnDisconnected += OnDisconnected;
@@ -43,7 +46,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     public Task StartAsync()
     {
         _server.Run(false);
-        _runTask = Task.Run(Run);
+        _runTask = Task.Run(RunAsync);
         return Task.CompletedTask;
     }
 
@@ -78,17 +81,18 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
         _shutdown.Dispose();
     }
 
-    private void Run()
+    private async Task RunAsync()
     {
-        while (!_shutdown.IsCancellationRequested)
+        using var timer = new PeriodicTimer(_networkTickInterval);
+        try
         {
-            Thread.Sleep(_networkTickSleepMs);
-            if (_shutdown.IsCancellationRequested)
+            while (await timer.WaitForNextTickAsync(_shutdown.Token))
             {
-                break;
+                _server.OnUpdate(_networkTickDeltaSeconds);
             }
-
-            _server.OnUpdate(_networkTickSleepMs / 1000f);
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 

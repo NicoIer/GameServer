@@ -5,6 +5,8 @@ namespace GameServer.Core.Rooms;
 public interface IRoomWorker
 {
     RoomPushHub PushHub { get; }
+    int RoomCount { get; }
+    int ClosingRoomCount { get; }
     Task<int> AddConnectionAsync(long uid, string roomId);
     Task RemoveConnectionAsync(int connectionId);
     Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request);
