@@ -45,4 +45,22 @@ public sealed class RoomPushHub
         };
         sender(head);
     }
+
+    public void SendMany<TPush>(IEnumerable<int> connectionIds, TPush push)
+        where TPush : IRoomPush
+    {
+        var head = new RoomPushHead
+        {
+            PushHash = TypeId<TPush>.stableId16,
+            Payload = MemoryPackSerializer.Serialize(push),
+        };
+
+        foreach (int connectionId in connectionIds)
+        {
+            if (_senders.TryGetValue(connectionId, out Action<RoomPushHead>? sender))
+            {
+                sender(head);
+            }
+        }
+    }
 }
