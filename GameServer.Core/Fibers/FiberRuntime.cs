@@ -767,7 +767,7 @@ internal sealed class ThreadPoolFiberScheduler : IFiberScheduler
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        global::GameServer.Core.Log.Error("Fiber", e, $"event=fiber_run_failed fiberId={fiberId}");
                     }
                 }
 

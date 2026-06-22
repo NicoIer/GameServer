@@ -8,6 +8,8 @@ public sealed class RoomConnectionRegistry
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<int, byte>> _roomConnections = new(StringComparer.Ordinal);
     private int _nextConnectionId;
 
+    public int ConnectionCount => _connections.Count;
+
     public int Add(long uid, string roomId)
     {
         int connectionId = Interlocked.Increment(ref _nextConnectionId);
@@ -55,6 +57,21 @@ public sealed class RoomConnectionRegistry
         }
 
         return new List<int>(connections.Keys);
+    }
+
+    public int GetRoomConnectionCount(string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return 0;
+        }
+
+        if (!_roomConnections.TryGetValue(roomId, out ConcurrentDictionary<int, byte>? connections))
+        {
+            return 0;
+        }
+
+        return connections.Count;
     }
 
     public void Remove(int connectionId)

@@ -8,10 +8,13 @@ public readonly record struct RoomWorkerUpdateRunnerMetrics(
     TimeSpan LastTickElapsed,
     TimeSpan MaxTickElapsed,
     int RoomCount,
-    int ClosingRoomCount);
+    int ClosingRoomCount,
+    RoomWorkerMetrics WorkerMetrics);
 
 public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
 {
+    private const long MetricsLogIntervalMs = 10_000;
+
     private readonly IRoomWorker _worker;
     private readonly TimeSpan _networkTickInterval;
     private readonly CancellationTokenSource _shutdown = new();
@@ -21,6 +24,7 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
     private long _exceptionCount;
     private long _lastTickElapsedTicks;
     private long _maxTickElapsedTicks;
+    private long _nextMetricsLogTimeMs;
     private int _roomCount;
     private int _closingRoomCount;
 
@@ -28,6 +32,7 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
     {
         _worker = worker;
         _networkTickInterval = TimeSpan.FromMilliseconds(Math.Max(1, networkTickSleepMs));
+        _nextMetricsLogTimeMs = Environment.TickCount64 + MetricsLogIntervalMs;
     }
 
     public Task StartAsync()
@@ -68,7 +73,8 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
             TimeSpan.FromTicks(Interlocked.Read(ref _lastTickElapsedTicks)),
             TimeSpan.FromTicks(Interlocked.Read(ref _maxTickElapsedTicks)),
             Volatile.Read(ref _roomCount),
-            Volatile.Read(ref _closingRoomCount));
+            Volatile.Read(ref _closingRoomCount),
+            _worker.GetMetrics());
     }
 
     private async Task RunAsync()
@@ -88,15 +94,16 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
 
     private void RunTick()
     {
+        long timeNowMs = Environment.TickCount64;
         long startTimestamp = Stopwatch.GetTimestamp();
         try
         {
-            _worker.Update(Environment.TickCount64);
+            _worker.Update(timeNowMs);
         }
         catch (Exception e)
         {
             Interlocked.Increment(ref _exceptionCount);
-            Console.WriteLine(e);
+            global::GameServer.Core.Log.Error("Room", e, "event=room_worker_tick_failed");
         }
         finally
         {
@@ -106,7 +113,31 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
             UpdateMaxTickElapsed(elapsed.Ticks);
             Volatile.Write(ref _roomCount, _worker.RoomCount);
             Volatile.Write(ref _closingRoomCount, _worker.ClosingRoomCount);
+            LogMetrics(timeNowMs);
         }
+    }
+
+    private void LogMetrics(long timeNowMs)
+    {
+        if (timeNowMs < _nextMetricsLogTimeMs)
+        {
+            return;
+        }
+
+        _nextMetricsLogTimeMs = timeNowMs + MetricsLogIntervalMs;
+        RoomWorkerUpdateRunnerMetrics metrics = GetMetrics();
+        RoomWorkerMetrics workerMetrics = metrics.WorkerMetrics;
+        global::GameServer.Core.Log.Info(
+            "Room",
+            $"event=room_worker_metrics tickCount={metrics.TickCount} exceptionCount={metrics.ExceptionCount} " +
+            $"lastTickMs={metrics.LastTickElapsed.TotalMilliseconds:F3} maxTickMs={metrics.MaxTickElapsed.TotalMilliseconds:F3} " +
+            $"roomCount={workerMetrics.RoomCount} closingRoomCount={workerMetrics.ClosingRoomCount} " +
+            $"onlineConnectionCount={workerMetrics.OnlineConnectionCount} requestCount={workerMetrics.RequestCount} " +
+            $"requestErrorCount={workerMetrics.RequestErrorCount} lastRequestMs={workerMetrics.LastRequestElapsed.TotalMilliseconds:F3} " +
+            $"maxRequestMs={workerMetrics.MaxRequestElapsed.TotalMilliseconds:F3} roomCreatedCount={workerMetrics.RoomCreatedCount} " +
+            $"roomClosedCount={workerMetrics.RoomClosedCount} disconnectionCount={workerMetrics.DisconnectionCount} " +
+            $"roomConnectCount={workerMetrics.RoomConnectCount} pushSentCount={workerMetrics.PushSentCount} " +
+            $"pushDroppedCount={workerMetrics.PushDroppedCount}");
     }
 
     private void UpdateMaxTickElapsed(long elapsedTicks)

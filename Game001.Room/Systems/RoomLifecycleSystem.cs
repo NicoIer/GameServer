@@ -22,6 +22,7 @@ public sealed class RoomLifecycleSystem
         _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
         // _sync.MarkDirty();
         _sync.SendFullState(connectionId);
@@ -34,6 +35,7 @@ public sealed class RoomLifecycleSystem
         bool added = _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
         if (added)
         {
@@ -50,6 +52,7 @@ public sealed class RoomLifecycleSystem
         bool removed = _state.Players.Remove(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.UpdatePlayerCount();
         if (removed)
         {
             // _sync.MarkDirty();
@@ -146,5 +149,6 @@ public sealed class RoomLifecycleSystem
         }
 
         _state.DisconnectedPlayers.Clear();
+        _state.UpdatePlayerCount();
     }
 }

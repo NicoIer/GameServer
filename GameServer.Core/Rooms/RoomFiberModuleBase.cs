@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GameServer.Core.Fibers;
 using Network;
 
@@ -8,6 +9,8 @@ public abstract class RoomFiberModuleBase : IFiberModule
     private readonly ReqRspServerCenter _reqRspCenter = new();
     private readonly int _frameIntervalMs;
     private long _nextFrameTimeMs;
+    private long _lastFrameElapsedTicks;
+    private long _maxFrameElapsedTicks;
     private int _frame;
 
     protected RoomFiberModuleBase(string roomId, int roomFrameRate)
@@ -18,6 +21,9 @@ public abstract class RoomFiberModuleBase : IFiberModule
 
     public string RoomId { get; }
     public virtual RoomLifecycleState LifecycleState => RoomLifecycleState.Active;
+    public virtual int PlayerCount => 0;
+    public TimeSpan LastFrameElapsed => TimeSpan.FromTicks(Interlocked.Read(ref _lastFrameElapsedTicks));
+    public TimeSpan MaxFrameElapsed => TimeSpan.FromTicks(Interlocked.Read(ref _maxFrameElapsedTicks));
     protected RoomFrameAwaiter FrameAwaiter { get; } = new();
 
     public ValueTask OnStartAsync(Fiber fiber, CancellationToken cancellationToken)
@@ -39,7 +45,18 @@ public abstract class RoomFiberModuleBase : IFiberModule
         while (context.TimeNowMs >= _nextFrameTimeMs)
         {
             _frame++;
-            OnRoomUpdate(_nextFrameTimeMs, _frame);
+            long startTimestamp = Stopwatch.GetTimestamp();
+            try
+            {
+                OnRoomUpdate(_nextFrameTimeMs, _frame);
+            }
+            finally
+            {
+                TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+                Interlocked.Exchange(ref _lastFrameElapsedTicks, elapsed.Ticks);
+                UpdateMaxFrameElapsed(elapsed.Ticks);
+            }
+
             _nextFrameTimeMs += _frameIntervalMs;
         }
 
@@ -90,5 +107,22 @@ public abstract class RoomFiberModuleBase : IFiberModule
     protected abstract void OnRoomUpdate(long timeNowMs, int frame);
     protected virtual void OnRoomStopped()
     {
+    }
+
+    private void UpdateMaxFrameElapsed(long elapsedTicks)
+    {
+        while (true)
+        {
+            long current = Interlocked.Read(ref _maxFrameElapsedTicks);
+            if (elapsedTicks <= current)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _maxFrameElapsedTicks, elapsedTicks, current) == current)
+            {
+                return;
+            }
+        }
     }
 }

@@ -6,12 +6,14 @@ namespace Game001.Room.Runtime;
 public sealed class Game001RoomState
 {
     private int _lifecycleState = (int)RoomLifecycleState.Created;
+    private int _playerCount;
 
     public string RoomId { get; }
     public HashSet<long> Players { get; } = new();
     public HashSet<long> DisconnectedPlayers { get; } = new();
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
     public RoomLifecycleState LifecycleState => (RoomLifecycleState)Volatile.Read(ref _lifecycleState);
+    public int PlayerCount => Volatile.Read(ref _playerCount);
     public long EmptySinceTimeMs { get; private set; }
     public int Frame { get; private set; }
     public long LastUpdateTimeMs { get; private set; }
@@ -25,6 +27,11 @@ public sealed class Game001RoomState
     {
         Frame = frame;
         LastUpdateTimeMs = timeNowMs;
+    }
+
+    public void UpdatePlayerCount()
+    {
+        Volatile.Write(ref _playerCount, Players.Count);
     }
 
     public void SetActive(long timeNowMs)
@@ -64,7 +71,7 @@ public sealed class Game001RoomState
         return new RoomInfo
         {
             RoomId = RoomId,
-            PlayerCount = Players.Count,
+            PlayerCount = PlayerCount,
             Frame = Frame,
             ServerTimeMs = serverTimeMs,
         };

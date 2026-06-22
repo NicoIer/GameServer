@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using GameServer.Core.Fibers;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
@@ -20,6 +21,14 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     private readonly FiberManager _fiberManager = new();
     private readonly ConcurrentDictionary<string, Lazy<Task<RoomRuntimeHandle>>> _rooms = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, byte> _closingRooms = new(StringComparer.Ordinal);
+    private long _requestCount;
+    private long _requestErrorCount;
+    private long _lastRequestElapsedTicks;
+    private long _maxRequestElapsedTicks;
+    private long _roomCreatedCount;
+    private long _roomClosedCount;
+    private long _disconnectionCount;
+    private long _roomConnectCount;
     private int _stopped;
 
     protected RoomWorkerBase(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
@@ -33,6 +42,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     public RoomPushHub PushHub { get; }
     public int RoomCount => _rooms.Count;
     public int ClosingRoomCount => _closingRooms.Count;
+    public int OnlineConnectionCount => Connections.ConnectionCount;
     protected int RoomFrameRate { get; }
 
     public Task<int> AddConnectionAsync(long uid, string roomId)
@@ -52,6 +62,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return;
         }
 
+        Interlocked.Increment(ref _disconnectionCount);
         PushHub.Unregister(connectionId);
 
         if (string.IsNullOrWhiteSpace(context.RoomId))
@@ -71,6 +82,29 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     }
 
     public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
+    {
+        long startTimestamp = Stopwatch.GetTimestamp();
+        bool requestError = true;
+        try
+        {
+            RspHead response = await HandleRequestCoreAsync(connectionId, request);
+            requestError = response.error != NetworkErrorCode.Success;
+            return response;
+        }
+        finally
+        {
+            TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+            Interlocked.Increment(ref _requestCount);
+            Interlocked.Exchange(ref _lastRequestElapsedTicks, elapsed.Ticks);
+            UpdateMaxRequestElapsed(elapsed.Ticks);
+            if (requestError)
+            {
+                Interlocked.Increment(ref _requestErrorCount);
+            }
+        }
+    }
+
+    private async Task<RspHead> HandleRequestCoreAsync(int connectionId, ReqHead request)
     {
         if (IsStopped)
         {
@@ -167,6 +201,48 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     }
 
     private bool IsStopped => Volatile.Read(ref _stopped) != 0;
+
+    public RoomWorkerMetrics GetMetrics()
+    {
+        return new RoomWorkerMetrics(
+            RoomCount,
+            ClosingRoomCount,
+            OnlineConnectionCount,
+            Interlocked.Read(ref _requestCount),
+            Interlocked.Read(ref _requestErrorCount),
+            TimeSpan.FromTicks(Interlocked.Read(ref _lastRequestElapsedTicks)),
+            TimeSpan.FromTicks(Interlocked.Read(ref _maxRequestElapsedTicks)),
+            Interlocked.Read(ref _roomCreatedCount),
+            Interlocked.Read(ref _roomClosedCount),
+            Interlocked.Read(ref _disconnectionCount),
+            Interlocked.Read(ref _roomConnectCount),
+            PushHub.SentCount,
+            PushHub.DroppedCount);
+    }
+
+    public List<RoomMetrics> GetRoomMetrics()
+    {
+        var result = new List<RoomMetrics>();
+        foreach (KeyValuePair<string, Lazy<Task<RoomRuntimeHandle>>> item in _rooms)
+        {
+            Lazy<Task<RoomRuntimeHandle>> roomTask = item.Value;
+            if (!roomTask.IsValueCreated || !roomTask.Value.IsCompletedSuccessfully)
+            {
+                continue;
+            }
+
+            RoomRuntimeHandle handle = roomTask.Value.Result;
+            result.Add(new RoomMetrics(
+                item.Key,
+                handle.Module.LifecycleState,
+                handle.Module.PlayerCount,
+                Connections.GetRoomConnectionCount(item.Key),
+                handle.Module.LastFrameElapsed,
+                handle.Module.MaxFrameElapsed));
+        }
+
+        return result;
+    }
 
     protected abstract RoomRequestRouter RequestRouter { get; }
     protected abstract TRoomModule CreateRoomModule(string roomId);
@@ -298,14 +374,16 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             }
 
             await _fiberManager.RemoveAsync(handle.Fiber.FiberId);
+            Interlocked.Increment(ref _roomClosedCount);
+            global::GameServer.Core.Log.Info("Room", $"event=room_closed roomId={roomId} roomCount={RoomCount} closingRoomCount={ClosingRoomCount}");
             if (beginCloseException != null)
             {
-                Console.WriteLine(beginCloseException);
+                global::GameServer.Core.Log.Error("Room", beginCloseException, $"event=room_begin_close_failed roomId={roomId}");
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            global::GameServer.Core.Log.Error("Room", e, $"event=room_close_failed roomId={roomId}");
         }
         finally
         {
@@ -345,7 +423,26 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     {
         TRoomModule module = CreateRoomModule(roomId);
         Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, CreateRoomFiberName(roomId), module);
+        Interlocked.Increment(ref _roomCreatedCount);
+        global::GameServer.Core.Log.Info("Room", $"event=room_created roomId={roomId} roomCount={RoomCount}");
         return new RoomRuntimeHandle(fiber, module);
+    }
+
+    private void UpdateMaxRequestElapsed(long elapsedTicks)
+    {
+        while (true)
+        {
+            long current = Interlocked.Read(ref _maxRequestElapsedTicks);
+            if (elapsedTicks <= current)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _maxRequestElapsedTicks, elapsedTicks, current) == current)
+            {
+                return;
+            }
+        }
     }
 
     private async Task<RspHead> HandleRoomConnectAsync(int connectionId, ReqHead request)
@@ -373,6 +470,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
 
         Connections.TrySetRoom(connectionId, roomId);
+        Interlocked.Increment(ref _roomConnectCount);
         return CreateRoomConnectResponse(request, $"connected room={roomId}", roomId);
     }
 

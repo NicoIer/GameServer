@@ -19,6 +19,11 @@ public partial struct RoomPushHead : INetworkMessage
 public sealed class RoomPushHub
 {
     private readonly ConcurrentDictionary<int, Action<RoomPushHead>> _senders = new();
+    private long _sentCount;
+    private long _droppedCount;
+
+    public long SentCount => Interlocked.Read(ref _sentCount);
+    public long DroppedCount => Interlocked.Read(ref _droppedCount);
 
     public void Register(int connectionId, Action<RoomPushHead> sender)
     {
@@ -35,6 +40,7 @@ public sealed class RoomPushHub
     {
         if (!_senders.TryGetValue(connectionId, out Action<RoomPushHead>? sender))
         {
+            Interlocked.Increment(ref _droppedCount);
             return;
         }
 
@@ -44,6 +50,7 @@ public sealed class RoomPushHub
             Payload = MemoryPackSerializer.Serialize(push),
         };
         sender(head);
+        Interlocked.Increment(ref _sentCount);
     }
 
     public void SendMany<TPush>(IEnumerable<int> connectionIds, TPush push)
@@ -60,6 +67,11 @@ public sealed class RoomPushHub
             if (_senders.TryGetValue(connectionId, out Action<RoomPushHead>? sender))
             {
                 sender(head);
+                Interlocked.Increment(ref _sentCount);
+            }
+            else
+            {
+                Interlocked.Increment(ref _droppedCount);
             }
         }
     }
