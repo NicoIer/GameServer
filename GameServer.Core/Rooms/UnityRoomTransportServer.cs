@@ -24,7 +24,12 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     private Task? _runTask;
     private bool _stopped;
 
-    public UnityRoomTransportServer(int port, CenterService.CenterServiceClient centerClient, IRoomWorker worker, int networkTickSleepMs)
+    public UnityRoomTransportServer(
+        int port,
+        CenterService.CenterServiceClient centerClient,
+        IRoomWorker worker,
+        int networkTickSleepMs,
+        string? advertisedAddress = null)
     {
         _centerClient = centerClient;
         _worker = worker;
@@ -37,7 +42,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
 
         _connectCenter.Register<RoomHandshakeReq, RoomHandshakeRsp>(HandshakeAsync);
 
-        Address = $"127.0.0.1:{port}";
+        Address = string.IsNullOrWhiteSpace(advertisedAddress) ? $"127.0.0.1:{port}" : advertisedAddress;
     }
 
     public DirectTransportProtocol Protocol => DirectTransportProtocol.Tcp;

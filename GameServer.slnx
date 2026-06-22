@@ -9,11 +9,14 @@
     <Project Path="Game001.Core/Game001.Core.csproj" />
     <Project Path="Game001.Room/Game001.Room.csproj" />
     <Project Path="Game001.Startup/Game001.Startup.csproj" />
+    <Project Path="Game001.Startup.Room/Game001.Startup.Room.csproj" />
   </Folder>
   <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />
   <Project Path="GameServer.Gate/GameServer.Gate.csproj" />
+  <Project Path="GameServer.Startup.Center/GameServer.Startup.Center.csproj" />
+  <Project Path="GameServer.Startup.Gate/GameServer.Startup.Gate.csproj" />
   <Project Path="GameServer.Startup\GameServer.Startup.csproj" />
   <Project Path="JoltPhysics.Tests/JoltPhysics.Tests.csproj" />
   <Project Path="JoltPhysics/JoltPhysics.csproj" />

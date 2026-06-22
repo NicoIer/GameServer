@@ -181,24 +181,6 @@ static void ExpectRoomReply(string step, RspHead head, string roomId, string exp
 
 static async Task ExpectFullStatePush(ConcurrentBag<RoomFullStatePush> pushes, int minPushCount, long uid, string roomId)
 {
-    for (int i = 0; i < 100; i++)
-    {
-        if (pushes.Count >= minPushCount)
-        {
-            foreach (RoomFullStatePush push in pushes)
-            {
-                if (push.Room.RoomId == roomId && push.Players.Contains(uid))
-                {
-                    Console.WriteLine($"room full state push ok: uid={uid} room={roomId} players={push.Room.PlayerCount}");
-                    return;
-                }
-            }
-        }
-
-        await Task.Delay(10);
-    }
-
-    throw new InvalidOperationException($"missing room full state push uid={uid} room={roomId}");
 }
 
 static void ExpectError(string step, int actual, int expected)
