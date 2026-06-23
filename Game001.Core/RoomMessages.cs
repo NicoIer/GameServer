@@ -76,3 +76,14 @@ public partial struct RoomFullStatePush : IRoomPush
 {
     public RoomInfo Room;
 }
+
+[MemoryPackable]
+public partial struct RoomRepDiffStatePush : IRoomPush
+{
+}
+
+[MemoryPackable]
+public partial struct RoomZstdDiffPush : IRoomPush
+{
+    public PatchMessage patchMessage;
+}
