@@ -1,5 +1,6 @@
 using Game001.Core.Generated;
 using Game001.Room.Runtime;
+using Game001.Room.Systems;
 using GameServer.Core.Rooms;
 using Network;
 
@@ -8,6 +9,7 @@ namespace Game001.Room;
 public sealed class Game001RoomFiberModule : RoomFiberModuleBase
 {
     private readonly RoomConnectionRegistry _connections;
+    private readonly RoomLifecycleSystem _lifecycleSystem;
     private readonly Game001Room _room;
 
     public Game001RoomFiberModule(string roomId, RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
@@ -15,6 +17,12 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
     {
         _connections = connections;
         _room = new Game001Room(roomId, pushHub);
+        if (!_room.Systems.TryGetSystem(out RoomLifecycleSystem? lifecycleSystem))
+        {
+            throw new InvalidOperationException("missing RoomLifecycleSystem");
+        }
+
+        _lifecycleSystem = lifecycleSystem;
     }
 
     public override RoomLifecycleState LifecycleState => _room.LifecycleState;
@@ -22,7 +30,7 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
 
     protected override void RegisterHandlers(ReqRspServerCenter center)
     {
-        var handlers = new Game001RoomReqRspHandlers(_connections, _room, FrameAwaiter);
+        var handlers = new Game001RoomReqRspHandlers(_connections, _lifecycleSystem);
         NetworkReqRspInitializer.RegisterAll(center, handlers);
     }
 
@@ -33,22 +41,23 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
 
     public override ValueTask HandleConnectionDisconnectedAsync(int connectionId, RoomConnectionContext context)
     {
-        _room.DisconnectRoom(connectionId, context.Uid);
+        _lifecycleSystem.DisconnectRoom(connectionId, context.Uid);
         return ValueTask.CompletedTask;
     }
 
     public override bool ShouldCloseRoom(long timeNowMs)
     {
-        return _room.ShouldCloseRoom(timeNowMs);
+        return _lifecycleSystem.ShouldCloseRoom(timeNowMs);
     }
 
     public override void BeginCloseRoom(long timeNowMs)
     {
-        _room.BeginCloseRoom(timeNowMs);
+        _lifecycleSystem.BeginCloseRoom(timeNowMs);
     }
 
     protected override void OnRoomStopped()
     {
-        _room.CloseRoom(Environment.TickCount64);
+        _lifecycleSystem.CloseRoom(Environment.TickCount64);
+        _room.Destroy();
     }
 }

@@ -1,67 +1,34 @@
 using Game001.Room.Systems;
 using GameServer.Core.Rooms;
+using GameServer.Core.Systems;
 
 namespace Game001.Room.Runtime;
 
-public sealed class Game001Room
+public sealed class Game001Room : IWorld
 {
-    private readonly RoomLifecycleSystem _lifecycleSystem;
-    private readonly RoomSyncSystem _syncSystem;
-
     public Game001Room(string roomId, RoomPushHub pushHub)
     {
         State = new Game001RoomState(roomId);
-        _syncSystem = new RoomSyncSystem(pushHub, State);
-        _lifecycleSystem = new RoomLifecycleSystem(State, _syncSystem);
+        var syncSystem = new RoomSyncSystem(pushHub, State);
+        var lifecycleSystem = new RoomLifecycleSystem(State);
+        Systems = new SystemGroup(lifecycleSystem, syncSystem);
+        Systems.OnCreate();
     }
 
     public Game001RoomState State { get; }
+    public SystemGroup Systems { get; }
     public RoomLifecycleState LifecycleState => State.LifecycleState;
-
-    public string CreateRoom(int connectionId, long uid)
-    {
-        return _lifecycleSystem.CreateRoom(connectionId, uid);
-    }
-
-    public string JoinRoom(int connectionId, long uid)
-    {
-        return _lifecycleSystem.JoinRoom(connectionId, uid);
-    }
-
-    public string LeaveRoom(int connectionId, long uid)
-    {
-        return _lifecycleSystem.LeaveRoom(connectionId, uid);
-    }
-
-    public string PingRoom(long uid)
-    {
-        return _lifecycleSystem.PingRoom(uid);
-    }
-
-    public string DisconnectRoom(int connectionId, long uid)
-    {
-        return _lifecycleSystem.DisconnectRoom(connectionId, uid);
-    }
 
     public void Update(long timeNowMs, int frame)
     {
+        long lastUpdateTimeMs = State.LastUpdateTimeMs;
+        long deltaTimeMs = lastUpdateTimeMs == 0 ? 0 : timeNowMs - lastUpdateTimeMs;
         State.SetFrame(timeNowMs, frame);
-        _lifecycleSystem.Update(timeNowMs);
-        _syncSystem.Update(timeNowMs, frame);
+        Systems.Update(in deltaTimeMs, in frame, in timeNowMs);
     }
 
-    public bool ShouldCloseRoom(long timeNowMs)
+    public void Destroy()
     {
-        return _lifecycleSystem.ShouldCloseRoom(timeNowMs);
-    }
-
-    public void BeginCloseRoom(long timeNowMs)
-    {
-        _lifecycleSystem.BeginCloseRoom(timeNowMs);
-    }
-
-    public void CloseRoom(long timeNowMs)
-    {
-        _lifecycleSystem.CloseRoom(timeNowMs);
+        Systems.OnDestroy();
     }
 }

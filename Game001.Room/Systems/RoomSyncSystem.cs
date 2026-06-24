@@ -1,10 +1,12 @@
 using Game001.Core;
 using Game001.Room.Runtime;
 using GameServer.Core.Rooms;
+using GameServer.Core.Systems;
 
 namespace Game001.Room.Systems;
 
-public sealed class RoomSyncSystem
+[ExecuteAfter(typeof(RoomLifecycleSystem))]
+public sealed class RoomSyncSystem : ISystem
 {
     private readonly RoomPushHub _pushHub;
     private readonly Game001RoomState _state;
@@ -15,21 +17,25 @@ public sealed class RoomSyncSystem
         _state = state;
     }
 
-    public void SendFullState(int connectionId)
+    public void OnCreate()
     {
-        var push = new RoomFullStatePush
-        {
-            Room = _state.CreateRoomInfo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
-        };
-
-        _pushHub.Send(connectionId, push);
     }
 
-    // public void MarkDirty()
-    // {
-    // }
+    public void Update(in long deltaTimeMs, in int frame, in long timeNowMs)
+    {
+        if (_state.PendingFullStateConnections.Count > 0)
+        {
+            var push = new RoomFullStatePush
+            {
+                Room = _state.CreateRoomInfo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+            };
+            _pushHub.SendMany(_state.PendingFullStateConnections, push);
 
-    public void Update(long timeNowMs, int frame)
+            _state.PendingFullStateConnections.Clear();
+        }
+    }
+
+    public void OnDestroy()
     {
     }
 }

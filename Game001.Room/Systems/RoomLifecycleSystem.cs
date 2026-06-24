@@ -1,19 +1,22 @@
 using Game001.Room.Runtime;
 using GameServer.Core.Rooms;
+using GameServer.Core.Systems;
 
 namespace Game001.Room.Systems;
 
-public sealed class RoomLifecycleSystem
+public sealed class RoomLifecycleSystem : ISystem
 {
     private const long DisconnectedEmptyTimeoutMs = 30_000;
 
     private readonly Game001RoomState _state;
-    private readonly RoomSyncSystem _sync;
 
-    public RoomLifecycleSystem(Game001RoomState state, RoomSyncSystem sync)
+    public RoomLifecycleSystem(Game001RoomState state)
     {
         _state = state;
-        _sync = sync;
+    }
+
+    public void OnCreate()
+    {
     }
 
     public string CreateRoom(int connectionId, long uid)
@@ -24,40 +27,29 @@ public sealed class RoomLifecycleSystem
         _state.DisconnectedPlayerTimesMs.Remove(uid);
         _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
-        // _sync.MarkDirty();
-        _sync.SendFullState(connectionId);
+        _state.PendingFullStateConnections.Add(connectionId);
         return $"created room={_state.RoomId} players={_state.Players.Count}";
     }
 
     public string JoinRoom(int connectionId, long uid)
     {
         long timeNowMs = Environment.TickCount64;
-        bool added = _state.Players.Add(uid);
+        _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
         _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
-        if (added)
-        {
-            // _sync.MarkDirty();
-        }
-
-        _sync.SendFullState(connectionId);
+        _state.PendingFullStateConnections.Add(connectionId);
         return $"joined room={_state.RoomId} players={_state.Players.Count}";
     }
 
     public string LeaveRoom(int connectionId, long uid)
     {
         long timeNowMs = Environment.TickCount64;
-        bool removed = _state.Players.Remove(uid);
+        _state.Players.Remove(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
         _state.UpdatePlayerCount();
-        if (removed)
-        {
-            // _sync.MarkDirty();
-        }
-
         RefreshEmptyState(timeNowMs);
         return $"left room={_state.RoomId} players={_state.Players.Count}";
     }
@@ -68,7 +60,6 @@ public sealed class RoomLifecycleSystem
         if (_state.Players.Contains(uid) && _state.DisconnectedPlayers.Add(uid))
         {
             _state.DisconnectedPlayerTimesMs[uid] = timeNowMs;
-            // _sync.MarkDirty();
         }
 
         return $"disconnected uid={uid} room={_state.RoomId} players={_state.Players.Count}";
@@ -79,7 +70,7 @@ public sealed class RoomLifecycleSystem
         return $"pong uid={uid} room={_state.RoomId} players={_state.Players.Count}";
     }
 
-    public void Update(long timeNowMs)
+    public void Update(in long deltaTimeMs, in int frame, in long timeNowMs)
     {
         if (_state.LifecycleState == RoomLifecycleState.Closing ||
             _state.LifecycleState == RoomLifecycleState.Closed)
@@ -89,6 +80,10 @@ public sealed class RoomLifecycleSystem
 
         RefreshDisconnectedTimeout(timeNowMs);
         RefreshEmptyState(timeNowMs);
+    }
+
+    public void OnDestroy()
+    {
     }
 
     public bool ShouldCloseRoom(long timeNowMs)

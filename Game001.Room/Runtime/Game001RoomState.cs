@@ -12,6 +12,7 @@ public sealed class Game001RoomState
     public HashSet<long> Players { get; } = new();
     public HashSet<long> DisconnectedPlayers { get; } = new();
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
+    public List<int> PendingFullStateConnections { get; } = new();
     public RoomLifecycleState LifecycleState => (RoomLifecycleState)Volatile.Read(ref _lifecycleState);
     public int PlayerCount => Volatile.Read(ref _playerCount);
     public long EmptySinceTimeMs { get; private set; }

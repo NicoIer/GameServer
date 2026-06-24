@@ -1,6 +1,6 @@
 using Game001.Core;
 using Game001.Core.Generated;
-using Game001.Room.Runtime;
+using Game001.Room.Systems;
 using GameServer.Core.Rooms;
 using NetworkErrorCode = Network.ErrorCode;
 
@@ -9,14 +9,12 @@ namespace Game001.Room;
 public sealed partial class Game001RoomReqRspHandlers : IGame001Handler
 {
     private readonly RoomConnectionRegistry _connections;
-    private readonly Game001Room _room;
-    private readonly RoomFrameAwaiter _frameAwaiter;
+    private readonly RoomLifecycleSystem _lifecycleSystem;
 
-    public Game001RoomReqRspHandlers(RoomConnectionRegistry connections, Game001Room room, RoomFrameAwaiter frameAwaiter)
+    public Game001RoomReqRspHandlers(RoomConnectionRegistry connections, RoomLifecycleSystem lifecycleSystem)
     {
         _connections = connections;
-        _room = room;
-        _frameAwaiter = frameAwaiter;
+        _lifecycleSystem = lifecycleSystem;
     }
 
     private bool TryGetContext(int connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg)

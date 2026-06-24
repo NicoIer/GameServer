@@ -6,20 +6,18 @@ namespace Game001.Room;
 
 public sealed partial class Game001RoomReqRspHandlers
 {
-    public async ValueTask<(RoomPingRsp rsp, NetworkErrorCode errorCode, string errorMsg)> HandleRoomPing(
+    public ValueTask<(RoomPingRsp rsp, NetworkErrorCode errorCode, string errorMsg)> HandleRoomPing(
         int connectionId,
         RoomPingReq req)
     {
-        await _frameAwaiter.WaitNextFrameAsync();
-
         if (!TryGetContext(connectionId, out RoomConnectionContext context, out NetworkErrorCode errorCode, out string errorMsg))
         {
             var invalidRsp = new RoomPingRsp();
-            return (invalidRsp, errorCode, errorMsg);
+            return new ValueTask<(RoomPingRsp, NetworkErrorCode, string)>((invalidRsp, errorCode, errorMsg));
         }
 
-        string message = _room.PingRoom(context.Uid);
+        string message = _lifecycleSystem.PingRoom(context.Uid);
         var rsp = new RoomPingRsp();
-        return (rsp, NetworkErrorCode.Success, message);
+        return new ValueTask<(RoomPingRsp, NetworkErrorCode, string)>((rsp, NetworkErrorCode.Success, message));
     }
 }

@@ -1,5 +1,6 @@
 using Game001.Core;
 using Game001.Room.Runtime;
+using Game001.Room.Systems;
 using GameServer.Core.Rooms;
 using MemoryPack;
 using UnityToolkit;
@@ -16,9 +17,11 @@ public sealed class Game001RoomTests
     public void CreateRoomAddsCreatorAndSendsFullState()
     {
         Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, string.Empty);
 
-        string message = room.CreateRoom(connectionId, Uid);
+        string message = lifecycleSystem.CreateRoom(connectionId, Uid);
+        room.Update(12345, 1);
 
         Assert.Contains("created room=room-test", message, StringComparison.Ordinal);
         Assert.Single(room.State.Players);
@@ -35,12 +38,16 @@ public sealed class Game001RoomTests
     {
         const long otherUid = 1002;
         Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
         int otherConnectionId = AddConnection(connections, pushHub, new List<RoomFullStatePush>(), otherUid, RoomId);
-        room.JoinRoom(otherConnectionId, otherUid);
+        lifecycleSystem.JoinRoom(otherConnectionId, otherUid);
+        room.Update(12345, 1);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
 
-        string first = room.JoinRoom(connectionId, Uid);
-        string second = room.JoinRoom(connectionId, Uid);
+        string first = lifecycleSystem.JoinRoom(connectionId, Uid);
+        room.Update(12378, 2);
+        string second = lifecycleSystem.JoinRoom(connectionId, Uid);
+        room.Update(12411, 3);
 
         Assert.Contains("players=2", first, StringComparison.Ordinal);
         Assert.Contains("players=2", second, StringComparison.Ordinal);
@@ -57,12 +64,16 @@ public sealed class Game001RoomTests
     public void LeaveRoomRemovesPlayerAndDisconnectedState()
     {
         Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
-        room.JoinRoom(connectionId, Uid);
-        room.DisconnectRoom(connectionId, Uid);
+        lifecycleSystem.JoinRoom(connectionId, Uid);
+        room.Update(12345, 1);
+        lifecycleSystem.DisconnectRoom(connectionId, Uid);
+        room.Update(12378, 2);
         pushes.Clear();
 
-        string message = room.LeaveRoom(connectionId, Uid);
+        string message = lifecycleSystem.LeaveRoom(connectionId, Uid);
+        room.Update(12411, 3);
 
         Assert.Contains("players=0", message, StringComparison.Ordinal);
         Assert.DoesNotContain(Uid, room.State.Players);
@@ -74,20 +85,35 @@ public sealed class Game001RoomTests
     public void DisconnectOnlyMarksPlayersInRoom()
     {
         Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
         int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
 
-        room.DisconnectRoom(connectionId, Uid);
+        lifecycleSystem.DisconnectRoom(connectionId, Uid);
+        room.Update(12345, 1);
 
         Assert.Empty(room.State.DisconnectedPlayers);
         Assert.Empty(pushes);
 
-        room.JoinRoom(connectionId, Uid);
+        lifecycleSystem.JoinRoom(connectionId, Uid);
+        room.Update(12378, 2);
         pushes.Clear();
 
-        room.DisconnectRoom(connectionId, Uid);
+        lifecycleSystem.DisconnectRoom(connectionId, Uid);
+        room.Update(12411, 3);
 
         Assert.Contains(Uid, room.State.DisconnectedPlayers);
         Assert.Empty(pushes);
+    }
+
+    [Fact]
+    public void PingRoomReturnsPong()
+    {
+        Game001Room room = CreateRoom(out _, out _, out _);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
+
+        string message = lifecycleSystem.PingRoom(Uid);
+
+        Assert.Contains("pong uid=1001", message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -110,6 +136,16 @@ public sealed class Game001RoomTests
         pushHub = new RoomPushHub();
         pushes = new List<RoomFullStatePush>();
         return new Game001Room(RoomId, pushHub);
+    }
+
+    private static RoomLifecycleSystem GetLifecycleSystem(Game001Room room)
+    {
+        if (!room.Systems.TryGetSystem(out RoomLifecycleSystem? lifecycleSystem))
+        {
+            throw new InvalidOperationException("missing RoomLifecycleSystem");
+        }
+
+        return lifecycleSystem;
     }
 
     private static int AddConnection(
