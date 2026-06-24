@@ -25,6 +25,7 @@ public sealed class RoomLifecycleSystem : ISystem
         _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.MarkPlayerConnected(uid);
         _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
         _state.PendingFullStateConnections.Add(connectionId);
@@ -37,6 +38,7 @@ public sealed class RoomLifecycleSystem : ISystem
         _state.Players.Add(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.MarkPlayerConnected(uid);
         _state.UpdatePlayerCount();
         _state.SetActive(timeNowMs);
         _state.PendingFullStateConnections.Add(connectionId);
@@ -49,6 +51,7 @@ public sealed class RoomLifecycleSystem : ISystem
         _state.Players.Remove(uid);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
+        _state.RemovePlayerEntity(uid);
         _state.UpdatePlayerCount();
         RefreshEmptyState(timeNowMs);
         return $"left room={_state.RoomId} players={_state.Players.Count}";
@@ -60,6 +63,7 @@ public sealed class RoomLifecycleSystem : ISystem
         if (_state.Players.Contains(uid) && _state.DisconnectedPlayers.Add(uid))
         {
             _state.DisconnectedPlayerTimesMs[uid] = timeNowMs;
+            _state.MarkPlayerDisconnected(uid, timeNowMs);
         }
 
         return $"disconnected uid={uid} room={_state.RoomId} players={_state.Players.Count}";
@@ -141,6 +145,7 @@ public sealed class RoomLifecycleSystem : ISystem
         {
             _state.Players.Remove(uid);
             _state.DisconnectedPlayerTimesMs.Remove(uid);
+            _state.RemovePlayerEntity(uid);
         }
 
         _state.DisconnectedPlayers.Clear();

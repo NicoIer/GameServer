@@ -1,6 +1,9 @@
 using Game001.Room.Systems;
+using Friflo.Engine.ECS;
 using GameServer.Core.Rooms;
 using GameServer.Core.Systems;
+using CoreSystemGroup = GameServer.Core.Systems.SystemGroup;
+using FrifloSystemRoot = Friflo.Engine.ECS.Systems.SystemRoot;
 
 namespace Game001.Room.Runtime;
 
@@ -9,14 +12,18 @@ public sealed class Game001Room : IWorld
     public Game001Room(string roomId, RoomPushHub pushHub)
     {
         State = new Game001RoomState(roomId);
+        Game001RoomEcsSystems.Configure(State.EcsSystems);
         var syncSystem = new RoomSyncSystem(pushHub, State);
         var lifecycleSystem = new RoomLifecycleSystem(State);
-        Systems = new SystemGroup(lifecycleSystem, syncSystem);
+        var frifloSystemRunner = new FrifloSystemRunner(State.EcsSystems);
+        Systems = new CoreSystemGroup(lifecycleSystem, frifloSystemRunner, syncSystem);
         Systems.OnCreate();
     }
 
     public Game001RoomState State { get; }
-    public SystemGroup Systems { get; }
+    public EntityStore World => State.Entities;
+    public FrifloSystemRoot EcsSystems => State.EcsSystems;
+    public CoreSystemGroup Systems { get; }
     public RoomLifecycleState LifecycleState => State.LifecycleState;
 
     public void Update(long timeNowMs, int frame)

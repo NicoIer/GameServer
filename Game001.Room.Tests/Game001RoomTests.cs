@@ -1,6 +1,8 @@
 using Game001.Core;
+using Game001.Room.Runtime.Components;
 using Game001.Room.Runtime;
 using Game001.Room.Systems;
+using Friflo.Engine.ECS;
 using GameServer.Core.Rooms;
 using MemoryPack;
 using UnityToolkit;
@@ -26,6 +28,8 @@ public sealed class Game001RoomTests
         Assert.Contains("created room=room-test", message, StringComparison.Ordinal);
         Assert.Single(room.State.Players);
         Assert.Contains(Uid, room.State.Players);
+        Assert.True(room.State.TryGetPlayerEntity(Uid, out Entity creatorEntity));
+        Assert.True(creatorEntity.HasComponent<RoomPlayerComponent>());
         RoomFullStatePush push = Assert.Single(pushes);
         Assert.Equal(RoomId, push.Room.RoomId);
         Assert.Equal(1, push.Room.PlayerCount);
@@ -52,6 +56,8 @@ public sealed class Game001RoomTests
         Assert.Contains("players=2", first, StringComparison.Ordinal);
         Assert.Contains("players=2", second, StringComparison.Ordinal);
         Assert.Equal(2, room.State.Players.Count);
+        Assert.True(room.State.TryGetPlayerEntity(Uid, out _));
+        Assert.True(room.State.TryGetPlayerEntity(otherUid, out _));
         Assert.Equal(2, pushes.Count);
         RoomFullStatePush push = pushes[0];
         Assert.Equal(RoomId, push.Room.RoomId);
@@ -78,6 +84,7 @@ public sealed class Game001RoomTests
         Assert.Contains("players=0", message, StringComparison.Ordinal);
         Assert.DoesNotContain(Uid, room.State.Players);
         Assert.DoesNotContain(Uid, room.State.DisconnectedPlayers);
+        Assert.False(room.State.TryGetPlayerEntity(Uid, out _));
         Assert.Empty(pushes);
     }
 
@@ -102,6 +109,9 @@ public sealed class Game001RoomTests
         room.Update(12411, 3);
 
         Assert.Contains(Uid, room.State.DisconnectedPlayers);
+        Assert.True(room.State.TryGetPlayerEntity(Uid, out Entity playerEntity));
+        Assert.True(playerEntity.TryGetComponent(out RoomDisconnectedComponent disconnected));
+        Assert.True(disconnected.TimeMs > 0);
         Assert.Empty(pushes);
     }
 
@@ -125,6 +135,17 @@ public sealed class Game001RoomTests
 
         Assert.Equal(9, room.State.Frame);
         Assert.Equal(12345, room.State.LastUpdateTimeMs);
+    }
+
+    [Fact]
+    public void RoomCreatesFrifloSystemRunner()
+    {
+        Game001Room room = CreateRoom(out _, out _, out _);
+
+        Assert.Same(room.State.Entities, room.World);
+        Assert.Same(room.State.EcsSystems, room.EcsSystems);
+        Assert.True(room.Systems.TryGetSystem(out FrifloSystemRunner? runner));
+        Assert.Same(room.EcsSystems, runner.Root);
     }
 
     private static Game001Room CreateRoom(

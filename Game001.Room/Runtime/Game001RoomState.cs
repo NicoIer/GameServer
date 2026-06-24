@@ -1,5 +1,8 @@
 using Game001.Core;
+using Game001.Room.Runtime.Components;
 using GameServer.Core.Rooms;
+using Friflo.Engine.ECS;
+using Friflo.Engine.ECS.Systems;
 
 namespace Game001.Room.Runtime;
 
@@ -7,8 +10,12 @@ public sealed class Game001RoomState
 {
     private int _lifecycleState = (int)RoomLifecycleState.Created;
     private int _playerCount;
+    private readonly Dictionary<long, Entity> _playerEntities = new();
 
     public string RoomId { get; }
+    public EntityStore Entities { get; } = new();
+    public SystemRoot EcsSystems { get; }
+    public IReadOnlyDictionary<long, Entity> PlayerEntities => _playerEntities;
     public HashSet<long> Players { get; } = new();
     public HashSet<long> DisconnectedPlayers { get; } = new();
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
@@ -22,6 +29,7 @@ public sealed class Game001RoomState
     public Game001RoomState(string roomId)
     {
         RoomId = roomId;
+        EcsSystems = new SystemRoot(Entities, $"{roomId}.ecs");
     }
 
     public void SetFrame(long timeNowMs, int frame)
@@ -33,6 +41,62 @@ public sealed class Game001RoomState
     public void UpdatePlayerCount()
     {
         Volatile.Write(ref _playerCount, Players.Count);
+    }
+
+    public Entity GetOrCreatePlayerEntity(long uid)
+    {
+        if (_playerEntities.TryGetValue(uid, out Entity entity) && !entity.IsNull)
+        {
+            return entity;
+        }
+
+        var player = new RoomPlayerComponent
+        {
+            Uid = uid,
+        };
+        entity = Entities.CreateEntity(player);
+        _playerEntities[uid] = entity;
+        return entity;
+    }
+
+    public bool TryGetPlayerEntity(long uid, out Entity entity)
+    {
+        if (_playerEntities.TryGetValue(uid, out entity) && !entity.IsNull)
+        {
+            return true;
+        }
+
+        entity = default;
+        return false;
+    }
+
+    public void MarkPlayerConnected(long uid)
+    {
+        Entity entity = GetOrCreatePlayerEntity(uid);
+        if (entity.HasComponent<RoomDisconnectedComponent>())
+        {
+            entity.RemoveComponent<RoomDisconnectedComponent>();
+        }
+    }
+
+    public void MarkPlayerDisconnected(long uid, long timeNowMs)
+    {
+        Entity entity = GetOrCreatePlayerEntity(uid);
+        var disconnected = new RoomDisconnectedComponent
+        {
+            TimeMs = timeNowMs,
+        };
+        entity.AddComponent(disconnected);
+    }
+
+    public void RemovePlayerEntity(long uid)
+    {
+        if (!_playerEntities.Remove(uid, out Entity entity) || entity.IsNull)
+        {
+            return;
+        }
+
+        entity.DeleteEntity();
     }
 
     public void SetActive(long timeNowMs)
