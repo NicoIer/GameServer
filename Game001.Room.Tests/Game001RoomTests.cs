@@ -151,6 +151,43 @@ public sealed class Game001RoomTests
     }
 
     [Fact]
+    public void DisconnectDiffKeepsComponentChangeOrder()
+    {
+        const long secondUid = 1002;
+        const long observerUid = 1003;
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
+        var diffs = new List<RoomDiffStatePush>();
+        int firstConnectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
+        lifecycleSystem.CreateRoom(firstConnectionId, Uid);
+        room.Update(12345, 1);
+
+        int secondConnectionId = AddConnection(connections, pushHub, new List<RoomFullStatePush>(), secondUid, RoomId);
+        lifecycleSystem.JoinRoom(secondConnectionId, secondUid);
+        room.Update(12378, 2);
+
+        int observerConnectionId = AddConnection(connections, pushHub, new List<RoomFullStatePush>(), observerUid, RoomId, diffs);
+        lifecycleSystem.JoinRoom(observerConnectionId, observerUid);
+        room.Update(12411, 3);
+        diffs.Clear();
+
+        Assert.True(room.State.TryGetPlayerEntity(Uid, out Entity firstEntity));
+        Assert.True(room.State.TryGetPlayerEntity(secondUid, out Entity secondEntity));
+
+        lifecycleSystem.DisconnectRoom(firstConnectionId, Uid);
+        lifecycleSystem.DisconnectRoom(secondConnectionId, secondUid);
+        room.Update(12444, 4);
+
+        RoomDiffStatePush diff = Assert.Single(diffs);
+        EcsComponentChange[] disconnectedChanges = diff.ComponentChanges
+            .Where(change => change.ComponentTypeId == TypeId<RoomDisconnectedComponent>.stableId16)
+            .ToArray();
+        Assert.Equal(2, disconnectedChanges.Length);
+        Assert.Equal((int)firstEntity.Pid, disconnectedChanges[0].EntityId);
+        Assert.Equal((int)secondEntity.Pid, disconnectedChanges[1].EntityId);
+    }
+
+    [Fact]
     public void PingRoomReturnsPong()
     {
         Game001Room room = CreateRoom(out _, out _, out _);

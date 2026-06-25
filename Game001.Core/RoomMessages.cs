@@ -19,7 +19,7 @@ public partial struct PatchMessage
 {
     public int sourceFrameId;
     public int targetFrameId;
-    public byte[] patch;
+    public ArraySegment<byte> patch;
 }
 
 [MemoryPackable]
@@ -75,9 +75,9 @@ public partial struct RoomPingRsp : INetworkRsp
 public partial struct RoomFullStatePush : IRoomPush
 {
     public RoomInfo Room;
-    public long[] Players;
-    public long[] DisconnectedPlayers;
-    public EcsEntitySnapshot[] Entities;
+    public ArraySegment<long> Players;
+    public ArraySegment<long> DisconnectedPlayers;
+    public ArraySegment<EcsEntitySnapshot> Entities;
 }
 
 [MemoryPackable]
@@ -86,8 +86,20 @@ public partial struct RoomDiffStatePush : IRoomPush
     public RoomInfo Room;
     public int SourceFrame;
     public int TargetFrame;
-    public EcsEntityChange[] EntityChanges;
-    public EcsComponentChange[] ComponentChanges;
+    public ArraySegment<EcsEntityChange> EntityChanges;
+    public ArraySegment<EcsComponentChange> ComponentChanges;
+}
+
+[MemoryPackable]
+public partial struct EcsDirtySet
+{
+    public int SourceFrame;
+    public int TargetFrame;
+    public ArraySegment<EcsEntityChange> EntityChanges;
+    public ArraySegment<EcsComponentChange> ComponentChanges;
+
+    [MemoryPackIgnore]
+    public bool HasChanges => EntityChanges.Count > 0 || ComponentChanges.Count > 0;
 }
 
 [MemoryPackable]
@@ -100,14 +112,14 @@ public partial struct RoomZstdDiffPush : IRoomPush
 public partial struct EcsEntitySnapshot
 {
     public int EntityId;
-    public EcsComponentSnapshot[] Components;
+    public ArraySegment<EcsComponentSnapshot> Components;
 }
 
 [MemoryPackable]
 public partial struct EcsComponentSnapshot
 {
     public ushort ComponentTypeId;
-    public byte[] Payload;
+    public ArraySegment<byte> Payload;
 }
 
 [MemoryPackable]
@@ -123,7 +135,7 @@ public partial struct EcsComponentChange
     public int EntityId;
     public ushort ComponentTypeId;
     public EcsChangeKind Kind;
-    public byte[] Payload;
+    public ArraySegment<byte> Payload;
 }
 
 public enum EcsChangeKind

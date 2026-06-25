@@ -28,11 +28,13 @@ public sealed class RoomSyncSystem : ISystem
     {
         if (_state.PendingFullStateConnections.Count > 0)
         {
+            long[] players = _state.Players.OrderBy(x => x).ToArray();
+            long[] disconnectedPlayers = _state.DisconnectedPlayers.OrderBy(x => x).ToArray();
             var push = new RoomFullStatePush
             {
                 Room = _state.CreateRoomInfo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
-                Players = _state.Players.OrderBy(x => x).ToArray(),
-                DisconnectedPlayers = _state.DisconnectedPlayers.OrderBy(x => x).ToArray(),
+                Players = new ArraySegment<long>(players),
+                DisconnectedPlayers = new ArraySegment<long>(disconnectedPlayers),
                 Entities = EcsReplicationSerializer.CreateFullState(_state.Entities),
             };
             _pushHub.SendMany(_state.PendingFullStateConnections, push);
@@ -45,7 +47,7 @@ public sealed class RoomSyncSystem : ISystem
             return;
         }
 
-        EcsDirtySet dirtySet = _state.DirtyTracker.Flush(_lastDiffFrame, frame);
+        _state.DirtyTracker.Flush(_lastDiffFrame, frame,out var dirtySet);
         _lastDiffFrame = frame;
         if (!dirtySet.HasChanges || _state.ActiveConnectionIds.Count == 0)
         {

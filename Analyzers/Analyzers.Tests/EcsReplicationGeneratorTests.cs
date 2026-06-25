@@ -62,6 +62,9 @@ namespace Game001.Core.Ecs
         Assert.Contains("TrySerializeComponent<TBufferWriter>", generated);
         Assert.Contains("where TBufferWriter : class, global::System.Buffers.IBufferWriter<byte>", generated);
         Assert.Contains("MemoryPackSerializer.Serialize(bufferWriter, component0);", generated);
+        Assert.Contains("public static global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> SerializeAllComponents", generated);
+        Assert.Contains("Payload = new global::System.ArraySegment<byte>(global::MemoryPack.MemoryPackSerializer.Serialize(component0)),", generated);
+        Assert.Contains("public static global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> CreateFullState", generated);
         Assert.Contains("SetReplicatedComponent<T>", generated);
     }
 

@@ -8,8 +8,11 @@ public sealed class EcsDirtyTracker : IDisposable
 {
     private readonly EntityStore _store;
     private readonly ArrayBufferWriter<byte> _componentPayloadBuffer = new();
-    private readonly Dictionary<int, EcsChangeKind> _entityChanges = new();
-    private readonly Dictionary<ComponentChangeKey, EcsComponentChange> _componentChanges = new();
+    private readonly Dictionary<int, TrackedEntityChange> _entityChanges = new();
+    private readonly Dictionary<ComponentChangeKey, TrackedComponentChange> _componentChanges = new();
+    private readonly Queue<EntityChangeOrder> _entityChangeOrder = new();
+    private readonly Queue<ComponentChangeOrder> _componentChangeOrder = new();
+    private long _changeSequence;
 
     public EcsDirtyTracker(EntityStore store)
     {
@@ -25,61 +28,81 @@ public sealed class EcsDirtyTracker : IDisposable
     public void MarkComponentUpdated(Entity entity, ushort componentTypeId, byte[] payload)
     {
         int entityId = GetEntityId(entity);
-        if (_entityChanges.TryGetValue(entityId, out EcsChangeKind entityChange) &&
-            entityChange == EcsChangeKind.Delete)
+        if (_entityChanges.TryGetValue(entityId, out TrackedEntityChange entityChange) &&
+            entityChange.Kind == EcsChangeKind.Delete)
         {
             return;
         }
 
         var key = new ComponentChangeKey(entityId, componentTypeId);
-        if (_componentChanges.TryGetValue(key, out EcsComponentChange current))
+        if (_componentChanges.TryGetValue(key, out TrackedComponentChange current))
         {
-            if (current.Kind == EcsChangeKind.Add)
+            if (current.Change.Kind == EcsChangeKind.Add)
             {
-                current.Payload = payload;
+                current.Change.Payload = new ArraySegment<byte>(payload);
+                current.Sequence = NextSequence();
                 _componentChanges[key] = current;
+                _componentChangeOrder.Enqueue(new ComponentChangeOrder(key, current.Sequence));
                 return;
             }
         }
 
-        _componentChanges[key] = new EcsComponentChange
+        SetComponentChange(key, new EcsComponentChange
         {
             EntityId = entityId,
             ComponentTypeId = componentTypeId,
             Kind = EcsChangeKind.Update,
-            Payload = payload,
-        };
+            Payload = new ArraySegment<byte>(payload),
+        });
     }
 
-    public EcsDirtySet Flush(int sourceFrame, int targetFrame)
+    public void Flush(int sourceFrame, int targetFrame, out EcsDirtySet set)
     {
         var entityChanges = new EcsEntityChange[_entityChanges.Count];
         int index = 0;
-        foreach (KeyValuePair<int, EcsChangeKind> item in _entityChanges)
+        while (_entityChangeOrder.Count > 0)
         {
+            EntityChangeOrder item = _entityChangeOrder.Dequeue();
+            if (!_entityChanges.TryGetValue(item.EntityId, out TrackedEntityChange current) ||
+                current.Sequence != item.Sequence)
+            {
+                continue;
+            }
+
             entityChanges[index++] = new EcsEntityChange
             {
-                EntityId = item.Key,
-                Kind = item.Value,
+                EntityId = item.EntityId,
+                Kind = current.Kind,
             };
         }
 
+        var entitySegment = new ArraySegment<EcsEntityChange>(entityChanges, 0, index);
+
         var componentChanges = new EcsComponentChange[_componentChanges.Count];
         index = 0;
-        foreach (KeyValuePair<ComponentChangeKey, EcsComponentChange> item in _componentChanges)
+        while (_componentChangeOrder.Count > 0)
         {
-            componentChanges[index++] = item.Value;
+            ComponentChangeOrder item = _componentChangeOrder.Dequeue();
+            if (!_componentChanges.TryGetValue(item.Key, out TrackedComponentChange current) ||
+                current.Sequence != item.Sequence)
+            {
+                continue;
+            }
+
+            componentChanges[index++] = current.Change;
         }
+
+        var componentSegment = new ArraySegment<EcsComponentChange>(componentChanges, 0, index);
 
         _entityChanges.Clear();
         _componentChanges.Clear();
 
-        return new EcsDirtySet
+        set = new EcsDirtySet
         {
             SourceFrame = sourceFrame,
             TargetFrame = targetFrame,
-            EntityChanges = entityChanges,
-            ComponentChanges = componentChanges,
+            EntityChanges = entitySegment,
+            ComponentChanges = componentSegment,
         };
     }
 
@@ -96,14 +119,14 @@ public sealed class EcsDirtyTracker : IDisposable
         int entityId = GetEntityId(args.Entity);
         if (!_entityChanges.ContainsKey(entityId))
         {
-            _entityChanges[entityId] = EcsChangeKind.Create;
+            SetEntityChange(entityId, EcsChangeKind.Create);
         }
     }
 
     private void OnEntityDelete(EntityDelete args)
     {
         int entityId = GetEntityId(args.Entity);
-        _entityChanges[entityId] = EcsChangeKind.Delete;
+        SetEntityChange(entityId, EcsChangeKind.Delete);
 
         var removedKeys = new List<ComponentChangeKey>();
         foreach (ComponentChangeKey key in _componentChanges.Keys)
@@ -128,8 +151,8 @@ public sealed class EcsDirtyTracker : IDisposable
         }
 
         int entityId = (int)args.EntityId;
-        if (_entityChanges.TryGetValue(entityId, out EcsChangeKind entityChange) &&
-            entityChange == EcsChangeKind.Delete)
+        if (_entityChanges.TryGetValue(entityId, out TrackedEntityChange entityChange) &&
+            entityChange.Kind == EcsChangeKind.Delete)
         {
             return;
         }
@@ -157,49 +180,82 @@ public sealed class EcsDirtyTracker : IDisposable
     private void MarkComponentChanged(int entityId, ushort componentTypeId, EcsChangeKind kind, byte[] payload)
     {
         var key = new ComponentChangeKey(entityId, componentTypeId);
-        if (_componentChanges.TryGetValue(key, out EcsComponentChange current))
+        if (_componentChanges.TryGetValue(key, out TrackedComponentChange current))
         {
-            if (current.Kind == EcsChangeKind.Add)
+            if (current.Change.Kind == EcsChangeKind.Add)
             {
-                current.Payload = payload;
+                current.Change.Payload = new ArraySegment<byte>(payload);
+                current.Sequence = NextSequence();
                 _componentChanges[key] = current;
+                _componentChangeOrder.Enqueue(new ComponentChangeOrder(key, current.Sequence));
                 return;
             }
 
-            if (current.Kind == EcsChangeKind.Remove && kind == EcsChangeKind.Add)
+            if (current.Change.Kind == EcsChangeKind.Remove && kind == EcsChangeKind.Add)
             {
                 kind = EcsChangeKind.Update;
             }
         }
 
-        _componentChanges[key] = new EcsComponentChange
+        SetComponentChange(key, new EcsComponentChange
         {
             EntityId = entityId,
             ComponentTypeId = componentTypeId,
             Kind = kind,
-            Payload = payload,
-        };
+            Payload = new ArraySegment<byte>(payload),
+        });
     }
 
     private void MarkComponentRemoved(int entityId, ushort componentTypeId)
     {
         var key = new ComponentChangeKey(entityId, componentTypeId);
-        if (_componentChanges.TryGetValue(key, out EcsComponentChange current))
+        if (_componentChanges.TryGetValue(key, out TrackedComponentChange current))
         {
-            if (current.Kind == EcsChangeKind.Add)
+            if (current.Change.Kind == EcsChangeKind.Add)
             {
                 _componentChanges.Remove(key);
+                ClearChangeOrderIfEmpty();
                 return;
             }
         }
 
-        _componentChanges[key] = new EcsComponentChange
+        SetComponentChange(key, new EcsComponentChange
         {
             EntityId = entityId,
             ComponentTypeId = componentTypeId,
             Kind = EcsChangeKind.Remove,
-            Payload = Array.Empty<byte>(),
-        };
+            Payload = ArraySegment<byte>.Empty,
+        });
+    }
+
+    private void SetEntityChange(int entityId, EcsChangeKind kind)
+    {
+        long sequence = NextSequence();
+        _entityChanges[entityId] = new TrackedEntityChange(kind, sequence);
+        _entityChangeOrder.Enqueue(new EntityChangeOrder(entityId, sequence));
+    }
+
+    private void SetComponentChange(ComponentChangeKey key, EcsComponentChange change)
+    {
+        long sequence = NextSequence();
+        _componentChanges[key] = new TrackedComponentChange(change, sequence);
+        _componentChangeOrder.Enqueue(new ComponentChangeOrder(key, sequence));
+    }
+
+    private long NextSequence()
+    {
+        return ++_changeSequence;
+    }
+
+    private void ClearChangeOrderIfEmpty()
+    {
+        if (_entityChanges.Count != 0 || _componentChanges.Count != 0)
+        {
+            return;
+        }
+
+        _entityChangeOrder.Clear();
+        _componentChangeOrder.Clear();
     }
 
     private static int GetEntityId(Entity entity)
@@ -233,14 +289,52 @@ public sealed class EcsDirtyTracker : IDisposable
             return HashCode.Combine(EntityId, ComponentTypeId);
         }
     }
-}
 
-public struct EcsDirtySet
-{
-    public int SourceFrame;
-    public int TargetFrame;
-    public EcsEntityChange[] EntityChanges;
-    public EcsComponentChange[] ComponentChanges;
+    private struct TrackedEntityChange
+    {
+        public EcsChangeKind Kind;
+        public long Sequence;
 
-    public bool HasChanges => EntityChanges.Length > 0 || ComponentChanges.Length > 0;
+        public TrackedEntityChange(EcsChangeKind kind, long sequence)
+        {
+            Kind = kind;
+            Sequence = sequence;
+        }
+    }
+
+    private struct TrackedComponentChange
+    {
+        public EcsComponentChange Change;
+        public long Sequence;
+
+        public TrackedComponentChange(EcsComponentChange change, long sequence)
+        {
+            Change = change;
+            Sequence = sequence;
+        }
+    }
+
+    private readonly struct EntityChangeOrder
+    {
+        public int EntityId { get; }
+        public long Sequence { get; }
+
+        public EntityChangeOrder(int entityId, long sequence)
+        {
+            EntityId = entityId;
+            Sequence = sequence;
+        }
+    }
+
+    private readonly struct ComponentChangeOrder
+    {
+        public ComponentChangeKey Key { get; }
+        public long Sequence { get; }
+
+        public ComponentChangeOrder(ComponentChangeKey key, long sequence)
+        {
+            Key = key;
+            Sequence = sequence;
+        }
+    }
 }
