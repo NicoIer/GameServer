@@ -164,6 +164,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
 
     private async Task HandleReqHeadAsync(int connectionId, ReqHead request)
     {
+        NetworkBuffer responsePayloadWriter = NetworkBufferPool.Shared.Get();
         RspHead response;
         if (!_workerConnectionIds.TryGetValue(connectionId, out int workerConnectionId))
         {
@@ -173,15 +174,16 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
             }
             else
             {
-                response = await _connectCenter.HandleRequestAsync(connectionId, request);
+                response = await _connectCenter.HandleRequestAsync(connectionId, request, responsePayloadWriter);
             }
         }
         else
         {
-            response = await _worker.HandleRequestAsync(workerConnectionId, request);
+            response = await _worker.HandleRequestAsync(workerConnectionId, request, responsePayloadWriter);
         }
 
         _server.Send(connectionId, response);
+        NetworkBufferPool.Shared.Return(responsePayloadWriter);
     }
 
     private void OnDisconnected(int connectionId)

@@ -28,7 +28,16 @@ public abstract class RoomFiberModuleBase : IFiberModule
 
     public ValueTask OnStartAsync(Fiber fiber, CancellationToken cancellationToken)
     {
-        RegisterHandlers(_reqRspCenter);
+        try
+        {
+            OnRoomCreated();
+            RegisterHandlers(_reqRspCenter);
+        }
+        catch (Exception e)
+        {
+            global::GameServer.Core.Log.Error("Room", e, $"event=room_module_create_failed roomId={RoomId}");
+        }
+
         fiber.NextWakeTimeMs = Environment.TickCount64 + _frameIntervalMs;
         return ValueTask.CompletedTask;
     }
@@ -50,13 +59,14 @@ public abstract class RoomFiberModuleBase : IFiberModule
             {
                 OnRoomUpdate(_nextFrameTimeMs, _frame);
             }
-            finally
+            catch (Exception e)
             {
-                TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
-                Interlocked.Exchange(ref _lastFrameElapsedTicks, elapsed.Ticks);
-                UpdateMaxFrameElapsed(elapsed.Ticks);
+                global::GameServer.Core.Log.Error("Room", e, $"event=room_module_update_failed roomId={RoomId} frame={_frame}");
             }
 
+            TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+            Interlocked.Exchange(ref _lastFrameElapsedTicks, elapsed.Ticks);
+            UpdateMaxFrameElapsed(elapsed.Ticks);
             _nextFrameTimeMs += _frameIntervalMs;
         }
 
@@ -70,15 +80,23 @@ public abstract class RoomFiberModuleBase : IFiberModule
     public ValueTask OnStopAsync(CancellationToken cancellationToken)
     {
         FrameAwaiter.Cancel();
-        OnRoomStopped();
+        try
+        {
+            OnRoomStopped();
+        }
+        catch (Exception e)
+        {
+            global::GameServer.Core.Log.Error("Room", e, $"event=room_module_destroy_failed roomId={RoomId}");
+        }
+
         return ValueTask.CompletedTask;
     }
 
-    public async ValueTask<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
+    public async ValueTask<RspHead> HandleRequestAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter)
     {
         try
         {
-            return await _reqRspCenter.HandleRequestAsync(connectionId, request);
+            return await _reqRspCenter.HandleRequestAsync(connectionId, request, responsePayloadWriter);
         }
         catch
         {
@@ -104,6 +122,10 @@ public abstract class RoomFiberModuleBase : IFiberModule
     }
 
     protected abstract void RegisterHandlers(ReqRspServerCenter center);
+    protected virtual void OnRoomCreated()
+    {
+    }
+
     protected abstract void OnRoomUpdate(long timeNowMs, int frame);
     protected virtual void OnRoomStopped()
     {

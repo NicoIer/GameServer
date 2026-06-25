@@ -12,8 +12,14 @@ public interface IRoomPush
 [MemoryPackable]
 public partial struct RoomPushHead : INetworkMessage
 {
-    public ushort PushHash;
-    public ArraySegment<byte> Payload;
+    public readonly ushort PushHash;
+    public readonly ArraySegment<byte> Payload;
+
+    public RoomPushHead(in ushort pushHash, in ArraySegment<byte> payload)
+    {
+        PushHash = pushHash;
+        Payload = payload;
+    }
 }
 
 public sealed class RoomPushHub
@@ -44,23 +50,20 @@ public sealed class RoomPushHub
             return;
         }
 
-        var head = new RoomPushHead
-        {
-            PushHash = TypeId<TPush>.stableId16,
-            Payload = MemoryPackSerializer.Serialize(push),
-        };
+        NetworkBuffer payloadWriter = NetworkBufferPool.Shared.Get();
+        MemoryPackSerializer.Serialize(payloadWriter, push);
+        var head = new RoomPushHead(TypeId<TPush>.stableId16, payloadWriter.ToArraySegment());
         sender(head);
         Interlocked.Increment(ref _sentCount);
+        NetworkBufferPool.Shared.Return(payloadWriter);
     }
 
     public void SendMany<TPush>(IEnumerable<int> connectionIds, TPush push)
         where TPush : IRoomPush
     {
-        var head = new RoomPushHead
-        {
-            PushHash = TypeId<TPush>.stableId16,
-            Payload = MemoryPackSerializer.Serialize(push),
-        };
+        NetworkBuffer payloadWriter = NetworkBufferPool.Shared.Get();
+        MemoryPackSerializer.Serialize(payloadWriter, push);
+        var head = new RoomPushHead(TypeId<TPush>.stableId16, payloadWriter.ToArraySegment());
 
         foreach (int connectionId in connectionIds)
         {
@@ -74,5 +77,7 @@ public sealed class RoomPushHub
                 Interlocked.Increment(ref _droppedCount);
             }
         }
+
+        NetworkBufferPool.Shared.Return(payloadWriter);
     }
 }

@@ -34,6 +34,11 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
         NetworkReqRspInitializer.RegisterAll(center, handlers);
     }
 
+    protected override void OnRoomCreated()
+    {
+        _room.Create();
+    }
+
     protected override void OnRoomUpdate(long timeNowMs, int frame)
     {
         _room.Update(timeNowMs, frame);

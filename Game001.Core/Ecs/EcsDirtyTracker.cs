@@ -1,14 +1,14 @@
 using Friflo.Engine.ECS;
 using Game001.Core.Generated;
-using System.Buffers;
 using Network;
+using MemoryPack;
 
 namespace Game001.Core.Ecs;
 
 public sealed class EcsDirtyTracker : IDisposable
 {
     private readonly EntityStore _store;
-    private readonly ArrayBufferWriter<byte> _componentPayloadBuffer = new();
+    private readonly NetworkBuffer _componentPayloadWriter;
     private readonly Dictionary<int, TrackedEntityChange> _entityChanges = new();
     private readonly Dictionary<ComponentChangeKey, TrackedComponentChange> _componentChanges = new();
     private readonly Queue<EntityChangeOrder> _entityChangeOrder = new();
@@ -18,6 +18,7 @@ public sealed class EcsDirtyTracker : IDisposable
     public EcsDirtyTracker(EntityStore store)
     {
         _store = store;
+        _componentPayloadWriter = NetworkBufferPool.Shared.Get();
         _store.OnEntityCreate += OnEntityCreate;
         _store.OnEntityDelete += OnEntityDelete;
         _store.OnComponentAdded += OnComponentChanged;
@@ -28,6 +29,12 @@ public sealed class EcsDirtyTracker : IDisposable
 
     public void MarkComponentUpdated(Entity entity, ushort componentTypeId, byte[] payload)
     {
+        MarkComponentUpdated(entity, componentTypeId, new ArraySegment<byte>(payload));
+    }
+
+    public void MarkComponentUpdated<TComponent>(Entity entity, ushort componentTypeId, TComponent component)
+        where TComponent : struct, IComponent
+    {
         int entityId = GetEntityId(entity);
         if (_entityChanges.TryGetValue(entityId, out TrackedEntityChange entityChange) &&
             entityChange.Kind == EcsChangeKind.Delete)
@@ -35,12 +42,30 @@ public sealed class EcsDirtyTracker : IDisposable
             return;
         }
 
+        ArraySegment<byte> payload = SerializeComponentPayload(component);
+        MarkComponentUpdated(entityId, componentTypeId, payload);
+    }
+
+    private void MarkComponentUpdated(Entity entity, ushort componentTypeId, ArraySegment<byte> payload)
+    {
+        int entityId = GetEntityId(entity);
+        if (_entityChanges.TryGetValue(entityId, out TrackedEntityChange entityChange) &&
+            entityChange.Kind == EcsChangeKind.Delete)
+        {
+            return;
+        }
+
+        MarkComponentUpdated(entityId, componentTypeId, payload);
+    }
+
+    private void MarkComponentUpdated(int entityId, ushort componentTypeId, ArraySegment<byte> payload)
+    {
         var key = new ComponentChangeKey(entityId, componentTypeId);
         if (_componentChanges.TryGetValue(key, out TrackedComponentChange current))
         {
             if (current.Change.Kind == EcsChangeKind.Add)
             {
-                current.Change.Payload = new ArraySegment<byte>(payload);
+                current.Change.Payload = payload;
                 current.Sequence = NextSequence();
                 _componentChanges[key] = current;
                 _componentChangeOrder.Enqueue(new ComponentChangeOrder(key, current.Sequence));
@@ -53,7 +78,7 @@ public sealed class EcsDirtyTracker : IDisposable
             EntityId = entityId,
             ComponentTypeId = componentTypeId,
             Kind = EcsChangeKind.Update,
-            Payload = new ArraySegment<byte>(payload),
+            Payload = payload,
         });
     }
 
@@ -113,6 +138,7 @@ public sealed class EcsDirtyTracker : IDisposable
         _store.OnEntityDelete -= OnEntityDelete;
         _store.OnComponentAdded -= OnComponentChanged;
         _store.OnComponentRemoved -= OnComponentChanged;
+        NetworkBufferPool.Shared.Return(_componentPayloadWriter);
     }
 
     private void OnEntityCreate(EntityCreate args)
@@ -164,13 +190,10 @@ public sealed class EcsDirtyTracker : IDisposable
             return;
         }
 
-        _componentPayloadBuffer.Clear();
-        if (!EcsReplicationSerializer.TrySerializeComponent(args.Entity, componentTypeId, _componentPayloadBuffer))
+        if (!TrySerializeComponentPayload(args.Entity, componentTypeId, out ArraySegment<byte> payload))
         {
             return;
         }
-
-        var payload = _componentPayloadBuffer.WrittenSpan.ToArray();
 
         EcsChangeKind kind = args.Action == ComponentChangedAction.Update
             ? EcsChangeKind.Update
@@ -178,14 +201,14 @@ public sealed class EcsDirtyTracker : IDisposable
         MarkComponentChanged(entityId, componentTypeId, kind, payload);
     }
 
-    private void MarkComponentChanged(int entityId, ushort componentTypeId, EcsChangeKind kind, byte[] payload)
+    private void MarkComponentChanged(int entityId, ushort componentTypeId, EcsChangeKind kind, ArraySegment<byte> payload)
     {
         var key = new ComponentChangeKey(entityId, componentTypeId);
         if (_componentChanges.TryGetValue(key, out TrackedComponentChange current))
         {
             if (current.Change.Kind == EcsChangeKind.Add)
             {
-                current.Change.Payload = new ArraySegment<byte>(payload);
+                current.Change.Payload = payload;
                 current.Sequence = NextSequence();
                 _componentChanges[key] = current;
                 _componentChangeOrder.Enqueue(new ComponentChangeOrder(key, current.Sequence));
@@ -203,7 +226,7 @@ public sealed class EcsDirtyTracker : IDisposable
             EntityId = entityId,
             ComponentTypeId = componentTypeId,
             Kind = kind,
-            Payload = new ArraySegment<byte>(payload),
+            Payload = payload,
         });
     }
 
@@ -231,6 +254,7 @@ public sealed class EcsDirtyTracker : IDisposable
 
     private void SetEntityChange(int entityId, EcsChangeKind kind)
     {
+        ResetComponentPayloadWriterIfEmpty();
         long sequence = NextSequence();
         _entityChanges[entityId] = new TrackedEntityChange(kind, sequence);
         _entityChangeOrder.Enqueue(new EntityChangeOrder(entityId, sequence));
@@ -257,6 +281,40 @@ public sealed class EcsDirtyTracker : IDisposable
 
         _entityChangeOrder.Clear();
         _componentChangeOrder.Clear();
+        _componentPayloadWriter.Reset();
+    }
+
+    private bool TrySerializeComponentPayload(Entity entity, ushort componentTypeId, out ArraySegment<byte> payload)
+    {
+        ResetComponentPayloadWriterIfEmpty();
+        int offset = _componentPayloadWriter.Position;
+        if (!EcsReplicationSerializer.TrySerializeComponent(entity, componentTypeId, _componentPayloadWriter))
+        {
+            payload = ArraySegment<byte>.Empty;
+            return false;
+        }
+
+        payload = _componentPayloadWriter.ToArraySegment(offset, _componentPayloadWriter.Position - offset);
+        return true;
+    }
+
+    private ArraySegment<byte> SerializeComponentPayload<TComponent>(TComponent component)
+    {
+        ResetComponentPayloadWriterIfEmpty();
+        int offset = _componentPayloadWriter.Position;
+        MemoryPackSerializer.Serialize(_componentPayloadWriter, component);
+        return _componentPayloadWriter.ToArraySegment(offset, _componentPayloadWriter.Position - offset);
+    }
+
+    private void ResetComponentPayloadWriterIfEmpty()
+    {
+        if (_entityChanges.Count != 0 || _componentChanges.Count != 0 ||
+            _entityChangeOrder.Count != 0 || _componentChangeOrder.Count != 0)
+        {
+            return;
+        }
+
+        _componentPayloadWriter.Reset();
     }
 
     private static int GetEntityId(Entity entity)

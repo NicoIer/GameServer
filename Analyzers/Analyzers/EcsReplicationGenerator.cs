@@ -211,9 +211,9 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
 
     private static void GenerateSerializeAllComponents(StringBuilder sb, List<ReplicatedComponent> components)
     {
-        sb.AppendLine("    public static global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> SerializeAllComponents(global::Friflo.Engine.ECS.Entity entity)");
+        sb.AppendLine("    public static void SerializeAllComponents(global::Friflo.Engine.ECS.Entity entity, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> result)");
         sb.AppendLine("    {");
-        sb.AppendLine("        var components = new global::System.Collections.Generic.List<global::Game001.Core.EcsComponentSnapshot>();");
+        sb.AppendLine("        int componentOffset = componentWriter.Position;");
         for (int i = 0; i < components.Count; i++)
         {
             ReplicatedComponent component = components[i];
@@ -223,44 +223,48 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
             sb.Append(i);
             sb.AppendLine("))");
             sb.AppendLine("        {");
-            sb.AppendLine("            components.Add(new global::Game001.Core.EcsComponentSnapshot");
+            sb.AppendLine("            int payloadOffset = payloadWriter.Position;");
+            sb.Append("            global::MemoryPack.MemoryPackSerializer.Serialize(payloadWriter, component");
+            sb.Append(i);
+            sb.AppendLine(");");
+            sb.AppendLine("            componentWriter.Write(new global::Game001.Core.EcsComponentSnapshot");
             sb.AppendLine("            {");
             sb.Append("                ComponentTypeId = ");
             sb.Append(component.ConstantName);
             sb.AppendLine(",");
-            sb.Append("                Payload = new global::System.ArraySegment<byte>(global::MemoryPack.MemoryPackSerializer.Serialize(component");
-            sb.Append(i);
-            sb.AppendLine(")),");
+            sb.AppendLine("                Payload = payloadWriter.ToArraySegment(payloadOffset, payloadWriter.Position - payloadOffset),");
             sb.AppendLine("            });");
             sb.AppendLine("        }");
         }
         sb.AppendLine();
-        sb.AppendLine("        return new global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot>(components.ToArray());");
+        sb.AppendLine("        result = componentWriter.ToArraySegment(componentOffset, componentWriter.Position - componentOffset);");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
 
     private static void GenerateCreateFullState(StringBuilder sb)
     {
-        sb.AppendLine("    public static global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> CreateFullState(global::Friflo.Engine.ECS.EntityStore store)");
+        sb.AppendLine("    public static void CreateFullState(global::Friflo.Engine.ECS.EntityStore store, global::Network.NetworkBuffer<global::Game001.Core.EcsEntitySnapshot> entityWriter, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> result)");
         sb.AppendLine("    {");
-        sb.AppendLine("        var entities = new global::System.Collections.Generic.List<global::Game001.Core.EcsEntitySnapshot>();");
+        sb.AppendLine("        entityWriter.Reset();");
+        sb.AppendLine("        componentWriter.Reset();");
+        sb.AppendLine("        payloadWriter.Reset();");
         sb.AppendLine("        foreach (global::Friflo.Engine.ECS.Entity entity in store.Entities)");
         sb.AppendLine("        {");
-        sb.AppendLine("            global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> components = SerializeAllComponents(entity);");
+        sb.AppendLine("            SerializeAllComponents(entity, componentWriter, payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> components);");
         sb.AppendLine("            if (components.Count == 0)");
         sb.AppendLine("            {");
         sb.AppendLine("                continue;");
         sb.AppendLine("            }");
         sb.AppendLine();
-        sb.AppendLine("            entities.Add(new global::Game001.Core.EcsEntitySnapshot");
+        sb.AppendLine("            entityWriter.Write(new global::Game001.Core.EcsEntitySnapshot");
         sb.AppendLine("            {");
         sb.AppendLine("                EntityId = (int)entity.Pid,");
         sb.AppendLine("                Components = components,");
         sb.AppendLine("            });");
         sb.AppendLine("        }");
         sb.AppendLine();
-        sb.AppendLine("        return new global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot>(entities.ToArray());");
+        sb.AppendLine("        result = entityWriter.ToArraySegment();");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
@@ -283,7 +287,7 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
             sb.AppendLine(")(object)component;");
             sb.Append("            dirty.MarkComponentUpdated(entity, ");
             sb.Append(component.ConstantName);
-            sb.AppendLine(", global::MemoryPack.MemoryPackSerializer.Serialize(value));");
+            sb.AppendLine(", value);");
             sb.AppendLine("            return;");
             sb.AppendLine("        }");
         }

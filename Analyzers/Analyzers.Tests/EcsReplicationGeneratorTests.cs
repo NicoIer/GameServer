@@ -62,9 +62,11 @@ namespace Game001.Core.Ecs
         Assert.Contains("TrySerializeComponent<TBufferWriter>", generated);
         Assert.Contains("where TBufferWriter : class, global::System.Buffers.IBufferWriter<byte>", generated);
         Assert.Contains("MemoryPackSerializer.Serialize(bufferWriter, component0);", generated);
-        Assert.Contains("public static global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> SerializeAllComponents", generated);
-        Assert.Contains("Payload = new global::System.ArraySegment<byte>(global::MemoryPack.MemoryPackSerializer.Serialize(component0)),", generated);
-        Assert.Contains("public static global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> CreateFullState", generated);
+        Assert.Contains("public static void SerializeAllComponents(global::Friflo.Engine.ECS.Entity entity, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> result)", generated);
+        Assert.Contains("global::MemoryPack.MemoryPackSerializer.Serialize(payloadWriter, component0);", generated);
+        Assert.Contains("Payload = payloadWriter.ToArraySegment(payloadOffset, payloadWriter.Position - payloadOffset),", generated);
+        Assert.Contains("public static void CreateFullState(global::Friflo.Engine.ECS.EntityStore store, global::Network.NetworkBuffer<global::Game001.Core.EcsEntitySnapshot> entityWriter, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> result)", generated);
+        Assert.Contains("dirty.MarkComponentUpdated(entity, RoomPlayerComponentTypeId, value);", generated);
         Assert.Contains("SetReplicatedComponent<T>", generated);
     }
 

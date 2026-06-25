@@ -17,7 +17,6 @@ public sealed class Game001Room : IWorld
         var lifecycleSystem = new RoomLifecycleSystem(State);
         var frifloSystemRunner = new FrifloSystemRunnerSystem(State.EcsSystems);
         Systems = new CoreSystemGroup(lifecycleSystem, frifloSystemRunner, syncSystem);
-        Systems.OnCreate();
     }
 
     public Game001RoomState State { get; }
@@ -25,6 +24,11 @@ public sealed class Game001Room : IWorld
     public FrifloSystemRoot EcsSystems => State.EcsSystems;
     public CoreSystemGroup Systems { get; }
     public RoomLifecycleState LifecycleState => State.LifecycleState;
+
+    public void Create()
+    {
+        Systems.OnCreate();
+    }
 
     public void Update(long timeNowMs, int frame)
     {

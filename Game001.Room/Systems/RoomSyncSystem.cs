@@ -13,8 +13,6 @@ public sealed class RoomSyncSystem : ISystem
 {
     private readonly RoomPushHub _pushHub;
     private readonly Game001RoomState _state;
-    private readonly NetworkBuffer<EcsEntityChange> _entityChangeWriter = new();
-    private readonly NetworkBuffer<EcsComponentChange> _componentChangeWriter = new();
     private int _lastDiffFrame;
 
     public RoomSyncSystem(RoomPushHub pushHub, Game001RoomState state)
@@ -31,18 +29,34 @@ public sealed class RoomSyncSystem : ISystem
     {
         if (_state.PendingFullStateConnections.Count > 0)
         {
-            long[] players = _state.Players.OrderBy(x => x).ToArray();
-            long[] disconnectedPlayers = _state.DisconnectedPlayers.OrderBy(x => x).ToArray();
+            NetworkBuffer<long> playersWriter = NetworkBufferPool<long>.Shared.Get();
+            NetworkBuffer<long> disconnectedPlayersWriter = NetworkBufferPool<long>.Shared.Get();
+            NetworkBuffer<EcsEntitySnapshot> entityWriter = NetworkBufferPool<EcsEntitySnapshot>.Shared.Get();
+            NetworkBuffer<EcsComponentSnapshot> componentWriter = NetworkBufferPool<EcsComponentSnapshot>.Shared.Get();
+            NetworkBuffer payloadWriter = NetworkBufferPool.Shared.Get();
+            ArraySegment<long> players = WriteSorted(_state.Players, playersWriter);
+            ArraySegment<long> disconnectedPlayers = WriteSorted(_state.DisconnectedPlayers, disconnectedPlayersWriter);
+            EcsReplicationSerializer.CreateFullState(
+                _state.Entities,
+                entityWriter,
+                componentWriter,
+                payloadWriter,
+                out ArraySegment<EcsEntitySnapshot> entities);
             var push = new RoomFullStatePush
             {
                 Room = _state.CreateRoomInfo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
-                Players = new ArraySegment<long>(players),
-                DisconnectedPlayers = new ArraySegment<long>(disconnectedPlayers),
-                Entities = EcsReplicationSerializer.CreateFullState(_state.Entities),
+                Players = players,
+                DisconnectedPlayers = disconnectedPlayers,
+                Entities = entities,
             };
             _pushHub.SendMany(_state.PendingFullStateConnections, push);
 
             _state.PendingFullStateConnections.Clear();
+            NetworkBufferPool<long>.Shared.Return(playersWriter);
+            NetworkBufferPool<long>.Shared.Return(disconnectedPlayersWriter);
+            NetworkBufferPool<EcsEntitySnapshot>.Shared.Return(entityWriter);
+            NetworkBufferPool<EcsComponentSnapshot>.Shared.Return(componentWriter);
+            NetworkBufferPool.Shared.Return(payloadWriter);
         }
 
         if (!_state.DirtyTracker.HasChanges)
@@ -50,10 +64,14 @@ public sealed class RoomSyncSystem : ISystem
             return;
         }
 
-        _state.DirtyTracker.Flush(_lastDiffFrame, frame,  _entityChangeWriter,  _componentChangeWriter, out var dirtySet);
+        NetworkBuffer<EcsEntityChange> entityChangeWriter = NetworkBufferPool<EcsEntityChange>.Shared.Get();
+        NetworkBuffer<EcsComponentChange> componentChangeWriter = NetworkBufferPool<EcsComponentChange>.Shared.Get();
+        _state.DirtyTracker.Flush(_lastDiffFrame, frame, entityChangeWriter, componentChangeWriter, out var dirtySet);
         _lastDiffFrame = frame;
         if (!dirtySet.HasChanges || _state.ActiveConnectionIds.Count == 0)
         {
+            NetworkBufferPool<EcsEntityChange>.Shared.Return(entityChangeWriter);
+            NetworkBufferPool<EcsComponentChange>.Shared.Return(componentChangeWriter);
             return;
         }
 
@@ -66,9 +84,24 @@ public sealed class RoomSyncSystem : ISystem
             ComponentChanges = dirtySet.ComponentChanges,
         };
         _pushHub.SendMany(_state.ActiveConnectionIds, diffPush);
+        NetworkBufferPool<EcsEntityChange>.Shared.Return(entityChangeWriter);
+        NetworkBufferPool<EcsComponentChange>.Shared.Return(componentChangeWriter);
     }
 
     public void OnDestroy()
     {
+    }
+
+    private static ArraySegment<long> WriteSorted(HashSet<long> values, NetworkBuffer<long> writer)
+    {
+        writer.Reset();
+        foreach (long value in values)
+        {
+            writer.Write(value);
+        }
+
+        ArraySegment<long> segment = writer.ToArraySegment();
+        Array.Sort(segment.Array!, segment.Offset, segment.Count);
+        return segment;
     }
 }

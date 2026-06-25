@@ -81,13 +81,13 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         TryQueueRoomClose(context.RoomId, handle, Environment.TickCount64);
     }
 
-    public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request)
+    public async Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter)
     {
         long startTimestamp = Stopwatch.GetTimestamp();
         bool requestError = true;
         try
         {
-            RspHead response = await HandleRequestCoreAsync(connectionId, request);
+            RspHead response = await HandleRequestCoreAsync(connectionId, request, responsePayloadWriter);
             requestError = response.error != NetworkErrorCode.Success;
             return response;
         }
@@ -104,7 +104,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
     }
 
-    private async Task<RspHead> HandleRequestCoreAsync(int connectionId, ReqHead request)
+    private async Task<RspHead> HandleRequestCoreAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter)
     {
         if (IsStopped)
         {
@@ -118,7 +118,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
         if (request.reqHash == RoomConnectReqHash)
         {
-            return await HandleRoomConnectAsync(connectionId, request);
+            return await HandleRoomConnectAsync(connectionId, request, responsePayloadWriter);
         }
 
         RoomRequestRoute route;
@@ -146,7 +146,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return CreateRoomNotFoundResponse(request, route);
         }
 
-        RspHead response = await room.Value.Fiber.CallAsync(() => room.Value.Module.HandleRequestAsync(connectionId, request));
+        RspHead response = await room.Value.Fiber.CallAsync(() => room.Value.Module.HandleRequestAsync(connectionId, request, responsePayloadWriter));
         if (response.error == NetworkErrorCode.Success && route.SuccessConnectionAction == RoomRequestConnectionAction.BindRoom)
         {
             Connections.TrySetRoom(connectionId, route.RoomId);
@@ -163,24 +163,31 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     public async Task<GameResponse> HandleDataAsync(long uid, ByteString data)
     {
         int connectionId = Connections.Add(uid, string.Empty);
+        NetworkBuffer responsePayloadWriter = NetworkBufferPool.Shared.Get();
+        NetworkBuffer responseWriter = NetworkBufferPool.Shared.Get();
+        GameResponse result;
         try
         {
             ReqHead request = MemoryPackSerializer.Deserialize<ReqHead>(data.ToByteArray());
-            RspHead response = await HandleRequestAsync(connectionId, request);
-            return new GameResponse
+            RspHead response = await HandleRequestAsync(connectionId, request, responsePayloadWriter);
+            responseWriter.Reset();
+            MemoryPackSerializer.Serialize(responseWriter, response);
+            ArraySegment<byte> responseSegment = responseWriter.ToArraySegment();
+            result = new GameResponse
             {
                 Error = ProtocolErrorCode.Success,
-                Data = ByteString.CopyFrom(MemoryPackSerializer.Serialize(response)),
+                Data = ByteString.CopyFrom(responseSegment.Array!, responseSegment.Offset, responseSegment.Count),
             };
         }
         catch
         {
-            return new GameResponse { Error = ProtocolErrorCode.InvalidRequest };
+            result = new GameResponse { Error = ProtocolErrorCode.InvalidRequest };
         }
-        finally
-        {
-            Connections.Remove(connectionId);
-        }
+
+        Connections.Remove(connectionId);
+        NetworkBufferPool.Shared.Return(responsePayloadWriter);
+        NetworkBufferPool.Shared.Return(responseWriter);
+        return result;
     }
 
     public void Update(long timeNowMs)
@@ -445,7 +452,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
     }
 
-    private async Task<RspHead> HandleRoomConnectAsync(int connectionId, ReqHead request)
+    private async Task<RspHead> HandleRoomConnectAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter)
     {
         RoomConnectReq req;
         try
@@ -471,16 +478,18 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
         Connections.TrySetRoom(connectionId, roomId);
         Interlocked.Increment(ref _roomConnectCount);
-        return CreateRoomConnectResponse(request, $"connected room={roomId}", roomId);
+        return CreateRoomConnectResponse(request, $"connected room={roomId}", roomId, responsePayloadWriter);
     }
 
-    private static RspHead CreateRoomConnectResponse(ReqHead request, string message, string roomId)
+    private static RspHead CreateRoomConnectResponse(ReqHead request, string message, string roomId, NetworkBuffer responsePayloadWriter)
     {
         var rsp = new RoomConnectRsp
         {
             RoomId = roomId,
         };
-        return new RspHead(request.index, request.reqHash, RoomConnectRspHash, NetworkErrorCode.Success, message, MemoryPackSerializer.Serialize(rsp));
+        responsePayloadWriter.Reset();
+        MemoryPackSerializer.Serialize(responsePayloadWriter, rsp);
+        return new RspHead(request.index, request.reqHash, RoomConnectRspHash, NetworkErrorCode.Success, message, responsePayloadWriter.ToArraySegment());
     }
 
     private static RspHead CreateRoomConnectErrorResponse(ReqHead request, string message)
