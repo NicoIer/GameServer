@@ -1,5 +1,5 @@
 using Game001.Core;
-using Game001.Room.Runtime.Components;
+using Game001.Core.Ecs;
 using Game001.Room.Runtime;
 using Game001.Room.Systems;
 using Friflo.Engine.ECS;
@@ -35,6 +35,11 @@ public sealed class Game001RoomTests
         Assert.Equal(1, push.Room.PlayerCount);
         Assert.Equal(new[] { Uid }, push.Players);
         Assert.Empty(push.DisconnectedPlayers);
+        EcsEntitySnapshot entitySnapshot = Assert.Single(push.Entities);
+        EcsComponentSnapshot playerComponent = Assert.Single(entitySnapshot.Components);
+        Assert.Equal(TypeId<RoomPlayerComponent>.stableId16, playerComponent.ComponentTypeId);
+        RoomPlayerComponent player = MemoryPackSerializer.Deserialize<RoomPlayerComponent>(playerComponent.Payload);
+        Assert.Equal(Uid, player.Uid);
     }
 
     [Fact]
@@ -116,6 +121,36 @@ public sealed class Game001RoomTests
     }
 
     [Fact]
+    public void DisconnectSendsRoomDiffStatePushToOtherConnections()
+    {
+        const long otherUid = 1002;
+        Game001Room room = CreateRoom(out RoomConnectionRegistry connections, out RoomPushHub pushHub, out List<RoomFullStatePush> pushes);
+        RoomLifecycleSystem lifecycleSystem = GetLifecycleSystem(room);
+        var diffs = new List<RoomDiffStatePush>();
+        int connectionId = AddConnection(connections, pushHub, pushes, Uid, RoomId);
+        lifecycleSystem.CreateRoom(connectionId, Uid);
+        room.Update(12345, 1);
+
+        int otherConnectionId = AddConnection(connections, pushHub, new List<RoomFullStatePush>(), otherUid, RoomId, diffs);
+        lifecycleSystem.JoinRoom(otherConnectionId, otherUid);
+        room.Update(12378, 2);
+        diffs.Clear();
+
+        lifecycleSystem.DisconnectRoom(connectionId, Uid);
+        room.Update(12411, 3);
+
+        RoomDiffStatePush diff = Assert.Single(diffs);
+        Assert.Equal(2, diff.SourceFrame);
+        Assert.Equal(3, diff.TargetFrame);
+        EcsComponentChange componentChange = Assert.Single(
+            diff.ComponentChanges,
+            change => change.ComponentTypeId == TypeId<RoomDisconnectedComponent>.stableId16);
+        Assert.Equal(EcsChangeKind.Add, componentChange.Kind);
+        RoomDisconnectedComponent disconnected = MemoryPackSerializer.Deserialize<RoomDisconnectedComponent>(componentChange.Payload);
+        Assert.True(disconnected.TimeMs > 0);
+    }
+
+    [Fact]
     public void PingRoomReturnsPong()
     {
         Game001Room room = CreateRoom(out _, out _, out _);
@@ -144,7 +179,7 @@ public sealed class Game001RoomTests
 
         Assert.Same(room.State.Entities, room.World);
         Assert.Same(room.State.EcsSystems, room.EcsSystems);
-        Assert.True(room.Systems.TryGetSystem(out FrifloSystemRunner? runner));
+        Assert.True(room.Systems.TryGetSystem(out FrifloSystemRunnerSystem? runner));
         Assert.Same(room.EcsSystems, runner.Root);
     }
 
@@ -174,7 +209,8 @@ public sealed class Game001RoomTests
         RoomPushHub pushHub,
         List<RoomFullStatePush> pushes,
         long uid,
-        string roomId)
+        string roomId,
+        List<RoomDiffStatePush>? diffs = null)
     {
         int connectionId = connections.Add(uid, roomId);
         pushHub.Register(connectionId, push =>
@@ -182,6 +218,11 @@ public sealed class Game001RoomTests
             if (push.PushHash == TypeId<RoomFullStatePush>.stableId16)
             {
                 pushes.Add(MemoryPackSerializer.Deserialize<RoomFullStatePush>(push.Payload));
+            }
+
+            if (diffs != null && push.PushHash == TypeId<RoomDiffStatePush>.stableId16)
+            {
+                diffs.Add(MemoryPackSerializer.Deserialize<RoomDiffStatePush>(push.Payload));
             }
         });
 

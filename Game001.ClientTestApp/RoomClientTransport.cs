@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using GameServer.Core.Rooms;
 using GameServer.Core.Protocol;
+using kcp2k;
 using MemoryPack;
 using Network;
 using Network.Client;
@@ -12,34 +13,47 @@ namespace Game001.ClientTestApp;
 public sealed class ReqRspNetworkClient : IAsyncDisposable
 {
     private readonly NetworkClient _client;
+    private readonly DirectTransportProtocol _protocol;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly ConcurrentDictionary<ushort, TaskCompletionSource<RspHead>> _pending = new();
     private Task? _runTask;
 
-    private ReqRspNetworkClient(NetworkClient client)
+    private ReqRspNetworkClient(NetworkClient client, DirectTransportProtocol protocol)
     {
         _client = client;
+        _protocol = protocol;
         _client.AddMsgHandler<RspHead>(OnRspHead);
         _client.AddMsgHandler<RoomPushHead>(OnRoomPushHead);
     }
 
-    public DirectTransportProtocol Protocol => DirectTransportProtocol.Tcp;
+    public DirectTransportProtocol Protocol => _protocol;
     public event Action<RoomPushHead>? RoomPushReceived;
 
     public static async Task<ReqRspNetworkClient> ConnectAsync(PrepareRoomConnectionReply connection)
     {
-        if (connection.DirectProtocol != DirectTransportProtocol.Tcp)
+        IClientSocket socket;
+        string scheme;
+        if (connection.DirectProtocol == DirectTransportProtocol.Tcp)
+        {
+            socket = new TelepathyClientSocket();
+            scheme = "tcp4";
+        }
+        else if (connection.DirectProtocol == DirectTransportProtocol.Kcp)
+        {
+            socket = new KcpClientSocket(new KcpConfig(), KcpChannel.Reliable);
+            scheme = "kcp";
+        }
+        else
         {
             throw new NotSupportedException($"unsupported room transport protocol={connection.DirectProtocol}");
         }
 
-        var socket = new TelepathyClientSocket();
         var connected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         socket.OnConnected += () => connected.TrySetResult();
 
         var client = new NetworkClient(socket, 1000, false);
-        var result = new ReqRspNetworkClient(client);
-        client.Run(new Uri($"tcp4://{connection.Host}:{connection.Port}"), false);
+        var result = new ReqRspNetworkClient(client, connection.DirectProtocol);
+        client.Run(new Uri($"{scheme}://{connection.Host}:{connection.Port}"), false);
         result._runTask = Task.Run(result.Run);
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));

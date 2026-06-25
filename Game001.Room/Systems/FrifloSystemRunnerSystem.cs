@@ -6,12 +6,12 @@ namespace Game001.Room.Systems;
 
 [ExecuteAfter(typeof(RoomLifecycleSystem))]
 [ExecuteBefore(typeof(RoomSyncSystem))]
-public sealed class FrifloSystemRunner : ISystem
+public sealed class FrifloSystemRunnerSystem : ISystem
 {
     private readonly SystemRoot _root;
     private long _startTimeMs;
 
-    public FrifloSystemRunner(SystemRoot root)
+    public FrifloSystemRunnerSystem(SystemRoot root)
     {
         _root = root;
     }

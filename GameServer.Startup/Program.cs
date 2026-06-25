@@ -195,7 +195,12 @@ static IGameRoomTransportServer CreateGame001RoomTransportServer(
 {
     if (protocol == DirectTransportProtocol.Tcp)
     {
-        return new UnityRoomTransportServer(tcpPort, centerClient, worker, networkTickSleepMs);
+        return UnityRoomTransportServer.CreateTcp(tcpPort, centerClient, worker, networkTickSleepMs);
+    }
+
+    if (protocol == DirectTransportProtocol.Kcp)
+    {
+        return UnityRoomTransportServer.CreateKcp(tcpPort, centerClient, worker, networkTickSleepMs);
     }
 
     throw new NotSupportedException($"unsupported Game001.Room direct transport protocol={protocol}");

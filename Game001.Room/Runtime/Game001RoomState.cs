@@ -1,5 +1,6 @@
 using Game001.Core;
-using Game001.Room.Runtime.Components;
+using Game001.Core.Ecs;
+using Game001.Core.Generated;
 using GameServer.Core.Rooms;
 using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
@@ -18,8 +19,10 @@ public sealed class Game001RoomState
     public IReadOnlyDictionary<long, Entity> PlayerEntities => _playerEntities;
     public HashSet<long> Players { get; } = new();
     public HashSet<long> DisconnectedPlayers { get; } = new();
+    public HashSet<int> ActiveConnectionIds { get; } = new();
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
     public List<int> PendingFullStateConnections { get; } = new();
+    public EcsDirtyTracker DirtyTracker { get; }
     public RoomLifecycleState LifecycleState => (RoomLifecycleState)Volatile.Read(ref _lifecycleState);
     public int PlayerCount => Volatile.Read(ref _playerCount);
     public long EmptySinceTimeMs { get; private set; }
@@ -29,6 +32,7 @@ public sealed class Game001RoomState
     public Game001RoomState(string roomId)
     {
         RoomId = roomId;
+        DirtyTracker = new EcsDirtyTracker(Entities);
         EcsSystems = new SystemRoot(Entities, $"{roomId}.ecs");
     }
 
@@ -86,7 +90,7 @@ public sealed class Game001RoomState
         {
             TimeMs = timeNowMs,
         };
-        entity.AddComponent(disconnected);
+        EcsReplicationSerializer.SetReplicatedComponent(entity, disconnected, DirtyTracker);
     }
 
     public void RemovePlayerEntity(long uid)
@@ -140,5 +144,10 @@ public sealed class Game001RoomState
             Frame = Frame,
             ServerTimeMs = serverTimeMs,
         };
+    }
+
+    public void Destroy()
+    {
+        DirtyTracker.Dispose();
     }
 }

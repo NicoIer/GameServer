@@ -56,10 +56,11 @@ PrepareRoomConnectionReply prepareReply = await gateClient.PrepareRoomConnection
     RouteId = DefaultWorkerId,
 });
 ExpectError("prepare room connection", prepareReply.Error, ProtocolErrorCode.Success);
-Expect("prepare protocol", prepareReply.DirectProtocol == DirectTransportProtocol.Tcp, $"unexpected protocol={prepareReply.DirectProtocol}");
-Expect("prepare endpoint", prepareReply.Host.Length > 0 && prepareReply.Port > 0, "invalid tcp endpoint");
+Expect("prepare protocol", prepareReply.DirectProtocol is DirectTransportProtocol.Tcp or DirectTransportProtocol.Kcp, $"unexpected protocol={prepareReply.DirectProtocol}");
+Expect("prepare endpoint", prepareReply.Host.Length > 0 && prepareReply.Port > 0, "invalid direct endpoint");
 Expect("prepare ticket", prepareReply.ConnectTicket.Length > 0, "connect ticket is empty");
 Console.WriteLine($"room direct endpoint: {prepareReply.DirectProtocol} {prepareReply.Host}:{prepareReply.Port}");
+string directStepPrefix = prepareReply.DirectProtocol.ToString().ToLowerInvariant();
 
 PrepareRoomConnectionReply badPrepareReply = await gateClient.PrepareRoomConnectionAsync(new PrepareRoomConnectionRequest
 {
@@ -106,23 +107,23 @@ Console.WriteLine($"room handshake uid={connectionReply.Uid}");
     roomClient,
     ++requestIndex,
     new CreateRoomReq { RoomId = DefaultRoomId },
-    "tcp create room");
-ExpectRoomReply1("tcp create room", createHead, "created room=room-001");
+    $"{directStepPrefix} create room");
+ExpectRoomReply1($"{directStepPrefix} create room", createHead, "created room=room-001");
 await ExpectFullStatePush(roomPushes, 1, uid, DefaultRoomId);
 
 (RoomConnectRsp roomConnectReply, RspHead roomConnectHead) = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
     roomClient,
     ++requestIndex,
     new RoomConnectReq { RoomId = DefaultRoomId },
-    "tcp connect room");
-ExpectRoomReply("tcp connect room", roomConnectHead, roomConnectReply.RoomId, DefaultRoomId, "connected room=room-001");
+    $"{directStepPrefix} connect room");
+ExpectRoomReply($"{directStepPrefix} connect room", roomConnectHead, roomConnectReply.RoomId, DefaultRoomId, "connected room=room-001");
 
 (JoinRoomRsp _, RspHead joinHead) = await SendRoomCommand<JoinRoomReq, JoinRoomRsp>(
     roomClient,
     ++requestIndex,
     new JoinRoomReq(),
-    "tcp join room");
-ExpectRoomReply1("tcp join room", joinHead, "joined room=room-001");
+    $"{directStepPrefix} join room");
+ExpectRoomReply1($"{directStepPrefix} join room", joinHead, "joined room=room-001");
 await ExpectFullStatePush(roomPushes, 2, uid, DefaultRoomId);
 
 (RoomPingRsp _, RspHead pingHead) = await SendRoomCommand<RoomPingReq, RoomPingRsp>(
@@ -132,15 +133,15 @@ await ExpectFullStatePush(roomPushes, 2, uid, DefaultRoomId);
     {
         ClientTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
     },
-    "tcp ping room");
-ExpectRoomReply1("tcp ping room", pingHead, $"pong uid={uid} room=room-001");
+    $"{directStepPrefix} ping room");
+ExpectRoomReply1($"{directStepPrefix} ping room", pingHead, $"pong uid={uid} room=room-001");
 
 (LeaveRoomRsp _, RspHead leaveHead) = await SendRoomCommand<LeaveRoomReq, LeaveRoomRsp>(
     roomClient,
     ++requestIndex,
     new LeaveRoomReq(),
-    "tcp leave room");
-ExpectRoomReply1("tcp leave room", leaveHead, "left room=room-001");
+    $"{directStepPrefix} leave room");
+ExpectRoomReply1($"{directStepPrefix} leave room", leaveHead, "left room=room-001");
 
 RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
 {
@@ -148,8 +149,8 @@ RspHead unknownReply = await roomClient.SendRawAsync(new ReqHead
     index = ++requestIndex,
     payload = ArraySegment<byte>.Empty,
 });
-Expect("tcp unknown request", unknownReply.error == NetworkErrorCode.NotSupported, $"unexpected network error={unknownReply.error}");
-Console.WriteLine($"tcp unknown request network error ok: {unknownReply.error}");
+Expect($"{directStepPrefix} unknown request", unknownReply.error == NetworkErrorCode.NotSupported, $"unexpected network error={unknownReply.error}");
+Console.WriteLine($"{directStepPrefix} unknown request network error ok: {unknownReply.error}");
 
 Console.WriteLine("All client headless checks passed.");
 

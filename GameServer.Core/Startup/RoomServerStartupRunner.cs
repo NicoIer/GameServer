@@ -95,7 +95,17 @@ public static class RoomServerStartupRunner
         DirectTransportProtocol protocol = ParseDirectProtocol(config.DirectProtocol);
         if (protocol == DirectTransportProtocol.Tcp)
         {
-            return new UnityRoomTransportServer(
+            return UnityRoomTransportServer.CreateTcp(
+                config.DirectTcpPort,
+                centerClient,
+                worker,
+                config.NetworkTickMs,
+                config.DirectAddress);
+        }
+
+        if (protocol == DirectTransportProtocol.Kcp)
+        {
+            return UnityRoomTransportServer.CreateKcp(
                 config.DirectTcpPort,
                 centerClient,
                 worker,

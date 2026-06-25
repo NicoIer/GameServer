@@ -75,15 +75,62 @@ public partial struct RoomPingRsp : INetworkRsp
 public partial struct RoomFullStatePush : IRoomPush
 {
     public RoomInfo Room;
+    public long[] Players;
+    public long[] DisconnectedPlayers;
+    public EcsEntitySnapshot[] Entities;
 }
 
 [MemoryPackable]
-public partial struct RoomRepDiffStatePush : IRoomPush
+public partial struct RoomDiffStatePush : IRoomPush
 {
+    public RoomInfo Room;
+    public int SourceFrame;
+    public int TargetFrame;
+    public EcsEntityChange[] EntityChanges;
+    public EcsComponentChange[] ComponentChanges;
 }
 
 [MemoryPackable]
 public partial struct RoomZstdDiffPush : IRoomPush
 {
     public PatchMessage patchMessage;
+}
+
+[MemoryPackable]
+public partial struct EcsEntitySnapshot
+{
+    public int EntityId;
+    public EcsComponentSnapshot[] Components;
+}
+
+[MemoryPackable]
+public partial struct EcsComponentSnapshot
+{
+    public ushort ComponentTypeId;
+    public byte[] Payload;
+}
+
+[MemoryPackable]
+public partial struct EcsEntityChange
+{
+    public int EntityId;
+    public EcsChangeKind Kind;
+}
+
+[MemoryPackable]
+public partial struct EcsComponentChange
+{
+    public int EntityId;
+    public ushort ComponentTypeId;
+    public EcsChangeKind Kind;
+    public byte[] Payload;
+}
+
+public enum EcsChangeKind
+{
+    Create,
+    Delete,
+    Add,
+    Update,
+    Remove,
 }

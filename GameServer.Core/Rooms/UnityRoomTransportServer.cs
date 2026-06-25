@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using GameServer.Core.Network;
 using GameServer.Core.Protocol;
+using kcp2k;
 using Network;
 using Network.Server;
 using UnityToolkit;
@@ -16,6 +17,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     private readonly CenterService.CenterServiceClient _centerClient;
     private readonly IRoomWorker _worker;
     private readonly NetworkServer _server;
+    private readonly DirectTransportProtocol _protocol;
     private readonly ReqRspServerCenter _connectCenter = new();
     private readonly ConcurrentDictionary<int, int> _workerConnectionIds = new();
     private readonly CancellationTokenSource _shutdown = new();
@@ -30,13 +32,33 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
         IRoomWorker worker,
         int networkTickSleepMs,
         string? advertisedAddress = null)
+        : this(
+            DirectTransportProtocol.Tcp,
+            new TelepathyServerSocket((ushort)port),
+            port,
+            centerClient,
+            worker,
+            networkTickSleepMs,
+            advertisedAddress)
+    {
+    }
+
+    public UnityRoomTransportServer(
+        DirectTransportProtocol protocol,
+        IServerSocket socket,
+        int port,
+        CenterService.CenterServiceClient centerClient,
+        IRoomWorker worker,
+        int networkTickSleepMs,
+        string? advertisedAddress = null)
     {
         _centerClient = centerClient;
         _worker = worker;
+        _protocol = protocol;
         int networkTickIntervalMs = Math.Max(1, networkTickSleepMs);
         _networkTickInterval = TimeSpan.FromMilliseconds(networkTickIntervalMs);
         _networkTickDeltaSeconds = networkTickIntervalMs / 1000f;
-        _server = new NetworkServer(new TelepathyServerSocket((ushort)port), 1000, false);
+        _server = new NetworkServer(socket, 1000, false);
         _server.AddMsgHandler<ReqHead>(OnReqHead);
         _server.socket.OnDisconnected += OnDisconnected;
 
@@ -45,8 +67,42 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
         Address = string.IsNullOrWhiteSpace(advertisedAddress) ? $"127.0.0.1:{port}" : advertisedAddress;
     }
 
-    public DirectTransportProtocol Protocol => DirectTransportProtocol.Tcp;
+    public DirectTransportProtocol Protocol => _protocol;
     public string Address { get; }
+
+    public static UnityRoomTransportServer CreateTcp(
+        int port,
+        CenterService.CenterServiceClient centerClient,
+        IRoomWorker worker,
+        int networkTickSleepMs,
+        string? advertisedAddress = null)
+    {
+        return new UnityRoomTransportServer(
+            DirectTransportProtocol.Tcp,
+            new TelepathyServerSocket((ushort)port),
+            port,
+            centerClient,
+            worker,
+            networkTickSleepMs,
+            advertisedAddress);
+    }
+
+    public static UnityRoomTransportServer CreateKcp(
+        int port,
+        CenterService.CenterServiceClient centerClient,
+        IRoomWorker worker,
+        int networkTickSleepMs,
+        string? advertisedAddress = null)
+    {
+        return new UnityRoomTransportServer(
+            DirectTransportProtocol.Kcp,
+            new KcpServerSocket(new KcpConfig(), (ushort)port, KcpChannel.Reliable),
+            port,
+            centerClient,
+            worker,
+            networkTickSleepMs,
+            advertisedAddress);
+    }
 
     public Task StartAsync()
     {

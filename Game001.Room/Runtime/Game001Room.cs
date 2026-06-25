@@ -15,7 +15,7 @@ public sealed class Game001Room : IWorld
         Game001RoomEcsSystems.Configure(State.EcsSystems);
         var syncSystem = new RoomSyncSystem(pushHub, State);
         var lifecycleSystem = new RoomLifecycleSystem(State);
-        var frifloSystemRunner = new FrifloSystemRunner(State.EcsSystems);
+        var frifloSystemRunner = new FrifloSystemRunnerSystem(State.EcsSystems);
         Systems = new CoreSystemGroup(lifecycleSystem, frifloSystemRunner, syncSystem);
         Systems.OnCreate();
     }
@@ -37,5 +37,6 @@ public sealed class Game001Room : IWorld
     public void Destroy()
     {
         Systems.OnDestroy();
+        State.Destroy();
     }
 }
