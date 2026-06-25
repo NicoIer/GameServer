@@ -1,6 +1,7 @@
 using Friflo.Engine.ECS;
 using Game001.Core.Generated;
 using System.Buffers;
+using Network;
 
 namespace Game001.Core.Ecs;
 
@@ -56,10 +57,16 @@ public sealed class EcsDirtyTracker : IDisposable
         });
     }
 
-    public void Flush(int sourceFrame, int targetFrame, out EcsDirtySet set)
+    public void Flush(
+        int sourceFrame,
+        int targetFrame,
+        NetworkBuffer<EcsEntityChange> entityChangeWriter,
+        NetworkBuffer<EcsComponentChange> componentChangeWriter,
+        out EcsDirtySet set)
     {
-        var entityChanges = new EcsEntityChange[_entityChanges.Count];
-        int index = 0;
+        entityChangeWriter.Reset();
+        componentChangeWriter.Reset();
+
         while (_entityChangeOrder.Count > 0)
         {
             EntityChangeOrder item = _entityChangeOrder.Dequeue();
@@ -69,17 +76,13 @@ public sealed class EcsDirtyTracker : IDisposable
                 continue;
             }
 
-            entityChanges[index++] = new EcsEntityChange
+            entityChangeWriter.Write(new EcsEntityChange
             {
                 EntityId = item.EntityId,
                 Kind = current.Kind,
-            };
+            });
         }
 
-        var entitySegment = new ArraySegment<EcsEntityChange>(entityChanges, 0, index);
-
-        var componentChanges = new EcsComponentChange[_componentChanges.Count];
-        index = 0;
         while (_componentChangeOrder.Count > 0)
         {
             ComponentChangeOrder item = _componentChangeOrder.Dequeue();
@@ -89,10 +92,8 @@ public sealed class EcsDirtyTracker : IDisposable
                 continue;
             }
 
-            componentChanges[index++] = current.Change;
+            componentChangeWriter.Write(current.Change);
         }
-
-        var componentSegment = new ArraySegment<EcsComponentChange>(componentChanges, 0, index);
 
         _entityChanges.Clear();
         _componentChanges.Clear();
@@ -101,8 +102,8 @@ public sealed class EcsDirtyTracker : IDisposable
         {
             SourceFrame = sourceFrame,
             TargetFrame = targetFrame,
-            EntityChanges = entitySegment,
-            ComponentChanges = componentSegment,
+            EntityChanges = entityChangeWriter,
+            ComponentChanges = componentChangeWriter,
         };
     }
 

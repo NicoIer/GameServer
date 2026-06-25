@@ -4,6 +4,7 @@ using Game001.Core.Generated;
 using Game001.Room.Runtime;
 using GameServer.Core.Rooms;
 using GameServer.Core.Systems;
+using Network;
 
 namespace Game001.Room.Systems;
 
@@ -12,6 +13,8 @@ public sealed class RoomSyncSystem : ISystem
 {
     private readonly RoomPushHub _pushHub;
     private readonly Game001RoomState _state;
+    private readonly NetworkBuffer<EcsEntityChange> _entityChangeWriter = new();
+    private readonly NetworkBuffer<EcsComponentChange> _componentChangeWriter = new();
     private int _lastDiffFrame;
 
     public RoomSyncSystem(RoomPushHub pushHub, Game001RoomState state)
@@ -47,7 +50,7 @@ public sealed class RoomSyncSystem : ISystem
             return;
         }
 
-        _state.DirtyTracker.Flush(_lastDiffFrame, frame,out var dirtySet);
+        _state.DirtyTracker.Flush(_lastDiffFrame, frame,  _entityChangeWriter,  _componentChangeWriter, out var dirtySet);
         _lastDiffFrame = frame;
         if (!dirtySet.HasChanges || _state.ActiveConnectionIds.Count == 0)
         {
