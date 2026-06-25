@@ -1,11 +1,13 @@
 using Friflo.Engine.ECS;
 using Game001.Core.Generated;
+using System.Buffers;
 
 namespace Game001.Core.Ecs;
 
 public sealed class EcsDirtyTracker : IDisposable
 {
     private readonly EntityStore _store;
+    private readonly ArrayBufferWriter<byte> _componentPayloadBuffer = new();
     private readonly Dictionary<int, EcsChangeKind> _entityChanges = new();
     private readonly Dictionary<ComponentChangeKey, EcsComponentChange> _componentChanges = new();
 
@@ -138,10 +140,13 @@ public sealed class EcsDirtyTracker : IDisposable
             return;
         }
 
-        if (!EcsReplicationSerializer.TrySerializeComponent(args.Entity, componentTypeId, out byte[] payload))
+        _componentPayloadBuffer.Clear();
+        if (!EcsReplicationSerializer.TrySerializeComponent(args.Entity, componentTypeId, _componentPayloadBuffer))
         {
             return;
         }
+
+        var payload = _componentPayloadBuffer.WrittenSpan.ToArray();
 
         EcsChangeKind kind = args.Action == ComponentChangedAction.Update
             ? EcsChangeKind.Update

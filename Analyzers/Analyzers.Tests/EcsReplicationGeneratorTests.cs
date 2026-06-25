@@ -59,7 +59,9 @@ namespace Game001.Core.Ecs
         Assert.Contains("namespace Game001.Core.Generated;", generated);
         Assert.Contains("public static class EcsReplicationSerializer", generated);
         Assert.Contains("RoomPlayerComponentTypeId", generated);
-        Assert.Contains("TrySerializeComponent", generated);
+        Assert.Contains("TrySerializeComponent<TBufferWriter>", generated);
+        Assert.Contains("where TBufferWriter : class, global::System.Buffers.IBufferWriter<byte>", generated);
+        Assert.Contains("MemoryPackSerializer.Serialize(bufferWriter, component0);", generated);
         Assert.Contains("SetReplicatedComponent<T>", generated);
     }
 

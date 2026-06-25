@@ -178,7 +178,8 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
 
     private static void GenerateTrySerializeComponent(StringBuilder sb, List<ReplicatedComponent> components)
     {
-        sb.AppendLine("    public static bool TrySerializeComponent(global::Friflo.Engine.ECS.Entity entity, ushort componentTypeId, out byte[] payload)");
+        sb.AppendLine("    public static bool TrySerializeComponent<TBufferWriter>(global::Friflo.Engine.ECS.Entity entity, ushort componentTypeId, TBufferWriter bufferWriter)");
+        sb.AppendLine("        where TBufferWriter : class, global::System.Buffers.IBufferWriter<byte>");
         sb.AppendLine("    {");
         sb.AppendLine("        switch (componentTypeId)");
         sb.AppendLine("        {");
@@ -194,7 +195,7 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
             sb.Append(i);
             sb.AppendLine("))");
             sb.AppendLine("                {");
-            sb.Append("                    payload = global::MemoryPack.MemoryPackSerializer.Serialize(component");
+            sb.Append("                    global::MemoryPack.MemoryPackSerializer.Serialize(bufferWriter, component");
             sb.Append(i);
             sb.AppendLine(");");
             sb.AppendLine("                    return true;");
@@ -203,7 +204,6 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
         }
         sb.AppendLine("        }");
         sb.AppendLine();
-        sb.AppendLine("        payload = global::System.Array.Empty<byte>();");
         sb.AppendLine("        return false;");
         sb.AppendLine("    }");
         sb.AppendLine();
