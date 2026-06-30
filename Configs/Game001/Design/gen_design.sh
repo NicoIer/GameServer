@@ -3,12 +3,12 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-WORKSPACE=$SCRIPT_DIR/..
-REPO_ROOT=$WORKSPACE/..
-LUBAN_DLL=$WORKSPACE/Tools/Luban/Luban.dll
+GAME_CONFIG_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+REPO_ROOT=$(cd "$SCRIPT_DIR/../../.." && pwd)
+LUBAN_DLL=$REPO_ROOT/Configs/Tools/Luban/Luban.dll
 CONF_ROOT=$SCRIPT_DIR
-CODE_OUTPUT_DIR=$REPO_ROOT/GameServer.Config/Generated
-DATA_OUTPUT_DIR=$WORKSPACE/Generated/Luban
+CODE_OUTPUT_DIR=$REPO_ROOT/Game001.Core/Generated
+DATA_OUTPUT_DIR=$GAME_CONFIG_DIR/Generated/Luban
 
 mkdir -p "$CODE_OUTPUT_DIR" "$DATA_OUTPUT_DIR"
 
