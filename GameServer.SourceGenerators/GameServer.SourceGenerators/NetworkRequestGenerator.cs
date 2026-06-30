@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Analyzers;
+namespace GameServer.SourceGenerators;
 
 [Generator]
 public sealed class NetworkRequestGenerator : IIncrementalGenerator
@@ -18,7 +18,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
     private const string ReqRspServerCenterName = "Network.ReqRspServerCenter";
     private const string ErrorCodeName = "Network.ErrorCode";
 
-    private static readonly DiagnosticDescriptor MissingTypesRule = new(
+    private static readonly DiagnosticDescriptor _missingTypesRule = new(
         "GSRPC001",
         "Missing network request generator dependencies",
         "Cannot resolve {0}",
@@ -26,7 +26,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         DiagnosticSeverity.Warning,
         true);
 
-    private static readonly DiagnosticDescriptor InvalidResponseRule = new(
+    private static readonly DiagnosticDescriptor _invalidResponseRule = new(
         "GSRPC002",
         "Invalid network response type",
         "Request {0} must reference a response type that implements Network.INetworkRsp",
@@ -34,7 +34,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
-    private static readonly DiagnosticDescriptor DuplicateRequestRule = new(
+    private static readonly DiagnosticDescriptor _duplicateRequestRule = new(
         "GSRPC003",
         "Duplicate network request",
         "Request type {0} is registered more than once",
@@ -42,7 +42,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
-    private static readonly DiagnosticDescriptor InvalidRequestRule = new(
+    private static readonly DiagnosticDescriptor _invalidRequestRule = new(
         "GSRPC005",
         "Invalid network request type",
         "Type {0} is marked with NetworkRequestAttribute and must implement Network.INetworkReq",
@@ -50,7 +50,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
-    private static readonly DiagnosticDescriptor DuplicateResponseRule = new(
+    private static readonly DiagnosticDescriptor _duplicateResponseRule = new(
         "GSRPC008",
         "Duplicate network response",
         "Request {0} references response {1}, which is already used by request {2}",
@@ -91,7 +91,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
                 centerType == null ? ReqRspServerCenterName : null,
                 errorCodeType == null ? ErrorCodeName : null,
             }.Where(x => x != null));
-            context.ReportDiagnostic(Diagnostic.Create(MissingTypesRule, Location.None, missing));
+            context.ReportDiagnostic(Diagnostic.Create(_missingTypesRule, Location.None, missing));
             return;
         }
 
@@ -138,7 +138,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
 
             if (!Implements(requestSymbol, reqType))
             {
-                context.ReportDiagnostic(Diagnostic.Create(InvalidRequestRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
+                context.ReportDiagnostic(Diagnostic.Create(_invalidRequestRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
                 continue;
             }
 
@@ -146,7 +146,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
                 attribute.ConstructorArguments[0].Value is not INamedTypeSymbol responseSymbol ||
                 !Implements(responseSymbol, rspType))
             {
-                context.ReportDiagnostic(Diagnostic.Create(InvalidResponseRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
+                context.ReportDiagnostic(Diagnostic.Create(_invalidResponseRule, declaration.Identifier.GetLocation(), requestSymbol.ToDisplayString()));
                 continue;
             }
 
@@ -155,7 +155,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
             {
                 if (!SymbolEqualityComparer.Default.Equals(existingRequest, requestSymbol))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DuplicateRequestRule, declaration.Identifier.GetLocation(), requestName));
+                    context.ReportDiagnostic(Diagnostic.Create(_duplicateRequestRule, declaration.Identifier.GetLocation(), requestName));
                 }
 
                 continue;
@@ -166,7 +166,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
                 !SymbolEqualityComparer.Default.Equals(existingResponseRequest, requestSymbol))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
-                    DuplicateResponseRule,
+                    _duplicateResponseRule,
                     declaration.Identifier.GetLocation(),
                     requestSymbol.ToDisplayString(),
                     responseSymbol.ToDisplayString(),
@@ -269,15 +269,9 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
-    private readonly struct RequestPair
+    private readonly struct RequestPair(INamedTypeSymbol request, INamedTypeSymbol response)
     {
-        public INamedTypeSymbol Request { get; }
-        public INamedTypeSymbol Response { get; }
-
-        public RequestPair(INamedTypeSymbol request, INamedTypeSymbol response)
-        {
-            Request = request;
-            Response = response;
-        }
+        public INamedTypeSymbol Request { get; } = request;
+        public INamedTypeSymbol Response { get; } = response;
     }
 }

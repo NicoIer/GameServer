@@ -10,7 +10,7 @@
       <ProjectReference Include="..\Game001.Core\Game001.Core.csproj" />
       <ProjectReference Include="..\GameServer.Core\GameServer.Core.csproj" />
       <ProjectReference Include="..\UnityToolkit\UnityToolkit.csproj" />
-      <ProjectReference Include="..\Analyzers\Analyzers\Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\GameServer.SourceGenerators\GameServer.SourceGenerators\GameServer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,9 +1,4 @@
 <Solution>
-  <Folder Name="/Analyzers/">
-    <Project Path="Analyzers/Analyzers.Sample/Analyzers.Sample.csproj" />
-    <Project Path="Analyzers/Analyzers.Tests/Analyzers.Tests.csproj" />
-    <Project Path="Analyzers/Analyzers/Analyzers.csproj" />
-  </Folder>
   <Folder Name="/Game001/">
     <Project Path="Game001.ClientTestApp/Game001.ClientTestApp.csproj" />
     <Project Path="Game001.Core/Game001.Core.csproj" />
@@ -15,6 +10,7 @@
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />
   <Project Path="GameServer.Gate/GameServer.Gate.csproj" />
+  <Project Path="GameServer.SourceGenerators/GameServer.SourceGenerators/GameServer.SourceGenerators.csproj" />
   <Project Path="GameServer.Startup.Center/GameServer.Startup.Center.csproj" />
   <Project Path="GameServer.Startup.Gate/GameServer.Startup.Gate.csproj" />
   <Project Path="GameServer.Startup\GameServer.Startup.csproj" />
