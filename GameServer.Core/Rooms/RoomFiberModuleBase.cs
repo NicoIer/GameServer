@@ -13,29 +13,36 @@ public abstract class RoomFiberModuleBase : IFiberModule
     private long _maxFrameElapsedTicks;
     private int _frame;
 
-    protected RoomFiberModuleBase(string roomId, int roomFrameRate)
+    protected RoomFiberModuleBase(string roomId, int roomFrameRate, string workerId)
     {
         RoomId = roomId;
+        WorkerId = workerId;
+        LogPrefix = $"workerId={workerId} roomId={roomId}";
         _frameIntervalMs = 1000 / roomFrameRate;
     }
 
+    public string WorkerId { get; }
     public string RoomId { get; }
     public virtual RoomLifecycleState LifecycleState => RoomLifecycleState.Active;
     public virtual int PlayerCount => 0;
     public TimeSpan LastFrameElapsed => TimeSpan.FromTicks(Interlocked.Read(ref _lastFrameElapsedTicks));
     public TimeSpan MaxFrameElapsed => TimeSpan.FromTicks(Interlocked.Read(ref _maxFrameElapsedTicks));
+    protected string LogPrefix { get; }
     protected RoomFrameAwaiter FrameAwaiter { get; } = new();
 
     public ValueTask OnStartAsync(Fiber fiber, CancellationToken cancellationToken)
     {
-        try
+        using (global::GameServer.Core.Log.PushMessagePrefix(LogPrefix))
         {
-            OnRoomCreated();
-            RegisterHandlers(_reqRspCenter);
-        }
-        catch (Exception e)
-        {
-            global::GameServer.Core.Log.Error("Room", e, $"event=room_module_create_failed roomId={RoomId}");
+            try
+            {
+                OnRoomCreated();
+                RegisterHandlers(_reqRspCenter);
+            }
+            catch (Exception e)
+            {
+                global::GameServer.Core.Log.Error("Room", e, "event=room_module_create_failed");
+            }
         }
 
         fiber.NextWakeTimeMs = Environment.TickCount64 + _frameIntervalMs;
@@ -55,13 +62,16 @@ public abstract class RoomFiberModuleBase : IFiberModule
         {
             _frame++;
             long startTimestamp = Stopwatch.GetTimestamp();
-            try
+            using (global::GameServer.Core.Log.PushMessagePrefix(LogPrefix))
             {
-                OnRoomUpdate(_nextFrameTimeMs, _frame);
-            }
-            catch (Exception e)
-            {
-                global::GameServer.Core.Log.Error("Room", e, $"event=room_module_update_failed roomId={RoomId} frame={_frame}");
+                try
+                {
+                    OnRoomUpdate(_nextFrameTimeMs, _frame);
+                }
+                catch (Exception e)
+                {
+                    global::GameServer.Core.Log.Error("Room", e, $"event=room_module_update_failed frame={_frame}");
+                }
             }
 
             TimeSpan elapsed = Stopwatch.GetElapsedTime(startTimestamp);
@@ -80,13 +90,16 @@ public abstract class RoomFiberModuleBase : IFiberModule
     public ValueTask OnStopAsync(CancellationToken cancellationToken)
     {
         FrameAwaiter.Cancel();
-        try
+        using (global::GameServer.Core.Log.PushMessagePrefix(LogPrefix))
         {
-            OnRoomStopped();
-        }
-        catch (Exception e)
-        {
-            global::GameServer.Core.Log.Error("Room", e, $"event=room_module_destroy_failed roomId={RoomId}");
+            try
+            {
+                OnRoomStopped();
+            }
+            catch (Exception e)
+            {
+                global::GameServer.Core.Log.Error("Room", e, "event=room_module_destroy_failed");
+            }
         }
 
         return ValueTask.CompletedTask;

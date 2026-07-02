@@ -18,7 +18,7 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 
     protected override Game001RoomFiberModule CreateRoomModule(string roomId)
     {
-        return new Game001RoomFiberModule(roomId, Connections, PushHub, RoomFrameRate);
+        return new Game001RoomFiberModule(roomId, Connections, PushHub, RoomFrameRate, WorkerId);
     }
 
     protected override string CreateRoomFiberName(string roomId)

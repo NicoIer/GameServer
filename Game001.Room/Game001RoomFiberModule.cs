@@ -12,8 +12,8 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
     private readonly RoomLifecycleSystem _lifecycleSystem;
     private readonly Game001Room _room;
 
-    public Game001RoomFiberModule(string roomId, RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
-        : base(roomId, roomFrameRate)
+    public Game001RoomFiberModule(string roomId, RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate, string workerId)
+        : base(roomId, roomFrameRate, workerId)
     {
         _connections = connections;
         _room = new Game001Room(roomId, pushHub);
