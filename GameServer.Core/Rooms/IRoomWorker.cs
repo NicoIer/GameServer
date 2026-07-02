@@ -4,6 +4,7 @@ namespace GameServer.Core.Rooms;
 
 public interface IRoomWorker
 {
+    string WorkerId { get; }
     RoomPushHub PushHub { get; }
     int RoomCount { get; }
     int ClosingRoomCount { get; }

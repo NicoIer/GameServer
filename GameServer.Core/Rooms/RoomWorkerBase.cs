@@ -31,13 +31,15 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
     private long _roomConnectCount;
     private int _stopped;
 
-    protected RoomWorkerBase(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
+    protected RoomWorkerBase(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate, string workerId)
     {
         Connections = connections;
         PushHub = pushHub;
         RoomFrameRate = roomFrameRate;
+        WorkerId = workerId;
     }
 
+    public string WorkerId { get; }
     protected RoomConnectionRegistry Connections { get; }
     public RoomPushHub PushHub { get; }
     public int RoomCount => _rooms.Count;
@@ -382,15 +384,15 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
 
             await _fiberManager.RemoveAsync(handle.Fiber.FiberId);
             Interlocked.Increment(ref _roomClosedCount);
-            global::GameServer.Core.Log.Info("Room", $"event=room_closed roomId={roomId} roomCount={RoomCount} closingRoomCount={ClosingRoomCount}");
+            global::GameServer.Core.Log.Info("Room", $"event=room_closed workerId={WorkerId} roomId={roomId} roomCount={RoomCount} closingRoomCount={ClosingRoomCount}");
             if (beginCloseException != null)
             {
-                global::GameServer.Core.Log.Error("Room", beginCloseException, $"event=room_begin_close_failed roomId={roomId}");
+                global::GameServer.Core.Log.Error("Room", beginCloseException, $"event=room_begin_close_failed workerId={WorkerId} roomId={roomId}");
             }
         }
         catch (Exception e)
         {
-            global::GameServer.Core.Log.Error("Room", e, $"event=room_close_failed roomId={roomId}");
+            global::GameServer.Core.Log.Error("Room", e, $"event=room_close_failed workerId={WorkerId} roomId={roomId}");
         }
         finally
         {
@@ -431,7 +433,7 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         TRoomModule module = CreateRoomModule(roomId);
         Fiber fiber = await _fiberManager.CreateAsync(FiberSchedulerType.ThreadPool, CreateRoomFiberName(roomId), module);
         Interlocked.Increment(ref _roomCreatedCount);
-        global::GameServer.Core.Log.Info("Room", $"event=room_created roomId={roomId} roomCount={RoomCount}");
+        global::GameServer.Core.Log.Info("Room", $"event=room_created workerId={WorkerId} roomId={roomId} roomCount={RoomCount}");
         return new RoomRuntimeHandle(fiber, module);
     }
 

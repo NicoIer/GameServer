@@ -9,8 +9,8 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
 
     private readonly RoomRequestRouter _requestRouter = CreateRequestRouter();
 
-    public Game001RoomWorker(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate)
-        : base(connections, pushHub, roomFrameRate)
+    public Game001RoomWorker(RoomConnectionRegistry connections, RoomPushHub pushHub, int roomFrameRate, string workerId)
+        : base(connections, pushHub, roomFrameRate, workerId)
     {
     }
 

@@ -13,7 +13,6 @@
   <Project Path="GameServer.SourceGenerators/GameServer.SourceGenerators/GameServer.SourceGenerators.csproj" />
   <Project Path="GameServer.Startup.Center/GameServer.Startup.Center.csproj" />
   <Project Path="GameServer.Startup.Gate/GameServer.Startup.Gate.csproj" />
-  <Project Path="GameServer.Startup\GameServer.Startup.csproj" />
   <Project Path="JoltPhysics.Tests/JoltPhysics.Tests.csproj" />
   <Project Path="JoltPhysics/JoltPhysics.csproj" />
   <Project Path="Luban/Luban.csproj" />

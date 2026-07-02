@@ -9,4 +9,4 @@ await RoomServerStartupRunner.RunUntilShutdownAsync<Game001RoomWorker, Game001Ro
     "Game001.Room",
     config.Center.Address,
     roomConfig,
-    (connections, pushHub) => new Game001RoomWorker(connections, pushHub, roomConfig.FrameRate));
+    (connections, pushHub) => new Game001RoomWorker(connections, pushHub, roomConfig.FrameRate, roomConfig.RouteId));

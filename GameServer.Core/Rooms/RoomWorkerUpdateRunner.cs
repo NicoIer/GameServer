@@ -103,7 +103,7 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
         catch (Exception e)
         {
             Interlocked.Increment(ref _exceptionCount);
-            global::GameServer.Core.Log.Error("Room", e, "event=room_worker_tick_failed");
+            global::GameServer.Core.Log.Error("Room", e, $"event=room_worker_tick_failed workerId={_worker.WorkerId}");
         }
         finally
         {
@@ -129,7 +129,7 @@ public sealed class RoomWorkerUpdateRunner : IAsyncDisposable
         RoomWorkerMetrics workerMetrics = metrics.WorkerMetrics;
         global::GameServer.Core.Log.Info(
             "Room",
-            $"event=room_worker_metrics tickCount={metrics.TickCount} exceptionCount={metrics.ExceptionCount} " +
+            $"event=room_worker_metrics workerId={_worker.WorkerId} tickCount={metrics.TickCount} exceptionCount={metrics.ExceptionCount} " +
             $"lastTickMs={metrics.LastTickElapsed.TotalMilliseconds:F3} maxTickMs={metrics.MaxTickElapsed.TotalMilliseconds:F3} " +
             $"roomCount={workerMetrics.RoomCount} closingRoomCount={workerMetrics.ClosingRoomCount} " +
             $"onlineConnectionCount={workerMetrics.OnlineConnectionCount} requestCount={workerMetrics.RequestCount} " +
