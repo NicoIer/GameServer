@@ -1,0 +1,7 @@
+{
+  "name": "com.nicoier.gameserver.core",
+  "version": "1.0.0",
+  "displayName": "GameServer Core",
+  "description": "Shared GameServer protocol sources for Unity clients.",
+  "unity": "2021.3"
+}

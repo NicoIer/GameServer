@@ -1,0 +1,17 @@
+{
+  "name": "Game001.Core",
+  "rootNamespace": "Game001.Core",
+  "references": [
+    "UnityToolkit",
+    "GameServer.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

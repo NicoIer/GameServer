@@ -1,0 +1,7 @@
+{
+  "name": "com.nicoier.game001.core",
+  "version": "1.0.0",
+  "displayName": "Game001 Core",
+  "description": "Shared Game001 protocol sources for Unity clients.",
+  "unity": "2021.3"
+}
