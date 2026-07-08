@@ -1,5 +1,6 @@
 using GameServer.Core.Protocol;
 using Grpc.Core;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
 namespace GameServer.Gate;
 
@@ -83,7 +84,7 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
             return new PrepareRoomConnectionReply { Error = ErrorCode.Unauthorized };
         }
 
-        if (request.GameId.Length == 0 || request.Target.Length == 0)
+        if (request.GameId == ProtocolGameId.Unspecified || request.Target.Length == 0)
         {
             return new PrepareRoomConnectionReply { Error = ErrorCode.InvalidRequest };
         }
@@ -138,7 +139,7 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         }
 
         ClientEnvelope envelope = request.Envelope;
-        if (envelope.GameId.Length == 0 || envelope.Target.Length == 0)
+        if (envelope.GameId == ProtocolGameId.Unspecified || envelope.Target.Length == 0)
         {
             return new ForwardReply { Error = ErrorCode.InvalidRequest };
         }

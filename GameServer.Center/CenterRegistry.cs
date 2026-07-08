@@ -1,4 +1,5 @@
 using GameServer.Core.Protocol;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
 namespace GameServer.Center;
 
@@ -41,7 +42,7 @@ public sealed class CenterRegistry
         }
     }
 
-    public ServiceEndpoint? Resolve(string gameId, string target, string routeId)
+    public ServiceEndpoint? Resolve(ProtocolGameId gameId, string target, string routeId)
     {
         lock (_lock)
         {
@@ -87,7 +88,7 @@ public sealed class CenterRegistry
 
     private static int CompareEndpoint(ServiceEndpoint a, ServiceEndpoint b)
     {
-        int result = string.CompareOrdinal(a.GameId, b.GameId);
+        int result = a.GameId.CompareTo(b.GameId);
         if (result != 0)
         {
             return result;
@@ -102,8 +103,8 @@ public sealed class CenterRegistry
         return string.CompareOrdinal(a.RouteId, b.RouteId);
     }
 
-    private static string MakeKey(string gameId, string target, string routeId)
+    private static string MakeKey(ProtocolGameId gameId, string target, string routeId)
     {
-        return $"{gameId}:{target}:{routeId}";
+        return $"{(int)gameId}:{target}:{routeId}";
     }
 }

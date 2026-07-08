@@ -29,7 +29,7 @@ namespace Game001.Core
         public string RoomId;
         public int PlayerCount;
         public int ConnectionCount;
-        public int LifecycleState;
+        public RoomLifecycleState LifecycleState;
     }
 
     [MemoryPackable]

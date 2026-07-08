@@ -8,8 +8,9 @@ using GameServer.Core.Rooms;
 using GameServer.Gate;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
-const string Game001Id = "Game001";
+const ProtocolGameId Game001Id = ProtocolGameId.Game001;
 const string Game001RoomWorkerTarget = "room-worker";
 const string Game001RoomWorkerId = "worker-001";
 const int NetworkTickSleepMs = 1;

@@ -1,6 +1,7 @@
 using GameServer.Center.Login;
 using GameServer.Core.Protocol;
 using Grpc.Core;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
 namespace GameServer.Center;
 
@@ -50,7 +51,7 @@ public sealed class CenterServiceImpl : CenterService.CenterServiceBase
     public override Task<RegisterServiceReply> RegisterService(RegisterServiceRequest request, ServerCallContext context)
     {
         if (request.Endpoint == null ||
-            request.Endpoint.GameId.Length == 0 ||
+            request.Endpoint.GameId == ProtocolGameId.Unspecified ||
             request.Endpoint.Target.Length == 0 ||
             request.Endpoint.Address.Length == 0)
         {
@@ -63,7 +64,7 @@ public sealed class CenterServiceImpl : CenterService.CenterServiceBase
 
     public override Task<ResolveServiceReply> ResolveService(ResolveServiceRequest request, ServerCallContext context)
     {
-        if (request.GameId.Length == 0 || request.Target.Length == 0)
+        if (request.GameId == ProtocolGameId.Unspecified || request.Target.Length == 0)
         {
             return Task.FromResult(new ResolveServiceReply { Error = ErrorCode.InvalidRequest });
         }

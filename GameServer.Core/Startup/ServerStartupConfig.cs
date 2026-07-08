@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
 namespace GameServer.Core.Startup;
 
@@ -21,7 +23,7 @@ public sealed class GateStartupConfig
 
 public class RoomServerStartupConfig
 {
-    public string GameId { get; set; } = string.Empty;
+    public ProtocolGameId GameId { get; set; } = ProtocolGameId.Unspecified;
     public string Target { get; set; } = "room-worker";
     public string RouteId { get; set; } = "worker-001";
     public int GrpcPort { get; set; } = 5101;
@@ -39,6 +41,7 @@ public static class ServerStartupConfigLoader
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     public static ServerStartupConfig Load(string[] args)

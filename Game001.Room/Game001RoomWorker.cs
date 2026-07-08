@@ -65,7 +65,7 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
                 RoomId = metric.RoomId,
                 PlayerCount = metric.PlayerCount,
                 ConnectionCount = metric.ConnectionCount,
-                LifecycleState = (int)metric.LifecycleState,
+                LifecycleState = metric.LifecycleState,
             };
         }
 

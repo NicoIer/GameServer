@@ -1,4 +1,5 @@
 using GameServer.Core.Startup;
+using ProtocolGameId = GameServer.Core.Protocol.GameId;
 
 namespace Game001.Startup.Room;
 
@@ -12,7 +13,7 @@ public sealed class Game001RoomStartupConfig : RoomServerStartupConfig
 {
     public Game001RoomStartupConfig()
     {
-        GameId = "Game001";
+        GameId = ProtocolGameId.Game001;
         Target = "room-worker";
         RouteId = "worker-001";
         GrpcPort = 5101;
