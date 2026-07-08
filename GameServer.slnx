@@ -5,6 +5,7 @@
     <Project Path="Game001.Room/Game001.Room.csproj" />
     <Project Path="Game001.Startup/Game001.Startup.csproj" />
     <Project Path="Game001.Startup.Room/Game001.Startup.Room.csproj" />
+    <Project Path="Game001CodeGenerator/Game001CodeGenerator.csproj" />
   </Folder>
   <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
