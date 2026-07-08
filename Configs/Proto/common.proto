@@ -9,10 +9,12 @@ service CenterService {
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenReply);
   rpc RegisterService (RegisterServiceRequest) returns (RegisterServiceReply);
   rpc ResolveService (ResolveServiceRequest) returns (ResolveServiceReply);
+  rpc ListServiceEndpoints (ListServiceEndpointsRequest) returns (ListServiceEndpointsReply);
 }
 
 service GateService {
   rpc Login (LoginRequest) returns (LoginReply);
+  rpc ListGameWorkers (ListGameWorkersRequest) returns (ListGameWorkersReply);
   rpc PrepareRoomConnection (PrepareRoomConnectionRequest) returns (PrepareRoomConnectionReply);
   rpc Forward (ForwardRequest) returns (ForwardReply);
 }
@@ -77,6 +79,15 @@ message ResolveServiceReply {
   ServiceEndpoint endpoint = 2;
 }
 
+message ListServiceEndpointsRequest {
+  string target = 1;
+}
+
+message ListServiceEndpointsReply {
+  int32 error = 1;
+  repeated ServiceEndpoint endpoints = 2;
+}
+
 message ClientEnvelope {
   string game_id = 1;
   string target = 2;
@@ -95,6 +106,22 @@ message LoginReply {
   int32 error = 1;
   string token = 2;
   int64 uid = 3;
+}
+
+message ListGameWorkersRequest {
+  string token = 1;
+  string target = 2;
+}
+
+message GameWorkerInfo {
+  string game_id = 1;
+  string target = 2;
+  string route_id = 3;
+}
+
+message ListGameWorkersReply {
+  int32 error = 1;
+  repeated GameWorkerInfo workers = 2;
 }
 
 message PrepareRoomConnectionRequest {

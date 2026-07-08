@@ -136,6 +136,11 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
             return new RspHead(request.index, request.reqHash, 0, NetworkErrorCode.InvalidArgument, "invalid room request payload", default);
         }
 
+        if (route.Kind == RoomRequestRouteKind.Worker)
+        {
+            return await route.WorkerHandler!(connectionId, request, context, responsePayloadWriter);
+        }
+
         RoomRuntimeHandle? room = await ResolveRoomAsync(route);
         if (room == null)
         {

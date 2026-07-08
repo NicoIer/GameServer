@@ -61,6 +61,10 @@ namespace GameServer.Core.Protocol {
     static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ResolveServiceRequest> __Marshaller_gameserver_core_ResolveServiceRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ResolveServiceRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ResolveServiceReply> __Marshaller_gameserver_core_ResolveServiceReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ResolveServiceReply.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ListServiceEndpointsRequest> __Marshaller_gameserver_core_ListServiceEndpointsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ListServiceEndpointsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ListServiceEndpointsReply> __Marshaller_gameserver_core_ListServiceEndpointsReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ListServiceEndpointsReply.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::GameServer.Core.Protocol.AuthRequest, global::GameServer.Core.Protocol.AuthReply> __Method_Auth = new grpc::Method<global::GameServer.Core.Protocol.AuthRequest, global::GameServer.Core.Protocol.AuthReply>(
@@ -94,6 +98,14 @@ namespace GameServer.Core.Protocol {
         __Marshaller_gameserver_core_ResolveServiceRequest,
         __Marshaller_gameserver_core_ResolveServiceReply);
 
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::GameServer.Core.Protocol.ListServiceEndpointsRequest, global::GameServer.Core.Protocol.ListServiceEndpointsReply> __Method_ListServiceEndpoints = new grpc::Method<global::GameServer.Core.Protocol.ListServiceEndpointsRequest, global::GameServer.Core.Protocol.ListServiceEndpointsReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ListServiceEndpoints",
+        __Marshaller_gameserver_core_ListServiceEndpointsRequest,
+        __Marshaller_gameserver_core_ListServiceEndpointsReply);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
@@ -124,6 +136,12 @@ namespace GameServer.Core.Protocol {
 
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
       public virtual global::System.Threading.Tasks.Task<global::GameServer.Core.Protocol.ResolveServiceReply> ResolveService(global::GameServer.Core.Protocol.ResolveServiceRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::System.Threading.Tasks.Task<global::GameServer.Core.Protocol.ListServiceEndpointsReply> ListServiceEndpoints(global::GameServer.Core.Protocol.ListServiceEndpointsRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -237,6 +255,26 @@ namespace GameServer.Core.Protocol {
       {
         return CallInvoker.AsyncUnaryCall(__Method_ResolveService, null, options, request);
       }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::GameServer.Core.Protocol.ListServiceEndpointsReply ListServiceEndpoints(global::GameServer.Core.Protocol.ListServiceEndpointsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListServiceEndpoints(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::GameServer.Core.Protocol.ListServiceEndpointsReply ListServiceEndpoints(global::GameServer.Core.Protocol.ListServiceEndpointsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ListServiceEndpoints, null, options, request);
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::GameServer.Core.Protocol.ListServiceEndpointsReply> ListServiceEndpointsAsync(global::GameServer.Core.Protocol.ListServiceEndpointsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListServiceEndpointsAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::GameServer.Core.Protocol.ListServiceEndpointsReply> ListServiceEndpointsAsync(global::GameServer.Core.Protocol.ListServiceEndpointsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ListServiceEndpoints, null, options, request);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
       protected override CenterServiceClient NewInstance(ClientBaseConfiguration configuration)
@@ -254,7 +292,8 @@ namespace GameServer.Core.Protocol {
           .AddMethod(__Method_Auth, serviceImpl.Auth)
           .AddMethod(__Method_ValidateToken, serviceImpl.ValidateToken)
           .AddMethod(__Method_RegisterService, serviceImpl.RegisterService)
-          .AddMethod(__Method_ResolveService, serviceImpl.ResolveService).Build();
+          .AddMethod(__Method_ResolveService, serviceImpl.ResolveService)
+          .AddMethod(__Method_ListServiceEndpoints, serviceImpl.ListServiceEndpoints).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the service binding logic.
@@ -268,6 +307,7 @@ namespace GameServer.Core.Protocol {
       serviceBinder.AddMethod(__Method_ValidateToken, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.ValidateTokenRequest, global::GameServer.Core.Protocol.ValidateTokenReply>(serviceImpl.ValidateToken));
       serviceBinder.AddMethod(__Method_RegisterService, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.RegisterServiceRequest, global::GameServer.Core.Protocol.RegisterServiceReply>(serviceImpl.RegisterService));
       serviceBinder.AddMethod(__Method_ResolveService, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.ResolveServiceRequest, global::GameServer.Core.Protocol.ResolveServiceReply>(serviceImpl.ResolveService));
+      serviceBinder.AddMethod(__Method_ListServiceEndpoints, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.ListServiceEndpointsRequest, global::GameServer.Core.Protocol.ListServiceEndpointsReply>(serviceImpl.ListServiceEndpoints));
     }
 
   }
@@ -313,6 +353,10 @@ namespace GameServer.Core.Protocol {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::GameServer.Core.Protocol.LoginReply> __Marshaller_gameserver_core_LoginReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.LoginReply.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ListGameWorkersRequest> __Marshaller_gameserver_core_ListGameWorkersRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ListGameWorkersRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::GameServer.Core.Protocol.ListGameWorkersReply> __Marshaller_gameserver_core_ListGameWorkersReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.ListGameWorkersReply.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::GameServer.Core.Protocol.PrepareRoomConnectionRequest> __Marshaller_gameserver_core_PrepareRoomConnectionRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.PrepareRoomConnectionRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::GameServer.Core.Protocol.PrepareRoomConnectionReply> __Marshaller_gameserver_core_PrepareRoomConnectionReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GameServer.Core.Protocol.PrepareRoomConnectionReply.Parser));
@@ -328,6 +372,14 @@ namespace GameServer.Core.Protocol {
         "Login",
         __Marshaller_gameserver_core_LoginRequest,
         __Marshaller_gameserver_core_LoginReply);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::GameServer.Core.Protocol.ListGameWorkersRequest, global::GameServer.Core.Protocol.ListGameWorkersReply> __Method_ListGameWorkers = new grpc::Method<global::GameServer.Core.Protocol.ListGameWorkersRequest, global::GameServer.Core.Protocol.ListGameWorkersReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ListGameWorkers",
+        __Marshaller_gameserver_core_ListGameWorkersRequest,
+        __Marshaller_gameserver_core_ListGameWorkersReply);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::GameServer.Core.Protocol.PrepareRoomConnectionRequest, global::GameServer.Core.Protocol.PrepareRoomConnectionReply> __Method_PrepareRoomConnection = new grpc::Method<global::GameServer.Core.Protocol.PrepareRoomConnectionRequest, global::GameServer.Core.Protocol.PrepareRoomConnectionReply>(
@@ -357,6 +409,12 @@ namespace GameServer.Core.Protocol {
     {
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
       public virtual global::System.Threading.Tasks.Task<global::GameServer.Core.Protocol.LoginReply> Login(global::GameServer.Core.Protocol.LoginRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::System.Threading.Tasks.Task<global::GameServer.Core.Protocol.ListGameWorkersReply> ListGameWorkers(global::GameServer.Core.Protocol.ListGameWorkersRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -423,6 +481,26 @@ namespace GameServer.Core.Protocol {
         return CallInvoker.AsyncUnaryCall(__Method_Login, null, options, request);
       }
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::GameServer.Core.Protocol.ListGameWorkersReply ListGameWorkers(global::GameServer.Core.Protocol.ListGameWorkersRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListGameWorkers(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::GameServer.Core.Protocol.ListGameWorkersReply ListGameWorkers(global::GameServer.Core.Protocol.ListGameWorkersRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ListGameWorkers, null, options, request);
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::GameServer.Core.Protocol.ListGameWorkersReply> ListGameWorkersAsync(global::GameServer.Core.Protocol.ListGameWorkersRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListGameWorkersAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::GameServer.Core.Protocol.ListGameWorkersReply> ListGameWorkersAsync(global::GameServer.Core.Protocol.ListGameWorkersRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ListGameWorkers, null, options, request);
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
       public virtual global::GameServer.Core.Protocol.PrepareRoomConnectionReply PrepareRoomConnection(global::GameServer.Core.Protocol.PrepareRoomConnectionRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
         return PrepareRoomConnection(request, new grpc::CallOptions(headers, deadline, cancellationToken));
@@ -477,6 +555,7 @@ namespace GameServer.Core.Protocol {
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_Login, serviceImpl.Login)
+          .AddMethod(__Method_ListGameWorkers, serviceImpl.ListGameWorkers)
           .AddMethod(__Method_PrepareRoomConnection, serviceImpl.PrepareRoomConnection)
           .AddMethod(__Method_Forward, serviceImpl.Forward).Build();
     }
@@ -489,6 +568,7 @@ namespace GameServer.Core.Protocol {
     public static void BindService(grpc::ServiceBinderBase serviceBinder, GateServiceBase serviceImpl)
     {
       serviceBinder.AddMethod(__Method_Login, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.LoginRequest, global::GameServer.Core.Protocol.LoginReply>(serviceImpl.Login));
+      serviceBinder.AddMethod(__Method_ListGameWorkers, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.ListGameWorkersRequest, global::GameServer.Core.Protocol.ListGameWorkersReply>(serviceImpl.ListGameWorkers));
       serviceBinder.AddMethod(__Method_PrepareRoomConnection, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.PrepareRoomConnectionRequest, global::GameServer.Core.Protocol.PrepareRoomConnectionReply>(serviceImpl.PrepareRoomConnection));
       serviceBinder.AddMethod(__Method_Forward, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GameServer.Core.Protocol.ForwardRequest, global::GameServer.Core.Protocol.ForwardReply>(serviceImpl.Forward));
     }

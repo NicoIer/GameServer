@@ -65,6 +65,43 @@ public sealed class CenterRegistry
         return null;
     }
 
+    public List<ServiceEndpoint> ListServices(string target)
+    {
+        var result = new List<ServiceEndpoint>();
+        lock (_lock)
+        {
+            foreach (ServiceEndpoint service in _services.Values)
+            {
+                if (target.Length != 0 && service.Target != target)
+                {
+                    continue;
+                }
+
+                result.Add(service.Clone());
+            }
+        }
+
+        result.Sort(CompareEndpoint);
+        return result;
+    }
+
+    private static int CompareEndpoint(ServiceEndpoint a, ServiceEndpoint b)
+    {
+        int result = string.CompareOrdinal(a.GameId, b.GameId);
+        if (result != 0)
+        {
+            return result;
+        }
+
+        result = string.CompareOrdinal(a.Target, b.Target);
+        if (result != 0)
+        {
+            return result;
+        }
+
+        return string.CompareOrdinal(a.RouteId, b.RouteId);
+    }
+
     private static string MakeKey(string gameId, string target, string routeId)
     {
         return $"{gameId}:{target}:{routeId}";

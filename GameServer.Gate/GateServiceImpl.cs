@@ -32,6 +32,45 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         };
     }
 
+    public override async Task<ListGameWorkersReply> ListGameWorkers(ListGameWorkersRequest request, ServerCallContext context)
+    {
+        ValidateTokenReply validateReply = await _centerClient.ValidateTokenAsync(new ValidateTokenRequest
+        {
+            Token = request.Token,
+        });
+
+        if (validateReply.Error != ErrorCode.Success)
+        {
+            return new ListGameWorkersReply { Error = ErrorCode.Unauthorized };
+        }
+
+        ListServiceEndpointsReply endpointsReply = await _centerClient.ListServiceEndpointsAsync(new ListServiceEndpointsRequest
+        {
+            Target = request.Target,
+        });
+
+        var reply = new ListGameWorkersReply
+        {
+            Error = endpointsReply.Error,
+        };
+        if (endpointsReply.Error != ErrorCode.Success)
+        {
+            return reply;
+        }
+
+        foreach (ServiceEndpoint endpoint in endpointsReply.Endpoints)
+        {
+            reply.Workers.Add(new GameWorkerInfo
+            {
+                GameId = endpoint.GameId,
+                Target = endpoint.Target,
+                RouteId = endpoint.RouteId,
+            });
+        }
+
+        return reply;
+    }
+
     public override async Task<PrepareRoomConnectionReply> PrepareRoomConnection(PrepareRoomConnectionRequest request, ServerCallContext context)
     {
         ValidateTokenReply validateReply = await _centerClient.ValidateTokenAsync(new ValidateTokenRequest

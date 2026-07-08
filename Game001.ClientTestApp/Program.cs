@@ -48,6 +48,25 @@ string token = loginReply.Token;
 long uid = loginReply.Uid;
 Console.WriteLine($"login ok uid={uid} token={token}");
 
+ListGameWorkersReply workersReply = await gateClient.ListGameWorkersAsync(new ListGameWorkersRequest
+{
+    Token = token,
+    Target = TargetRoomWorker,
+});
+ExpectError("list game workers", workersReply.Error, ProtocolErrorCode.Success);
+Expect(
+    "list game workers",
+    HasWorker(workersReply, GameId, TargetRoomWorker, DefaultWorkerId),
+    $"missing worker {GameId}/{TargetRoomWorker}/{DefaultWorkerId}");
+Console.WriteLine($"list game workers ok count={workersReply.Workers.Count}");
+
+ListGameWorkersReply badWorkersReply = await gateClient.ListGameWorkersAsync(new ListGameWorkersRequest
+{
+    Token = "bad-token",
+    Target = TargetRoomWorker,
+});
+ExpectError("bad list game workers token", badWorkersReply.Error, ProtocolErrorCode.Unauthorized);
+
 PrepareRoomConnectionReply prepareReply = await gateClient.PrepareRoomConnectionAsync(new PrepareRoomConnectionRequest
 {
     Token = token,
@@ -103,6 +122,13 @@ Expect("room handshake message", handshakeHead.errorMessage.Contains("handshake 
 Expect("room handshake uid", connectionReply.Uid == uid, $"expected uid={uid}, actual={connectionReply.Uid}");
 Console.WriteLine($"room handshake uid={connectionReply.Uid}");
 
+(ListRoomsRsp emptyRoomsReply, RspHead listBeforeCreateHead) = await SendRoomCommand<ListRoomsReq, ListRoomsRsp>(
+    roomClient,
+    ++requestIndex,
+    new ListRoomsReq(),
+    $"{directStepPrefix} list rooms before create");
+ExpectRoomListEmpty($"{directStepPrefix} list rooms before create", emptyRoomsReply, listBeforeCreateHead);
+
 (CreateRoomRsp _, RspHead createHead) = await SendRoomCommand<CreateRoomReq, CreateRoomRsp>(
     roomClient,
     ++requestIndex,
@@ -110,6 +136,13 @@ Console.WriteLine($"room handshake uid={connectionReply.Uid}");
     $"{directStepPrefix} create room");
 ExpectRoomReply1($"{directStepPrefix} create room", createHead, "created room=room-001");
 await ExpectFullStatePush(roomPushes, 1, uid, DefaultRoomId);
+
+(ListRoomsRsp roomsReply, RspHead listAfterCreateHead) = await SendRoomCommand<ListRoomsReq, ListRoomsRsp>(
+    roomClient,
+    ++requestIndex,
+    new ListRoomsReq(),
+    $"{directStepPrefix} list rooms after create");
+ExpectRoomListContains($"{directStepPrefix} list rooms after create", roomsReply, listAfterCreateHead, DefaultRoomId);
 
 (RoomConnectRsp roomConnectReply, RspHead roomConnectHead) = await SendRoomCommand<RoomConnectReq, RoomConnectRsp>(
     roomClient,
@@ -178,6 +211,47 @@ static void ExpectRoomReply(string step, RspHead head, string roomId, string exp
     Expect(step, roomId == expectedRoomId, $"expected room={expectedRoomId}, actual={roomId}");
     Expect(step, head.errorMessage.Contains(expectedMessage, StringComparison.Ordinal), $"message '{head.errorMessage}' does not contain '{expectedMessage}'");
     Console.WriteLine($"{step} reply: {head.errorMessage}");
+}
+
+static void ExpectRoomListEmpty(string step, ListRoomsRsp rsp, RspHead head)
+{
+    ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
+    Expect(step, rsp.Rooms.Count == 0, $"expected empty room list, actual={rsp.Rooms.Count}");
+    Console.WriteLine($"{step} reply: {head.errorMessage}");
+}
+
+static void ExpectRoomListContains(string step, ListRoomsRsp rsp, RspHead head, string roomId)
+{
+    ExpectNetworkError(step, head.error, NetworkErrorCode.Success);
+    for (int i = 0; i < rsp.Rooms.Count; i++)
+    {
+        RoomListItem room = rsp.Rooms.Array![rsp.Rooms.Offset + i];
+        if (room.RoomId == roomId)
+        {
+            Expect(step, room.PlayerCount == 1, $"expected player count=1, actual={room.PlayerCount}");
+            Expect(step, room.ConnectionCount == 1, $"expected connection count=1, actual={room.ConnectionCount}");
+            Expect(step, room.LifecycleState == (int)RoomLifecycleState.Active, $"expected active room, actual={room.LifecycleState}");
+            Console.WriteLine($"{step} room={room.RoomId} players={room.PlayerCount} connections={room.ConnectionCount}");
+            return;
+        }
+    }
+
+    throw new InvalidOperationException($"{step} failed: missing room={roomId}");
+}
+
+static bool HasWorker(ListGameWorkersReply reply, string gameId, string target, string routeId)
+{
+    foreach (GameWorkerInfo worker in reply.Workers)
+    {
+        if (worker.GameId == gameId &&
+            worker.Target == target &&
+            worker.RouteId == routeId)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static async Task ExpectFullStatePush(ConcurrentBag<RoomFullStatePush> pushes, int minPushCount, long uid, string roomId)

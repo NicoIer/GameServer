@@ -8,7 +8,7 @@ REPO_ROOT=$WORKSPACE/..
 PROTO_ROOT=$SCRIPT_DIR
 PROTOC=$WORKSPACE/Tools/protoc/bin/protoc
 PROTOC_INCLUDE=$WORKSPACE/Tools/protoc/include
-CORE_OUTPUT_DIR=$REPO_ROOT/GameServer.Core/Generated
+CORE_OUTPUT_DIR=$REPO_ROOT/GameServer.Core/UnityPackage/Runtime/Generated
 
 mkdir -p "$CORE_OUTPUT_DIR"
 find "$CORE_OUTPUT_DIR" -maxdepth 1 -name '*.cs' -type f -delete

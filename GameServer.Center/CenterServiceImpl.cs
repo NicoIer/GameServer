@@ -80,4 +80,14 @@ public sealed class CenterServiceImpl : CenterService.CenterServiceBase
             Endpoint = endpoint,
         });
     }
+
+    public override Task<ListServiceEndpointsReply> ListServiceEndpoints(ListServiceEndpointsRequest request, ServerCallContext context)
+    {
+        var reply = new ListServiceEndpointsReply
+        {
+            Error = ErrorCode.Success,
+        };
+        reply.Endpoints.AddRange(_registry.ListServices(request.Target));
+        return Task.FromResult(reply);
+    }
 }
