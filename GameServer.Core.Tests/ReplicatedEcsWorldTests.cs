@@ -366,10 +366,14 @@ public sealed class ReplicatedEcsWorldTests
             Assert.That(registry.Contains(registeredTypeId), Is.True);
         });
 
-        ushort roomPlayerTypeId = registry.Register<RoomPlayerComponent>();
-        ushort roomDisconnectedTypeId = registry.Register<RoomDisconnectedComponent>();
+        EcsComponentRegistry gameRegistry = Game001EcsRegistration.CreateRegistry();
+        ushort roomPlayerTypeId = EcsComponentTypeId.Get<RoomPlayerComponent>();
+        ushort roomDisconnectedTypeId = EcsComponentTypeId.Get<RoomDisconnectedComponent>();
         Assert.Multiple(() =>
         {
+            Assert.That(gameRegistry.Count, Is.EqualTo(2));
+            Assert.That(gameRegistry.Contains(roomPlayerTypeId), Is.True);
+            Assert.That(gameRegistry.Contains(roomDisconnectedTypeId), Is.True);
             Assert.That(roomPlayerTypeId, Is.EqualTo(EcsReplicationSerializer.RoomPlayerComponentTypeId));
             Assert.That(roomDisconnectedTypeId,
                 Is.EqualTo(EcsReplicationSerializer.RoomDisconnectedComponentTypeId));
