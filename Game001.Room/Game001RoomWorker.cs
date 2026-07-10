@@ -47,6 +47,10 @@ public sealed class Game001RoomWorker : RoomWorkerBase<Game001RoomFiberModule>
             (req, context) => ResolveConnectedRoomId(req.RoomId, context.RoomId),
             canCreateRoom: false,
             successConnectionAction: RoomRequestConnectionAction.None);
+        router.Register<RoomResyncReq>(
+            (req, context) => ResolveConnectedRoomId(req.RoomId, context.RoomId),
+            canCreateRoom: false,
+            successConnectionAction: RoomRequestConnectionAction.None);
         return router;
     }
 

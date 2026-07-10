@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+        <PackageReference Include="NUnit" Version="4.3.2" />
+        <PackageReference Include="NUnit.Analyzers" Version="4.7.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+        <PackageReference Include="MemoryPack" Version="1.21.4" />
+        <PackageReference Include="MemoryPack.Generator" Version="1.21.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Game001.Core\Game001.Core.csproj" />
+        <ProjectReference Include="..\Game001.Room\Game001.Room.csproj" />
+        <ProjectReference Include="..\GameServer.Core\GameServer.Core.csproj" />
+    </ItemGroup>
+
+</Project>

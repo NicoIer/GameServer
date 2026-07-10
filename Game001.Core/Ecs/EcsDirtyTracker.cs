@@ -1,5 +1,6 @@
 using Friflo.Engine.ECS;
 using Game001.Core.Generated;
+using GameServer.Core.Ecs;
 using Network;
 using MemoryPack;
 
@@ -23,6 +24,7 @@ public sealed class EcsDirtyTracker : IDisposable
         _store.OnEntityDelete += OnEntityDelete;
         _store.OnComponentAdded += OnComponentChanged;
         _store.OnComponentRemoved += OnComponentChanged;
+        _store.OnChildEntitiesChanged += OnChildEntitiesChanged;
     }
 
     public bool HasChanges => _entityChanges.Count > 0 || _componentChanges.Count > 0;
@@ -83,8 +85,8 @@ public sealed class EcsDirtyTracker : IDisposable
     }
 
     public void Flush(
-        int sourceFrame,
-        int targetFrame,
+        long sourceRevision,
+        long targetRevision,
         NetworkBuffer<EcsEntityChange> entityChangeWriter,
         NetworkBuffer<EcsComponentChange> componentChangeWriter,
         out EcsDirtySet set)
@@ -104,6 +106,7 @@ public sealed class EcsDirtyTracker : IDisposable
             entityChangeWriter.Write(new EcsEntityChange
             {
                 EntityId = item.EntityId,
+                ParentEntityId = current.ParentEntityId,
                 Kind = current.Kind,
             });
         }
@@ -125,8 +128,8 @@ public sealed class EcsDirtyTracker : IDisposable
 
         set = new EcsDirtySet
         {
-            SourceFrame = sourceFrame,
-            TargetFrame = targetFrame,
+            SourceRevision = sourceRevision,
+            TargetRevision = targetRevision,
             EntityChanges = entityChangeWriter,
             ComponentChanges = componentChangeWriter,
         };
@@ -138,6 +141,7 @@ public sealed class EcsDirtyTracker : IDisposable
         _store.OnEntityDelete -= OnEntityDelete;
         _store.OnComponentAdded -= OnComponentChanged;
         _store.OnComponentRemoved -= OnComponentChanged;
+        _store.OnChildEntitiesChanged -= OnChildEntitiesChanged;
         NetworkBufferPool.Shared.Return(_componentPayloadWriter);
     }
 
@@ -146,14 +150,29 @@ public sealed class EcsDirtyTracker : IDisposable
         int entityId = GetEntityId(args.Entity);
         if (!_entityChanges.ContainsKey(entityId))
         {
-            SetEntityChange(entityId, EcsChangeKind.Create);
+            SetEntityChange(entityId, EcsChangeKind.Create, GetParentEntityId(args.Entity));
         }
     }
 
     private void OnEntityDelete(EntityDelete args)
     {
         int entityId = GetEntityId(args.Entity);
-        SetEntityChange(entityId, EcsChangeKind.Delete);
+        if (_entityChanges.TryGetValue(entityId, out TrackedEntityChange current) &&
+            current.Kind == EcsChangeKind.Create)
+        {
+            _entityChanges.Remove(entityId);
+            RemoveComponentChanges(entityId);
+            ClearChangeOrderIfEmpty();
+            return;
+        }
+
+        SetEntityChange(entityId, EcsChangeKind.Delete, 0);
+
+        RemoveComponentChanges(entityId);
+    }
+
+    private void RemoveComponentChanges(int entityId)
+    {
 
         var removedKeys = new List<ComponentChangeKey>();
         foreach (ComponentChangeKey key in _componentChanges.Keys)
@@ -168,6 +187,30 @@ public sealed class EcsDirtyTracker : IDisposable
         {
             _componentChanges.Remove(key);
         }
+    }
+
+    private void OnChildEntitiesChanged(ChildEntitiesChanged args)
+    {
+        int childId = args.ChildId;
+        int parentEntityId = args.Action == ChildEntitiesChangedAction.Add ? args.EntityId : 0;
+        if (_entityChanges.TryGetValue(childId, out TrackedEntityChange current))
+        {
+            if (current.Kind == EcsChangeKind.Delete)
+            {
+                return;
+            }
+
+            if (current.Kind == EcsChangeKind.Create)
+            {
+                current.ParentEntityId = parentEntityId;
+                current.Sequence = NextSequence();
+                _entityChanges[childId] = current;
+                _entityChangeOrder.Enqueue(new EntityChangeOrder(childId, current.Sequence));
+                return;
+            }
+        }
+
+        SetEntityChange(childId, EcsChangeKind.Reparent, parentEntityId);
     }
 
     private void OnComponentChanged(ComponentChanged args)
@@ -252,11 +295,11 @@ public sealed class EcsDirtyTracker : IDisposable
         });
     }
 
-    private void SetEntityChange(int entityId, EcsChangeKind kind)
+    private void SetEntityChange(int entityId, EcsChangeKind kind, int parentEntityId)
     {
         ResetComponentPayloadWriterIfEmpty();
         long sequence = NextSequence();
-        _entityChanges[entityId] = new TrackedEntityChange(kind, sequence);
+        _entityChanges[entityId] = new TrackedEntityChange(kind, parentEntityId, sequence);
         _entityChangeOrder.Enqueue(new EntityChangeOrder(entityId, sequence));
     }
 
@@ -319,7 +362,13 @@ public sealed class EcsDirtyTracker : IDisposable
 
     private static int GetEntityId(Entity entity)
     {
-        return (int)entity.Pid;
+        return entity.Id;
+    }
+
+    private static int GetParentEntityId(Entity entity)
+    {
+        Entity parent = entity.Parent;
+        return parent.IsNull ? 0 : parent.Id;
     }
 
     private readonly struct ComponentChangeKey : IEquatable<ComponentChangeKey>
@@ -352,11 +401,13 @@ public sealed class EcsDirtyTracker : IDisposable
     private struct TrackedEntityChange
     {
         public EcsChangeKind Kind;
+        public int ParentEntityId;
         public long Sequence;
 
-        public TrackedEntityChange(EcsChangeKind kind, long sequence)
+        public TrackedEntityChange(EcsChangeKind kind, int parentEntityId, long sequence)
         {
             Kind = kind;
+            ParentEntityId = parentEntityId;
             Sequence = sequence;
         }
     }

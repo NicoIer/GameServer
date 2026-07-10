@@ -9,6 +9,7 @@
   <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />
+  <Project Path="GameServer.Core.Tests/GameServer.Core.Tests.csproj" />
   <Project Path="GameServer.Gate/GameServer.Gate.csproj" />
   <Project Path="GameServer.SourceGenerators/GameServer.SourceGenerators/GameServer.SourceGenerators.csproj" />
   <Project Path="GameServer.Startup.Center/GameServer.Startup.Center.csproj" />

@@ -21,13 +21,14 @@ public sealed class Game001RoomState
     public HashSet<long> DisconnectedPlayers { get; } = new();
     public HashSet<int> ActiveConnectionIds { get; } = new();
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
-    public List<int> PendingFullStateConnections { get; } = new();
+    public HashSet<int> PendingFullStateConnections { get; } = new();
     public EcsDirtyTracker DirtyTracker { get; }
     public RoomLifecycleState LifecycleState => (RoomLifecycleState)Volatile.Read(ref _lifecycleState);
     public int PlayerCount => Volatile.Read(ref _playerCount);
     public long EmptySinceTimeMs { get; private set; }
     public int Frame { get; private set; }
     public long LastUpdateTimeMs { get; private set; }
+    public long WorldRevision { get; set; }
 
     public Game001RoomState(string roomId)
     {

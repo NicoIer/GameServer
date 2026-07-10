@@ -1,4 +1,5 @@
 using System;
+using GameServer.Core.Ecs;
 using GameServer.Core.Network;
 using GameServer.Core.Rooms;
 using MemoryPack;
@@ -93,9 +94,22 @@ namespace Game001.Core
     }
 
     [MemoryPackable]
+    [NetworkRequest(typeof(RoomResyncRsp))]
+    public partial struct RoomResyncReq : INetworkReq
+    {
+        public string RoomId;
+    }
+
+    [MemoryPackable]
+    public partial struct RoomResyncRsp : INetworkRsp
+    {
+    }
+
+    [MemoryPackable]
     public partial struct RoomFullStatePush : IRoomPush
     {
         public RoomInfo Room;
+        public long WorldRevision;
         public ArraySegment<long> Players;
         public ArraySegment<long> DisconnectedPlayers;
         public ArraySegment<EcsEntitySnapshot> Entities;
@@ -105,8 +119,8 @@ namespace Game001.Core
     public partial struct RoomDiffStatePush : IRoomPush
     {
         public RoomInfo Room;
-        public int SourceFrame;
-        public int TargetFrame;
+        public long SourceRevision;
+        public long TargetRevision;
         public ArraySegment<EcsEntityChange> EntityChanges;
         public ArraySegment<EcsComponentChange> ComponentChanges;
     }
@@ -114,8 +128,8 @@ namespace Game001.Core
     [MemoryPackable]
     public partial struct EcsDirtySet
     {
-        public int SourceFrame;
-        public int TargetFrame;
+        public long SourceRevision;
+        public long TargetRevision;
         public ArraySegment<EcsEntityChange> EntityChanges;
         public ArraySegment<EcsComponentChange> ComponentChanges;
 
@@ -129,42 +143,4 @@ namespace Game001.Core
         public PatchMessage patchMessage;
     }
 
-    [MemoryPackable]
-    public partial struct EcsEntitySnapshot
-    {
-        public int EntityId;
-        public ArraySegment<EcsComponentSnapshot> Components;
-    }
-
-    [MemoryPackable]
-    public partial struct EcsComponentSnapshot
-    {
-        public ushort ComponentTypeId;
-        public ArraySegment<byte> Payload;
-    }
-
-    [MemoryPackable]
-    public partial struct EcsEntityChange
-    {
-        public int EntityId;
-        public EcsChangeKind Kind;
-    }
-
-    [MemoryPackable]
-    public partial struct EcsComponentChange
-    {
-        public int EntityId;
-        public ushort ComponentTypeId;
-        public EcsChangeKind Kind;
-        public ArraySegment<byte> Payload;
-    }
-
-    public enum EcsChangeKind
-    {
-        Create,
-        Delete,
-        Add,
-        Update,
-        Remove,
-    }
 }

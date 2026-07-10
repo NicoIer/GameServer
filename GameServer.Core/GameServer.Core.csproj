@@ -17,6 +17,7 @@
       <PackageReference Include="Grpc.Core.Api" Version="2.71.0" />
       <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
       <PackageReference Include="Grpc.Tools" Version="2.76.0" PrivateAssets="all" />
+      <PackageReference Include="Friflo.Engine.ECS" Version="3.6.0" />
       <PackageReference Include="MemoryPack" Version="1.21.4" />
       <PackageReference Include="MemoryPack.Core" Version="1.21.4" />
       <PackageReference Include="MemoryPack.Generator" Version="1.21.4">

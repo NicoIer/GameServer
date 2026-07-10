@@ -30,7 +30,7 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
 
     protected override void RegisterHandlers(ReqRspServerCenter center)
     {
-        var handlers = new Game001RoomReqRspHandlers(_connections, _lifecycleSystem);
+        var handlers = new Game001RoomReqRspHandlers(_connections, _lifecycleSystem, _room.State);
         NetworkReqRspInitializer.RegisterAll(center, handlers);
     }
 

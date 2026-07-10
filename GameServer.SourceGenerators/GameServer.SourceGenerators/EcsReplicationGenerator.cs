@@ -211,7 +211,7 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
 
     private static void GenerateSerializeAllComponents(StringBuilder sb, List<ReplicatedComponent> components)
     {
-        sb.AppendLine("    public static void SerializeAllComponents(global::Friflo.Engine.ECS.Entity entity, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> result)");
+        sb.AppendLine("    public static void SerializeAllComponents(global::Friflo.Engine.ECS.Entity entity, global::Network.NetworkBuffer<global::GameServer.Core.Ecs.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::GameServer.Core.Ecs.EcsComponentSnapshot> result)");
         sb.AppendLine("    {");
         sb.AppendLine("        int componentOffset = componentWriter.Position;");
         for (int i = 0; i < components.Count; i++)
@@ -227,7 +227,7 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
             sb.Append("            global::MemoryPack.MemoryPackSerializer.Serialize(payloadWriter, component");
             sb.Append(i);
             sb.AppendLine(");");
-            sb.AppendLine("            componentWriter.Write(new global::Game001.Core.EcsComponentSnapshot");
+            sb.AppendLine("            componentWriter.Write(new global::GameServer.Core.Ecs.EcsComponentSnapshot");
             sb.AppendLine("            {");
             sb.Append("                ComponentTypeId = ");
             sb.Append(component.ConstantName);
@@ -244,22 +244,19 @@ public sealed class EcsReplicationGenerator : IIncrementalGenerator
 
     private static void GenerateCreateFullState(StringBuilder sb)
     {
-        sb.AppendLine("    public static void CreateFullState(global::Friflo.Engine.ECS.EntityStore store, global::Network.NetworkBuffer<global::Game001.Core.EcsEntitySnapshot> entityWriter, global::Network.NetworkBuffer<global::Game001.Core.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsEntitySnapshot> result)");
+        sb.AppendLine("    public static void CreateFullState(global::Friflo.Engine.ECS.EntityStore store, global::Network.NetworkBuffer<global::GameServer.Core.Ecs.EcsEntitySnapshot> entityWriter, global::Network.NetworkBuffer<global::GameServer.Core.Ecs.EcsComponentSnapshot> componentWriter, global::Network.NetworkBuffer payloadWriter, out global::System.ArraySegment<global::GameServer.Core.Ecs.EcsEntitySnapshot> result)");
         sb.AppendLine("    {");
         sb.AppendLine("        entityWriter.Reset();");
         sb.AppendLine("        componentWriter.Reset();");
         sb.AppendLine("        payloadWriter.Reset();");
         sb.AppendLine("        foreach (global::Friflo.Engine.ECS.Entity entity in store.Entities)");
         sb.AppendLine("        {");
-        sb.AppendLine("            SerializeAllComponents(entity, componentWriter, payloadWriter, out global::System.ArraySegment<global::Game001.Core.EcsComponentSnapshot> components);");
-        sb.AppendLine("            if (components.Count == 0)");
+        sb.AppendLine("            SerializeAllComponents(entity, componentWriter, payloadWriter, out global::System.ArraySegment<global::GameServer.Core.Ecs.EcsComponentSnapshot> components);");
+        sb.AppendLine("            global::Friflo.Engine.ECS.Entity parent = entity.Parent;");
+        sb.AppendLine("            entityWriter.Write(new global::GameServer.Core.Ecs.EcsEntitySnapshot");
         sb.AppendLine("            {");
-        sb.AppendLine("                continue;");
-        sb.AppendLine("            }");
-        sb.AppendLine();
-        sb.AppendLine("            entityWriter.Write(new global::Game001.Core.EcsEntitySnapshot");
-        sb.AppendLine("            {");
-        sb.AppendLine("                EntityId = (int)entity.Pid,");
+        sb.AppendLine("                EntityId = entity.Id,");
+        sb.AppendLine("                ParentEntityId = parent.IsNull ? 0 : parent.Id,");
         sb.AppendLine("                Components = components,");
         sb.AppendLine("            });");
         sb.AppendLine("        }");

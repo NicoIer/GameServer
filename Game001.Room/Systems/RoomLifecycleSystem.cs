@@ -52,6 +52,7 @@ public sealed class RoomLifecycleSystem : ISystem
         long timeNowMs = Environment.TickCount64;
         _state.Players.Remove(uid);
         _state.ActiveConnectionIds.Remove(connectionId);
+        _state.PendingFullStateConnections.Remove(connectionId);
         _state.DisconnectedPlayers.Remove(uid);
         _state.DisconnectedPlayerTimesMs.Remove(uid);
         _state.RemovePlayerEntity(uid);
@@ -64,6 +65,7 @@ public sealed class RoomLifecycleSystem : ISystem
     {
         long timeNowMs = Environment.TickCount64;
         _state.ActiveConnectionIds.Remove(connectionId);
+        _state.PendingFullStateConnections.Remove(connectionId);
         if (_state.Players.Contains(uid) && _state.DisconnectedPlayers.Add(uid))
         {
             _state.DisconnectedPlayerTimesMs[uid] = timeNowMs;
