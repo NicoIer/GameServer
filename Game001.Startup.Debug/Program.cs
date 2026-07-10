@@ -8,9 +8,9 @@ using GameServer.Core.Rooms;
 using GameServer.Gate;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
-using ProtocolGameId = GameServer.Core.Protocol.GameId;
+using ProtocolGameType = GameServer.Core.Protocol.GameType;
 
-const ProtocolGameId Game001Id = ProtocolGameId.Game001;
+const ProtocolGameType Game001Type = ProtocolGameType.Game001;
 const string Game001RoomWorkerTarget = "room-worker";
 const string Game001RoomWorkerId = "worker-001";
 const int NetworkTickSleepMs = 1;
@@ -85,7 +85,7 @@ await startupCenterClient.RegisterServiceAsync(new RegisterServiceRequest
 {
     Endpoint = new ServiceEndpoint
     {
-        GameId = Game001Id,
+        GameType = Game001Type,
         Target = Game001RoomWorkerTarget,
         RouteId = Game001RoomWorkerId,
         Address = game001RoomAddress,
@@ -99,7 +99,7 @@ Log.Info($"Gate started on http://127.0.0.1:{gatePort}");
 Log.Info($"Game001.Room started on {game001RoomAddress}");
 Log.Info($"Game001.Room direct {game001RoomTransportServer.Protocol} started on {game001RoomTransportServer.Address}");
 Log.Info($"Game001.Room worker network tick sleep={NetworkTickSleepMs}ms room fps={game001RoomFrameRate}");
-Log.Info($"Registered {Game001Id} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
+Log.Info($"Registered {Game001Type} / {Game001RoomWorkerTarget} / {Game001RoomWorkerId}");
 
 using var shutdownCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, eventArgs) =>

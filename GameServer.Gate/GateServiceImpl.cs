@@ -1,6 +1,6 @@
 using GameServer.Core.Protocol;
 using Grpc.Core;
-using ProtocolGameId = GameServer.Core.Protocol.GameId;
+using ProtocolGameType = GameServer.Core.Protocol.GameType;
 
 namespace GameServer.Gate;
 
@@ -63,7 +63,7 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         {
             reply.Workers.Add(new GameWorkerInfo
             {
-                GameId = endpoint.GameId,
+                GameType = endpoint.GameType,
                 Target = endpoint.Target,
                 RouteId = endpoint.RouteId,
             });
@@ -84,14 +84,14 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
             return new PrepareRoomConnectionReply { Error = ErrorCode.Unauthorized };
         }
 
-        if (request.GameId == ProtocolGameId.Unspecified || request.Target.Length == 0)
+        if (request.GameType == ProtocolGameType.Unspecified || request.Target.Length == 0)
         {
             return new PrepareRoomConnectionReply { Error = ErrorCode.InvalidRequest };
         }
 
         ResolveServiceReply resolveReply = await _centerClient.ResolveServiceAsync(new ResolveServiceRequest
         {
-            GameId = request.GameId,
+            GameType = request.GameType,
             Target = request.Target,
             RouteId = request.RouteId,
         });
@@ -111,7 +111,7 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         return new PrepareRoomConnectionReply
         {
             Error = ErrorCode.Success,
-            GameId = resolveReply.Endpoint.GameId,
+            GameType = resolveReply.Endpoint.GameType,
             Target = resolveReply.Endpoint.Target,
             RouteId = resolveReply.Endpoint.RouteId,
             DirectProtocol = resolveReply.Endpoint.DirectProtocol,
@@ -139,14 +139,14 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         }
 
         ClientEnvelope envelope = request.Envelope;
-        if (envelope.GameId == ProtocolGameId.Unspecified || envelope.Target.Length == 0)
+        if (envelope.GameType == ProtocolGameType.Unspecified || envelope.Target.Length == 0)
         {
             return new ForwardReply { Error = ErrorCode.InvalidRequest };
         }
 
         ResolveServiceReply resolveReply = await _centerClient.ResolveServiceAsync(new ResolveServiceRequest
         {
-            GameId = envelope.GameId,
+            GameType = envelope.GameType,
             Target = envelope.Target,
             RouteId = envelope.RouteId,
         });
@@ -161,7 +161,7 @@ public sealed class GateServiceImpl : GateService.GateServiceBase
         {
             Uid = validateReply.Uid,
             SessionId = request.Token,
-            GameId = envelope.GameId,
+            GameType = envelope.GameType,
             Target = envelope.Target,
             RouteId = envelope.RouteId,
             Data = envelope.Data,

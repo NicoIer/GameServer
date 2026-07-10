@@ -1,5 +1,5 @@
 using GameServer.Core.Protocol;
-using ProtocolGameId = GameServer.Core.Protocol.GameId;
+using ProtocolGameType = GameServer.Core.Protocol.GameType;
 
 namespace GameServer.Center;
 
@@ -38,15 +38,15 @@ public sealed class CenterRegistry
     {
         lock (_lock)
         {
-            _services[MakeKey(endpoint.GameId, endpoint.Target, endpoint.RouteId)] = endpoint.Clone();
+            _services[MakeKey(endpoint.GameType, endpoint.Target, endpoint.RouteId)] = endpoint.Clone();
         }
     }
 
-    public ServiceEndpoint? Resolve(ProtocolGameId gameId, string target, string routeId)
+    public ServiceEndpoint? Resolve(ProtocolGameType gameType, string target, string routeId)
     {
         lock (_lock)
         {
-            if (_services.TryGetValue(MakeKey(gameId, target, routeId), out ServiceEndpoint? endpoint))
+            if (_services.TryGetValue(MakeKey(gameType, target, routeId), out ServiceEndpoint? endpoint))
             {
                 return endpoint.Clone();
             }
@@ -55,7 +55,7 @@ public sealed class CenterRegistry
             {
                 foreach (ServiceEndpoint service in _services.Values)
                 {
-                    if (service.GameId == gameId && service.Target == target)
+                    if (service.GameType == gameType && service.Target == target)
                     {
                         return service.Clone();
                     }
@@ -88,7 +88,7 @@ public sealed class CenterRegistry
 
     private static int CompareEndpoint(ServiceEndpoint a, ServiceEndpoint b)
     {
-        int result = a.GameId.CompareTo(b.GameId);
+        int result = a.GameType.CompareTo(b.GameType);
         if (result != 0)
         {
             return result;
@@ -103,8 +103,8 @@ public sealed class CenterRegistry
         return string.CompareOrdinal(a.RouteId, b.RouteId);
     }
 
-    private static string MakeKey(ProtocolGameId gameId, string target, string routeId)
+    private static string MakeKey(ProtocolGameType gameType, string target, string routeId)
     {
-        return $"{(int)gameId}:{target}:{routeId}";
+        return $"{(int)gameType}:{target}:{routeId}";
     }
 }

@@ -29,13 +29,13 @@ enum DirectTransportProtocol {
   DIRECT_TRANSPORT_PROTOCOL_KCP = 2;
 }
 
-enum GameId {
-  GAME_ID_UNSPECIFIED = 0;
-  GAME_ID_GAME001 = 1;
+enum GameType {
+  GAME_TYPE_UNSPECIFIED = 0;
+  GAME_TYPE_GAME001 = 1;
 }
 
 message ServiceEndpoint {
-  GameId game_id = 1;
+  GameType game_type = 1;
   string target = 2;
   string route_id = 3;
   string address = 4;
@@ -74,7 +74,7 @@ message RegisterServiceReply {
 }
 
 message ResolveServiceRequest {
-  GameId game_id = 1;
+  GameType game_type = 1;
   string target = 2;
   string route_id = 3;
 }
@@ -94,7 +94,7 @@ message ListServiceEndpointsReply {
 }
 
 message ClientEnvelope {
-  GameId game_id = 1;
+  GameType game_type = 1;
   string target = 2;
   string route_id = 3;
   bytes data = 4;
@@ -119,7 +119,7 @@ message ListGameWorkersRequest {
 }
 
 message GameWorkerInfo {
-  GameId game_id = 1;
+  GameType game_type = 1;
   string target = 2;
   string route_id = 3;
 }
@@ -131,14 +131,14 @@ message ListGameWorkersReply {
 
 message PrepareRoomConnectionRequest {
   string token = 1;
-  GameId game_id = 2;
+  GameType game_type = 2;
   string target = 3;
   string route_id = 4;
 }
 
 message PrepareRoomConnectionReply {
   int32 error = 1;
-  GameId game_id = 2;
+  GameType game_type = 2;
   string target = 3;
   string route_id = 4;
   DirectTransportProtocol direct_protocol = 5;
@@ -160,7 +160,7 @@ message ForwardReply {
 message GameRequest {
   int64 uid = 1;
   string session_id = 2;
-  GameId game_id = 3;
+  GameType game_type = 3;
   string target = 4;
   string route_id = 5;
   bytes data = 6;

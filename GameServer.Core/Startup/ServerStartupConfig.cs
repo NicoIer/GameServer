@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using ProtocolGameId = GameServer.Core.Protocol.GameId;
+using ProtocolGameType = GameServer.Core.Protocol.GameType;
 
 namespace GameServer.Core.Startup;
 
@@ -23,7 +23,7 @@ public sealed class GateStartupConfig
 
 public class RoomServerStartupConfig
 {
-    public ProtocolGameId GameId { get; set; } = ProtocolGameId.Unspecified;
+    public ProtocolGameType GameType { get; set; } = ProtocolGameType.Unspecified;
     public string Target { get; set; } = "room-worker";
     public string RouteId { get; set; } = "worker-001";
     public int GrpcPort { get; set; } = 5101;

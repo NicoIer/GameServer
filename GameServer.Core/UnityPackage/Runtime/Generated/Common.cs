@@ -24,105 +24,105 @@ namespace GameServer.Core.Protocol {
     static CommonReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cgxjb21tb24ucHJvdG8SD2dhbWVzZXJ2ZXIuY29yZSLJAQoPU2VydmljZUVu",
-            "ZHBvaW50EigKB2dhbWVfaWQYASABKA4yFy5nYW1lc2VydmVyLmNvcmUuR2Ft",
-            "ZUlkEg4KBnRhcmdldBgCIAEoCRIQCghyb3V0ZV9pZBgDIAEoCRIPCgdhZGRy",
-            "ZXNzGAQgASgJEkEKD2RpcmVjdF9wcm90b2NvbBgFIAEoDjIoLmdhbWVzZXJ2",
-            "ZXIuY29yZS5EaXJlY3RUcmFuc3BvcnRQcm90b2NvbBIWCg5kaXJlY3RfYWRk",
-            "cmVzcxgGIAEoCSJgCgtBdXRoUmVxdWVzdBISCgpsb2dpbl90eXBlGAEgASgJ",
-            "EhIKCmNyZWRlbnRpYWwYAiABKAkSEQoJZGV2aWNlX2lkGAMgASgJEhYKDmNs",
-            "aWVudF92ZXJzaW9uGAQgASgJIjYKCUF1dGhSZXBseRINCgVlcnJvchgBIAEo",
-            "BRINCgV0b2tlbhgCIAEoCRILCgN1aWQYAyABKAMiJQoUVmFsaWRhdGVUb2tl",
-            "blJlcXVlc3QSDQoFdG9rZW4YASABKAkiMAoSVmFsaWRhdGVUb2tlblJlcGx5",
-            "Eg0KBWVycm9yGAEgASgFEgsKA3VpZBgCIAEoAyJMChZSZWdpc3RlclNlcnZp",
-            "Y2VSZXF1ZXN0EjIKCGVuZHBvaW50GAEgASgLMiAuZ2FtZXNlcnZlci5jb3Jl",
-            "LlNlcnZpY2VFbmRwb2ludCIlChRSZWdpc3RlclNlcnZpY2VSZXBseRINCgVl",
-            "cnJvchgBIAEoBSJjChVSZXNvbHZlU2VydmljZVJlcXVlc3QSKAoHZ2FtZV9p",
-            "ZBgBIAEoDjIXLmdhbWVzZXJ2ZXIuY29yZS5HYW1lSWQSDgoGdGFyZ2V0GAIg",
-            "ASgJEhAKCHJvdXRlX2lkGAMgASgJIlgKE1Jlc29sdmVTZXJ2aWNlUmVwbHkS",
-            "DQoFZXJyb3IYASABKAUSMgoIZW5kcG9pbnQYAiABKAsyIC5nYW1lc2VydmVy",
-            "LmNvcmUuU2VydmljZUVuZHBvaW50Ii0KG0xpc3RTZXJ2aWNlRW5kcG9pbnRz",
-            "UmVxdWVzdBIOCgZ0YXJnZXQYASABKAkiXwoZTGlzdFNlcnZpY2VFbmRwb2lu",
-            "dHNSZXBseRINCgVlcnJvchgBIAEoBRIzCgllbmRwb2ludHMYAiADKAsyIC5n",
-            "YW1lc2VydmVyLmNvcmUuU2VydmljZUVuZHBvaW50ImoKDkNsaWVudEVudmVs",
-            "b3BlEigKB2dhbWVfaWQYASABKA4yFy5nYW1lc2VydmVyLmNvcmUuR2FtZUlk",
-            "Eg4KBnRhcmdldBgCIAEoCRIQCghyb3V0ZV9pZBgDIAEoCRIMCgRkYXRhGAQg",
-            "ASgMImEKDExvZ2luUmVxdWVzdBISCgpsb2dpbl90eXBlGAEgASgJEhIKCmNy",
-            "ZWRlbnRpYWwYAiABKAkSEQoJZGV2aWNlX2lkGAMgASgJEhYKDmNsaWVudF92",
-            "ZXJzaW9uGAQgASgJIjcKCkxvZ2luUmVwbHkSDQoFZXJyb3IYASABKAUSDQoF",
-            "dG9rZW4YAiABKAkSCwoDdWlkGAMgASgDIjcKFkxpc3RHYW1lV29ya2Vyc1Jl",
-            "cXVlc3QSDQoFdG9rZW4YASABKAkSDgoGdGFyZ2V0GAIgASgJIlwKDkdhbWVX",
-            "b3JrZXJJbmZvEigKB2dhbWVfaWQYASABKA4yFy5nYW1lc2VydmVyLmNvcmUu",
-            "R2FtZUlkEg4KBnRhcmdldBgCIAEoCRIQCghyb3V0ZV9pZBgDIAEoCSJXChRM",
-            "aXN0R2FtZVdvcmtlcnNSZXBseRINCgVlcnJvchgBIAEoBRIwCgd3b3JrZXJz",
-            "GAIgAygLMh8uZ2FtZXNlcnZlci5jb3JlLkdhbWVXb3JrZXJJbmZvInkKHFBy",
-            "ZXBhcmVSb29tQ29ubmVjdGlvblJlcXVlc3QSDQoFdG9rZW4YASABKAkSKAoH",
-            "Z2FtZV9pZBgCIAEoDjIXLmdhbWVzZXJ2ZXIuY29yZS5HYW1lSWQSDgoGdGFy",
-            "Z2V0GAMgASgJEhAKCHJvdXRlX2lkGAQgASgJIu4BChpQcmVwYXJlUm9vbUNv",
-            "bm5lY3Rpb25SZXBseRINCgVlcnJvchgBIAEoBRIoCgdnYW1lX2lkGAIgASgO",
-            "MhcuZ2FtZXNlcnZlci5jb3JlLkdhbWVJZBIOCgZ0YXJnZXQYAyABKAkSEAoI",
-            "cm91dGVfaWQYBCABKAkSQQoPZGlyZWN0X3Byb3RvY29sGAUgASgOMiguZ2Ft",
-            "ZXNlcnZlci5jb3JlLkRpcmVjdFRyYW5zcG9ydFByb3RvY29sEgwKBGhvc3QY",
-            "BiABKAkSDAoEcG9ydBgHIAEoBRIWCg5jb25uZWN0X3RpY2tldBgIIAEoCSJS",
-            "Cg5Gb3J3YXJkUmVxdWVzdBINCgV0b2tlbhgBIAEoCRIxCghlbnZlbG9wZRgC",
-            "IAEoCzIfLmdhbWVzZXJ2ZXIuY29yZS5DbGllbnRFbnZlbG9wZSIrCgxGb3J3",
-            "YXJkUmVwbHkSDQoFZXJyb3IYASABKAUSDAoEZGF0YRgCIAEoDCKIAQoLR2Ft",
-            "ZVJlcXVlc3QSCwoDdWlkGAEgASgDEhIKCnNlc3Npb25faWQYAiABKAkSKAoH",
-            "Z2FtZV9pZBgDIAEoDjIXLmdhbWVzZXJ2ZXIuY29yZS5HYW1lSWQSDgoGdGFy",
-            "Z2V0GAQgASgJEhAKCHJvdXRlX2lkGAUgASgJEgwKBGRhdGEYBiABKAwiKwoM",
-            "R2FtZVJlc3BvbnNlEg0KBWVycm9yGAEgASgFEgwKBGRhdGEYAiABKAwqigEK",
-            "F0RpcmVjdFRyYW5zcG9ydFByb3RvY29sEikKJURJUkVDVF9UUkFOU1BPUlRf",
-            "UFJPVE9DT0xfVU5TUEVDSUZJRUQQABIhCh1ESVJFQ1RfVFJBTlNQT1JUX1BS",
-            "T1RPQ09MX1RDUBABEiEKHURJUkVDVF9UUkFOU1BPUlRfUFJPVE9DT0xfS0NQ",
-            "EAIqNgoGR2FtZUlkEhcKE0dBTUVfSURfVU5TUEVDSUZJRUQQABITCg9HQU1F",
-            "X0lEX0dBTUUwMDEQATLjAwoNQ2VudGVyU2VydmljZRJACgRBdXRoEhwuZ2Ft",
-            "ZXNlcnZlci5jb3JlLkF1dGhSZXF1ZXN0GhouZ2FtZXNlcnZlci5jb3JlLkF1",
-            "dGhSZXBseRJbCg1WYWxpZGF0ZVRva2VuEiUuZ2FtZXNlcnZlci5jb3JlLlZh",
-            "bGlkYXRlVG9rZW5SZXF1ZXN0GiMuZ2FtZXNlcnZlci5jb3JlLlZhbGlkYXRl",
-            "VG9rZW5SZXBseRJhCg9SZWdpc3RlclNlcnZpY2USJy5nYW1lc2VydmVyLmNv",
-            "cmUuUmVnaXN0ZXJTZXJ2aWNlUmVxdWVzdBolLmdhbWVzZXJ2ZXIuY29yZS5S",
-            "ZWdpc3RlclNlcnZpY2VSZXBseRJeCg5SZXNvbHZlU2VydmljZRImLmdhbWVz",
-            "ZXJ2ZXIuY29yZS5SZXNvbHZlU2VydmljZVJlcXVlc3QaJC5nYW1lc2VydmVy",
-            "LmNvcmUuUmVzb2x2ZVNlcnZpY2VSZXBseRJwChRMaXN0U2VydmljZUVuZHBv",
-            "aW50cxIsLmdhbWVzZXJ2ZXIuY29yZS5MaXN0U2VydmljZUVuZHBvaW50c1Jl",
-            "cXVlc3QaKi5nYW1lc2VydmVyLmNvcmUuTGlzdFNlcnZpY2VFbmRwb2ludHNS",
-            "ZXBseTL1AgoLR2F0ZVNlcnZpY2USQwoFTG9naW4SHS5nYW1lc2VydmVyLmNv",
-            "cmUuTG9naW5SZXF1ZXN0GhsuZ2FtZXNlcnZlci5jb3JlLkxvZ2luUmVwbHkS",
-            "YQoPTGlzdEdhbWVXb3JrZXJzEicuZ2FtZXNlcnZlci5jb3JlLkxpc3RHYW1l",
-            "V29ya2Vyc1JlcXVlc3QaJS5nYW1lc2VydmVyLmNvcmUuTGlzdEdhbWVXb3Jr",
-            "ZXJzUmVwbHkScwoVUHJlcGFyZVJvb21Db25uZWN0aW9uEi0uZ2FtZXNlcnZl",
-            "ci5jb3JlLlByZXBhcmVSb29tQ29ubmVjdGlvblJlcXVlc3QaKy5nYW1lc2Vy",
-            "dmVyLmNvcmUuUHJlcGFyZVJvb21Db25uZWN0aW9uUmVwbHkSSQoHRm9yd2Fy",
-            "ZBIfLmdhbWVzZXJ2ZXIuY29yZS5Gb3J3YXJkUmVxdWVzdBodLmdhbWVzZXJ2",
-            "ZXIuY29yZS5Gb3J3YXJkUmVwbHkyVAoLR2FtZUluZ3Jlc3MSRQoGSGFuZGxl",
-            "EhwuZ2FtZXNlcnZlci5jb3JlLkdhbWVSZXF1ZXN0Gh0uZ2FtZXNlcnZlci5j",
-            "b3JlLkdhbWVSZXNwb25zZUIbqgIYR2FtZVNlcnZlci5Db3JlLlByb3RvY29s",
-            "YgZwcm90bzM="));
+            "Cgxjb21tb24ucHJvdG8SD2dhbWVzZXJ2ZXIuY29yZSLNAQoPU2VydmljZUVu",
+            "ZHBvaW50EiwKCWdhbWVfdHlwZRgBIAEoDjIZLmdhbWVzZXJ2ZXIuY29yZS5H",
+            "YW1lVHlwZRIOCgZ0YXJnZXQYAiABKAkSEAoIcm91dGVfaWQYAyABKAkSDwoH",
+            "YWRkcmVzcxgEIAEoCRJBCg9kaXJlY3RfcHJvdG9jb2wYBSABKA4yKC5nYW1l",
+            "c2VydmVyLmNvcmUuRGlyZWN0VHJhbnNwb3J0UHJvdG9jb2wSFgoOZGlyZWN0",
+            "X2FkZHJlc3MYBiABKAkiYAoLQXV0aFJlcXVlc3QSEgoKbG9naW5fdHlwZRgB",
+            "IAEoCRISCgpjcmVkZW50aWFsGAIgASgJEhEKCWRldmljZV9pZBgDIAEoCRIW",
+            "Cg5jbGllbnRfdmVyc2lvbhgEIAEoCSI2CglBdXRoUmVwbHkSDQoFZXJyb3IY",
+            "ASABKAUSDQoFdG9rZW4YAiABKAkSCwoDdWlkGAMgASgDIiUKFFZhbGlkYXRl",
+            "VG9rZW5SZXF1ZXN0Eg0KBXRva2VuGAEgASgJIjAKElZhbGlkYXRlVG9rZW5S",
+            "ZXBseRINCgVlcnJvchgBIAEoBRILCgN1aWQYAiABKAMiTAoWUmVnaXN0ZXJT",
+            "ZXJ2aWNlUmVxdWVzdBIyCghlbmRwb2ludBgBIAEoCzIgLmdhbWVzZXJ2ZXIu",
+            "Y29yZS5TZXJ2aWNlRW5kcG9pbnQiJQoUUmVnaXN0ZXJTZXJ2aWNlUmVwbHkS",
+            "DQoFZXJyb3IYASABKAUiZwoVUmVzb2x2ZVNlcnZpY2VSZXF1ZXN0EiwKCWdh",
+            "bWVfdHlwZRgBIAEoDjIZLmdhbWVzZXJ2ZXIuY29yZS5HYW1lVHlwZRIOCgZ0",
+            "YXJnZXQYAiABKAkSEAoIcm91dGVfaWQYAyABKAkiWAoTUmVzb2x2ZVNlcnZp",
+            "Y2VSZXBseRINCgVlcnJvchgBIAEoBRIyCghlbmRwb2ludBgCIAEoCzIgLmdh",
+            "bWVzZXJ2ZXIuY29yZS5TZXJ2aWNlRW5kcG9pbnQiLQobTGlzdFNlcnZpY2VF",
+            "bmRwb2ludHNSZXF1ZXN0Eg4KBnRhcmdldBgBIAEoCSJfChlMaXN0U2Vydmlj",
+            "ZUVuZHBvaW50c1JlcGx5Eg0KBWVycm9yGAEgASgFEjMKCWVuZHBvaW50cxgC",
+            "IAMoCzIgLmdhbWVzZXJ2ZXIuY29yZS5TZXJ2aWNlRW5kcG9pbnQibgoOQ2xp",
+            "ZW50RW52ZWxvcGUSLAoJZ2FtZV90eXBlGAEgASgOMhkuZ2FtZXNlcnZlci5j",
+            "b3JlLkdhbWVUeXBlEg4KBnRhcmdldBgCIAEoCRIQCghyb3V0ZV9pZBgDIAEo",
+            "CRIMCgRkYXRhGAQgASgMImEKDExvZ2luUmVxdWVzdBISCgpsb2dpbl90eXBl",
+            "GAEgASgJEhIKCmNyZWRlbnRpYWwYAiABKAkSEQoJZGV2aWNlX2lkGAMgASgJ",
+            "EhYKDmNsaWVudF92ZXJzaW9uGAQgASgJIjcKCkxvZ2luUmVwbHkSDQoFZXJy",
+            "b3IYASABKAUSDQoFdG9rZW4YAiABKAkSCwoDdWlkGAMgASgDIjcKFkxpc3RH",
+            "YW1lV29ya2Vyc1JlcXVlc3QSDQoFdG9rZW4YASABKAkSDgoGdGFyZ2V0GAIg",
+            "ASgJImAKDkdhbWVXb3JrZXJJbmZvEiwKCWdhbWVfdHlwZRgBIAEoDjIZLmdh",
+            "bWVzZXJ2ZXIuY29yZS5HYW1lVHlwZRIOCgZ0YXJnZXQYAiABKAkSEAoIcm91",
+            "dGVfaWQYAyABKAkiVwoUTGlzdEdhbWVXb3JrZXJzUmVwbHkSDQoFZXJyb3IY",
+            "ASABKAUSMAoHd29ya2VycxgCIAMoCzIfLmdhbWVzZXJ2ZXIuY29yZS5HYW1l",
+            "V29ya2VySW5mbyJ9ChxQcmVwYXJlUm9vbUNvbm5lY3Rpb25SZXF1ZXN0Eg0K",
+            "BXRva2VuGAEgASgJEiwKCWdhbWVfdHlwZRgCIAEoDjIZLmdhbWVzZXJ2ZXIu",
+            "Y29yZS5HYW1lVHlwZRIOCgZ0YXJnZXQYAyABKAkSEAoIcm91dGVfaWQYBCAB",
+            "KAki8gEKGlByZXBhcmVSb29tQ29ubmVjdGlvblJlcGx5Eg0KBWVycm9yGAEg",
+            "ASgFEiwKCWdhbWVfdHlwZRgCIAEoDjIZLmdhbWVzZXJ2ZXIuY29yZS5HYW1l",
+            "VHlwZRIOCgZ0YXJnZXQYAyABKAkSEAoIcm91dGVfaWQYBCABKAkSQQoPZGly",
+            "ZWN0X3Byb3RvY29sGAUgASgOMiguZ2FtZXNlcnZlci5jb3JlLkRpcmVjdFRy",
+            "YW5zcG9ydFByb3RvY29sEgwKBGhvc3QYBiABKAkSDAoEcG9ydBgHIAEoBRIW",
+            "Cg5jb25uZWN0X3RpY2tldBgIIAEoCSJSCg5Gb3J3YXJkUmVxdWVzdBINCgV0",
+            "b2tlbhgBIAEoCRIxCghlbnZlbG9wZRgCIAEoCzIfLmdhbWVzZXJ2ZXIuY29y",
+            "ZS5DbGllbnRFbnZlbG9wZSIrCgxGb3J3YXJkUmVwbHkSDQoFZXJyb3IYASAB",
+            "KAUSDAoEZGF0YRgCIAEoDCKMAQoLR2FtZVJlcXVlc3QSCwoDdWlkGAEgASgD",
+            "EhIKCnNlc3Npb25faWQYAiABKAkSLAoJZ2FtZV90eXBlGAMgASgOMhkuZ2Ft",
+            "ZXNlcnZlci5jb3JlLkdhbWVUeXBlEg4KBnRhcmdldBgEIAEoCRIQCghyb3V0",
+            "ZV9pZBgFIAEoCRIMCgRkYXRhGAYgASgMIisKDEdhbWVSZXNwb25zZRINCgVl",
+            "cnJvchgBIAEoBRIMCgRkYXRhGAIgASgMKooBChdEaXJlY3RUcmFuc3BvcnRQ",
+            "cm90b2NvbBIpCiVESVJFQ1RfVFJBTlNQT1JUX1BST1RPQ09MX1VOU1BFQ0lG",
+            "SUVEEAASIQodRElSRUNUX1RSQU5TUE9SVF9QUk9UT0NPTF9UQ1AQARIhCh1E",
+            "SVJFQ1RfVFJBTlNQT1JUX1BST1RPQ09MX0tDUBACKjwKCEdhbWVUeXBlEhkK",
+            "FUdBTUVfVFlQRV9VTlNQRUNJRklFRBAAEhUKEUdBTUVfVFlQRV9HQU1FMDAx",
+            "EAEy4wMKDUNlbnRlclNlcnZpY2USQAoEQXV0aBIcLmdhbWVzZXJ2ZXIuY29y",
+            "ZS5BdXRoUmVxdWVzdBoaLmdhbWVzZXJ2ZXIuY29yZS5BdXRoUmVwbHkSWwoN",
+            "VmFsaWRhdGVUb2tlbhIlLmdhbWVzZXJ2ZXIuY29yZS5WYWxpZGF0ZVRva2Vu",
+            "UmVxdWVzdBojLmdhbWVzZXJ2ZXIuY29yZS5WYWxpZGF0ZVRva2VuUmVwbHkS",
+            "YQoPUmVnaXN0ZXJTZXJ2aWNlEicuZ2FtZXNlcnZlci5jb3JlLlJlZ2lzdGVy",
+            "U2VydmljZVJlcXVlc3QaJS5nYW1lc2VydmVyLmNvcmUuUmVnaXN0ZXJTZXJ2",
+            "aWNlUmVwbHkSXgoOUmVzb2x2ZVNlcnZpY2USJi5nYW1lc2VydmVyLmNvcmUu",
+            "UmVzb2x2ZVNlcnZpY2VSZXF1ZXN0GiQuZ2FtZXNlcnZlci5jb3JlLlJlc29s",
+            "dmVTZXJ2aWNlUmVwbHkScAoUTGlzdFNlcnZpY2VFbmRwb2ludHMSLC5nYW1l",
+            "c2VydmVyLmNvcmUuTGlzdFNlcnZpY2VFbmRwb2ludHNSZXF1ZXN0GiouZ2Ft",
+            "ZXNlcnZlci5jb3JlLkxpc3RTZXJ2aWNlRW5kcG9pbnRzUmVwbHky9QIKC0dh",
+            "dGVTZXJ2aWNlEkMKBUxvZ2luEh0uZ2FtZXNlcnZlci5jb3JlLkxvZ2luUmVx",
+            "dWVzdBobLmdhbWVzZXJ2ZXIuY29yZS5Mb2dpblJlcGx5EmEKD0xpc3RHYW1l",
+            "V29ya2VycxInLmdhbWVzZXJ2ZXIuY29yZS5MaXN0R2FtZVdvcmtlcnNSZXF1",
+            "ZXN0GiUuZ2FtZXNlcnZlci5jb3JlLkxpc3RHYW1lV29ya2Vyc1JlcGx5EnMK",
+            "FVByZXBhcmVSb29tQ29ubmVjdGlvbhItLmdhbWVzZXJ2ZXIuY29yZS5QcmVw",
+            "YXJlUm9vbUNvbm5lY3Rpb25SZXF1ZXN0GisuZ2FtZXNlcnZlci5jb3JlLlBy",
+            "ZXBhcmVSb29tQ29ubmVjdGlvblJlcGx5EkkKB0ZvcndhcmQSHy5nYW1lc2Vy",
+            "dmVyLmNvcmUuRm9yd2FyZFJlcXVlc3QaHS5nYW1lc2VydmVyLmNvcmUuRm9y",
+            "d2FyZFJlcGx5MlQKC0dhbWVJbmdyZXNzEkUKBkhhbmRsZRIcLmdhbWVzZXJ2",
+            "ZXIuY29yZS5HYW1lUmVxdWVzdBodLmdhbWVzZXJ2ZXIuY29yZS5HYW1lUmVz",
+            "cG9uc2VCG6oCGEdhbWVTZXJ2ZXIuQ29yZS5Qcm90b2NvbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::GameServer.Core.Protocol.DirectTransportProtocol), typeof(global::GameServer.Core.Protocol.GameId), }, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ServiceEndpoint), global::GameServer.Core.Protocol.ServiceEndpoint.Parser, new[]{ "GameId", "Target", "RouteId", "Address", "DirectProtocol", "DirectAddress" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::GameServer.Core.Protocol.DirectTransportProtocol), typeof(global::GameServer.Core.Protocol.GameType), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ServiceEndpoint), global::GameServer.Core.Protocol.ServiceEndpoint.Parser, new[]{ "GameType", "Target", "RouteId", "Address", "DirectProtocol", "DirectAddress" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.AuthRequest), global::GameServer.Core.Protocol.AuthRequest.Parser, new[]{ "LoginType", "Credential", "DeviceId", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.AuthReply), global::GameServer.Core.Protocol.AuthReply.Parser, new[]{ "Error", "Token", "Uid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ValidateTokenRequest), global::GameServer.Core.Protocol.ValidateTokenRequest.Parser, new[]{ "Token" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ValidateTokenReply), global::GameServer.Core.Protocol.ValidateTokenReply.Parser, new[]{ "Error", "Uid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.RegisterServiceRequest), global::GameServer.Core.Protocol.RegisterServiceRequest.Parser, new[]{ "Endpoint" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.RegisterServiceReply), global::GameServer.Core.Protocol.RegisterServiceReply.Parser, new[]{ "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ResolveServiceRequest), global::GameServer.Core.Protocol.ResolveServiceRequest.Parser, new[]{ "GameId", "Target", "RouteId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ResolveServiceRequest), global::GameServer.Core.Protocol.ResolveServiceRequest.Parser, new[]{ "GameType", "Target", "RouteId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ResolveServiceReply), global::GameServer.Core.Protocol.ResolveServiceReply.Parser, new[]{ "Error", "Endpoint" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ListServiceEndpointsRequest), global::GameServer.Core.Protocol.ListServiceEndpointsRequest.Parser, new[]{ "Target" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ListServiceEndpointsReply), global::GameServer.Core.Protocol.ListServiceEndpointsReply.Parser, new[]{ "Error", "Endpoints" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ClientEnvelope), global::GameServer.Core.Protocol.ClientEnvelope.Parser, new[]{ "GameId", "Target", "RouteId", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ClientEnvelope), global::GameServer.Core.Protocol.ClientEnvelope.Parser, new[]{ "GameType", "Target", "RouteId", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.LoginRequest), global::GameServer.Core.Protocol.LoginRequest.Parser, new[]{ "LoginType", "Credential", "DeviceId", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.LoginReply), global::GameServer.Core.Protocol.LoginReply.Parser, new[]{ "Error", "Token", "Uid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ListGameWorkersRequest), global::GameServer.Core.Protocol.ListGameWorkersRequest.Parser, new[]{ "Token", "Target" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameWorkerInfo), global::GameServer.Core.Protocol.GameWorkerInfo.Parser, new[]{ "GameId", "Target", "RouteId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameWorkerInfo), global::GameServer.Core.Protocol.GameWorkerInfo.Parser, new[]{ "GameType", "Target", "RouteId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ListGameWorkersReply), global::GameServer.Core.Protocol.ListGameWorkersReply.Parser, new[]{ "Error", "Workers" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionRequest), global::GameServer.Core.Protocol.PrepareRoomConnectionRequest.Parser, new[]{ "Token", "GameId", "Target", "RouteId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionReply), global::GameServer.Core.Protocol.PrepareRoomConnectionReply.Parser, new[]{ "Error", "GameId", "Target", "RouteId", "DirectProtocol", "Host", "Port", "ConnectTicket" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionRequest), global::GameServer.Core.Protocol.PrepareRoomConnectionRequest.Parser, new[]{ "Token", "GameType", "Target", "RouteId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.PrepareRoomConnectionReply), global::GameServer.Core.Protocol.PrepareRoomConnectionReply.Parser, new[]{ "Error", "GameType", "Target", "RouteId", "DirectProtocol", "Host", "Port", "ConnectTicket" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ForwardRequest), global::GameServer.Core.Protocol.ForwardRequest.Parser, new[]{ "Token", "Envelope" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.ForwardReply), global::GameServer.Core.Protocol.ForwardReply.Parser, new[]{ "Error", "Data" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameRequest), global::GameServer.Core.Protocol.GameRequest.Parser, new[]{ "Uid", "SessionId", "GameId", "Target", "RouteId", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameRequest), global::GameServer.Core.Protocol.GameRequest.Parser, new[]{ "Uid", "SessionId", "GameType", "Target", "RouteId", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GameServer.Core.Protocol.GameResponse), global::GameServer.Core.Protocol.GameResponse.Parser, new[]{ "Error", "Data" }, null, null, null, null)
           }));
     }
@@ -136,9 +136,9 @@ namespace GameServer.Core.Protocol {
     [pbr::OriginalName("DIRECT_TRANSPORT_PROTOCOL_KCP")] Kcp = 2,
   }
 
-  public enum GameId {
-    [pbr::OriginalName("GAME_ID_UNSPECIFIED")] Unspecified = 0,
-    [pbr::OriginalName("GAME_ID_GAME001")] Game001 = 1,
+  public enum GameType {
+    [pbr::OriginalName("GAME_TYPE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("GAME_TYPE_GAME001")] Game001 = 1,
   }
 
   #endregion
@@ -173,7 +173,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ServiceEndpoint(ServiceEndpoint other) : this() {
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       address_ = other.address_;
@@ -187,14 +187,14 @@ namespace GameServer.Core.Protocol {
       return new ServiceEndpoint(this);
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 1;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 1;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -266,7 +266,7 @@ namespace GameServer.Core.Protocol {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       if (Address != other.Address) return false;
@@ -278,7 +278,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (Address.Length != 0) hash ^= Address.GetHashCode();
@@ -300,9 +300,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -333,9 +333,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -366,8 +366,8 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -395,8 +395,8 @@ namespace GameServer.Core.Protocol {
       if (other == null) {
         return;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -428,7 +428,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -466,7 +466,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -1782,7 +1782,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ResolveServiceRequest(ResolveServiceRequest other) : this() {
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -1793,14 +1793,14 @@ namespace GameServer.Core.Protocol {
       return new ResolveServiceRequest(this);
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 1;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 1;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -1839,7 +1839,7 @@ namespace GameServer.Core.Protocol {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -1848,7 +1848,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (_unknownFields != null) {
@@ -1867,9 +1867,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -1888,9 +1888,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -1909,8 +1909,8 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -1929,8 +1929,8 @@ namespace GameServer.Core.Protocol {
       if (other == null) {
         return;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -1953,7 +1953,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -1979,7 +1979,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -2612,7 +2612,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ClientEnvelope(ClientEnvelope other) : this() {
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       data_ = other.data_;
@@ -2624,14 +2624,14 @@ namespace GameServer.Core.Protocol {
       return new ClientEnvelope(this);
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 1;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 1;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -2681,7 +2681,7 @@ namespace GameServer.Core.Protocol {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       if (Data != other.Data) return false;
@@ -2691,7 +2691,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (Data.Length != 0) hash ^= Data.GetHashCode();
@@ -2711,9 +2711,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -2736,9 +2736,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -2761,8 +2761,8 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -2784,8 +2784,8 @@ namespace GameServer.Core.Protocol {
       if (other == null) {
         return;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -2811,7 +2811,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -2841,7 +2841,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -3624,7 +3624,7 @@ namespace GameServer.Core.Protocol {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public GameWorkerInfo(GameWorkerInfo other) : this() {
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -3635,14 +3635,14 @@ namespace GameServer.Core.Protocol {
       return new GameWorkerInfo(this);
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 1;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 1;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -3681,7 +3681,7 @@ namespace GameServer.Core.Protocol {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -3690,7 +3690,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (_unknownFields != null) {
@@ -3709,9 +3709,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -3730,9 +3730,9 @@ namespace GameServer.Core.Protocol {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(18);
@@ -3751,8 +3751,8 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -3771,8 +3771,8 @@ namespace GameServer.Core.Protocol {
       if (other == null) {
         return;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -3795,7 +3795,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -3821,7 +3821,7 @@ namespace GameServer.Core.Protocol {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -4066,7 +4066,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public PrepareRoomConnectionRequest(PrepareRoomConnectionRequest other) : this() {
       token_ = other.token_;
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -4088,14 +4088,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 2;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 2;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -4135,7 +4135,7 @@ namespace GameServer.Core.Protocol {
         return true;
       }
       if (Token != other.Token) return false;
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -4145,7 +4145,7 @@ namespace GameServer.Core.Protocol {
     public override int GetHashCode() {
       int hash = 1;
       if (Token.Length != 0) hash ^= Token.GetHashCode();
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (_unknownFields != null) {
@@ -4168,9 +4168,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(10);
         output.WriteString(Token);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(16);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(26);
@@ -4193,9 +4193,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(10);
         output.WriteString(Token);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(16);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(26);
@@ -4217,8 +4217,8 @@ namespace GameServer.Core.Protocol {
       if (Token.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Token);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -4240,8 +4240,8 @@ namespace GameServer.Core.Protocol {
       if (other.Token.Length != 0) {
         Token = other.Token;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -4268,7 +4268,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 16: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 26: {
@@ -4298,7 +4298,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 16: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 26: {
@@ -4346,7 +4346,7 @@ namespace GameServer.Core.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public PrepareRoomConnectionReply(PrepareRoomConnectionReply other) : this() {
       error_ = other.error_;
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       directProtocol_ = other.directProtocol_;
@@ -4372,14 +4372,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 2;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 2;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -4463,7 +4463,7 @@ namespace GameServer.Core.Protocol {
         return true;
       }
       if (Error != other.Error) return false;
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       if (DirectProtocol != other.DirectProtocol) return false;
@@ -4477,7 +4477,7 @@ namespace GameServer.Core.Protocol {
     public override int GetHashCode() {
       int hash = 1;
       if (Error != 0) hash ^= Error.GetHashCode();
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (DirectProtocol != global::GameServer.Core.Protocol.DirectTransportProtocol.Unspecified) hash ^= DirectProtocol.GetHashCode();
@@ -4504,9 +4504,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(16);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(26);
@@ -4545,9 +4545,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(8);
         output.WriteInt32(Error);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(16);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(26);
@@ -4585,8 +4585,8 @@ namespace GameServer.Core.Protocol {
       if (Error != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Error);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -4620,8 +4620,8 @@ namespace GameServer.Core.Protocol {
       if (other.Error != 0) {
         Error = other.Error;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -4660,7 +4660,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 16: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 26: {
@@ -4706,7 +4706,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 16: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 26: {
@@ -5196,7 +5196,7 @@ namespace GameServer.Core.Protocol {
     public GameRequest(GameRequest other) : this() {
       uid_ = other.uid_;
       sessionId_ = other.sessionId_;
-      gameId_ = other.gameId_;
+      gameType_ = other.gameType_;
       target_ = other.target_;
       routeId_ = other.routeId_;
       data_ = other.data_;
@@ -5230,14 +5230,14 @@ namespace GameServer.Core.Protocol {
       }
     }
 
-    /// <summary>Field number for the "game_id" field.</summary>
-    public const int GameIdFieldNumber = 3;
-    private global::GameServer.Core.Protocol.GameId gameId_ = global::GameServer.Core.Protocol.GameId.Unspecified;
+    /// <summary>Field number for the "game_type" field.</summary>
+    public const int GameTypeFieldNumber = 3;
+    private global::GameServer.Core.Protocol.GameType gameType_ = global::GameServer.Core.Protocol.GameType.Unspecified;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::GameServer.Core.Protocol.GameId GameId {
-      get { return gameId_; }
+    public global::GameServer.Core.Protocol.GameType GameType {
+      get { return gameType_; }
       set {
-        gameId_ = value;
+        gameType_ = value;
       }
     }
 
@@ -5289,7 +5289,7 @@ namespace GameServer.Core.Protocol {
       }
       if (Uid != other.Uid) return false;
       if (SessionId != other.SessionId) return false;
-      if (GameId != other.GameId) return false;
+      if (GameType != other.GameType) return false;
       if (Target != other.Target) return false;
       if (RouteId != other.RouteId) return false;
       if (Data != other.Data) return false;
@@ -5301,7 +5301,7 @@ namespace GameServer.Core.Protocol {
       int hash = 1;
       if (Uid != 0L) hash ^= Uid.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) hash ^= GameId.GetHashCode();
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) hash ^= GameType.GetHashCode();
       if (Target.Length != 0) hash ^= Target.GetHashCode();
       if (RouteId.Length != 0) hash ^= RouteId.GetHashCode();
       if (Data.Length != 0) hash ^= Data.GetHashCode();
@@ -5329,9 +5329,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(18);
         output.WriteString(SessionId);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(24);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(34);
@@ -5362,9 +5362,9 @@ namespace GameServer.Core.Protocol {
         output.WriteRawTag(18);
         output.WriteString(SessionId);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
         output.WriteRawTag(24);
-        output.WriteEnum((int) GameId);
+        output.WriteEnum((int) GameType);
       }
       if (Target.Length != 0) {
         output.WriteRawTag(34);
@@ -5393,8 +5393,8 @@ namespace GameServer.Core.Protocol {
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
       }
-      if (GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameId);
+      if (GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) GameType);
       }
       if (Target.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Target);
@@ -5422,8 +5422,8 @@ namespace GameServer.Core.Protocol {
       if (other.SessionId.Length != 0) {
         SessionId = other.SessionId;
       }
-      if (other.GameId != global::GameServer.Core.Protocol.GameId.Unspecified) {
-        GameId = other.GameId;
+      if (other.GameType != global::GameServer.Core.Protocol.GameType.Unspecified) {
+        GameType = other.GameType;
       }
       if (other.Target.Length != 0) {
         Target = other.Target;
@@ -5457,7 +5457,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 24: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 34: {
@@ -5495,7 +5495,7 @@ namespace GameServer.Core.Protocol {
             break;
           }
           case 24: {
-            GameId = (global::GameServer.Core.Protocol.GameId) input.ReadEnum();
+            GameType = (global::GameServer.Core.Protocol.GameType) input.ReadEnum();
             break;
           }
           case 34: {

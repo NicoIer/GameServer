@@ -73,7 +73,7 @@ public static class RoomServerStartupRunner
         {
             Endpoint = new ServiceEndpoint
             {
-                GameId = config.GameId,
+                GameType = config.GameType,
                 Target = config.Target,
                 RouteId = config.RouteId,
                 Address = config.GrpcAddress,

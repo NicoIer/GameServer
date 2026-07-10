@@ -1,7 +1,7 @@
 using GameServer.Center.Login;
 using GameServer.Core.Protocol;
 using Grpc.Core;
-using ProtocolGameId = GameServer.Core.Protocol.GameId;
+using ProtocolGameType = GameServer.Core.Protocol.GameType;
 
 namespace GameServer.Center;
 
@@ -51,7 +51,7 @@ public sealed class CenterServiceImpl : CenterService.CenterServiceBase
     public override Task<RegisterServiceReply> RegisterService(RegisterServiceRequest request, ServerCallContext context)
     {
         if (request.Endpoint == null ||
-            request.Endpoint.GameId == ProtocolGameId.Unspecified ||
+            request.Endpoint.GameType == ProtocolGameType.Unspecified ||
             request.Endpoint.Target.Length == 0 ||
             request.Endpoint.Address.Length == 0)
         {
@@ -64,12 +64,12 @@ public sealed class CenterServiceImpl : CenterService.CenterServiceBase
 
     public override Task<ResolveServiceReply> ResolveService(ResolveServiceRequest request, ServerCallContext context)
     {
-        if (request.GameId == ProtocolGameId.Unspecified || request.Target.Length == 0)
+        if (request.GameType == ProtocolGameType.Unspecified || request.Target.Length == 0)
         {
             return Task.FromResult(new ResolveServiceReply { Error = ErrorCode.InvalidRequest });
         }
 
-        ServiceEndpoint? endpoint = _registry.Resolve(request.GameId, request.Target, request.RouteId);
+        ServiceEndpoint? endpoint = _registry.Resolve(request.GameType, request.Target, request.RouteId);
         if (endpoint == null)
         {
             return Task.FromResult(new ResolveServiceReply { Error = ErrorCode.RouteNotFound });
