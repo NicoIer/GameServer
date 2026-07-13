@@ -13,8 +13,9 @@ public sealed class RoomSyncSystemTests
     [Test]
     public void RoomTickSendsOnlyChangesAndKeepsFullAndDiffRevisionsContinuous()
     {
-        var state = new Game001RoomState("sync-test");
         var pushHub = new RoomPushHub();
+        var connections = new RoomConnectionRegistry();
+        var state = new Game001RoomState("sync-test", connections, pushHub);
         var syncSystem = new RoomSyncSystem(pushHub, state);
         RoomFullStatePush fullState = default;
         RoomDiffStatePush diffState = default;

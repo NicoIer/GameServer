@@ -5,8 +5,10 @@ CSharpSourceCatalog coreSources = CSharpSourceCatalog.Load(context.CoreDirectory
 ICodeGenerationStep[] steps =
 {
     new EcsRegistrationGenerationStep(),
+    new RoomRpcGenerationStep(),
     new RoomMessageRegistrationGenerationStep(),
     new RoomHandlerGenerationStep(),
+    new RoomRpcHandlerGenerationStep(),
 };
 
 foreach (ICodeGenerationStep step in steps)

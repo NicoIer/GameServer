@@ -24,6 +24,18 @@ public sealed class RoomPushHub
         _senders.TryRemove(connectionId, out _);
     }
 
+    public void Send(int connectionId, RoomPushHead push)
+    {
+        if (!_senders.TryGetValue(connectionId, out Action<RoomPushHead>? sender))
+        {
+            Interlocked.Increment(ref _droppedCount);
+            return;
+        }
+
+        sender(push);
+        Interlocked.Increment(ref _sentCount);
+    }
+
     public void Send<TPush>(int connectionId, TPush push)
         where TPush : IRoomPush
     {

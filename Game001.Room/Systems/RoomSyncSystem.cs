@@ -29,6 +29,7 @@ public sealed class RoomSyncSystem : ISystem
     {
         FlushDiff();
         FlushFullState();
+        _state.RpcQueue.Flush();
     }
 
     public void OnDestroy()

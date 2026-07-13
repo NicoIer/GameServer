@@ -23,6 +23,8 @@ public sealed class Game001RoomState
     public Dictionary<long, long> DisconnectedPlayerTimesMs { get; } = new();
     public HashSet<int> PendingFullStateConnections { get; } = new();
     public EcsDirtyTracker DirtyTracker { get; }
+    public Game001RoomRpcQueue RpcQueue { get; }
+    public Game001ClientRpcs ClientRpcs { get; }
     public RoomLifecycleState LifecycleState => (RoomLifecycleState)Volatile.Read(ref _lifecycleState);
     public int PlayerCount => Volatile.Read(ref _playerCount);
     public long EmptySinceTimeMs { get; private set; }
@@ -30,11 +32,16 @@ public sealed class Game001RoomState
     public long LastUpdateTimeMs { get; private set; }
     public long WorldRevision { get; set; }
 
-    public Game001RoomState(string roomId)
+    public Game001RoomState(
+        string roomId,
+        RoomConnectionRegistry connections,
+        RoomPushHub pushHub)
     {
         RoomId = roomId;
         DirtyTracker = new EcsDirtyTracker(Entities);
         EcsSystems = new SystemRoot(Entities, $"{roomId}.ecs");
+        RpcQueue = new Game001RoomRpcQueue(this, connections, pushHub);
+        ClientRpcs = new Game001ClientRpcs(RpcQueue);
     }
 
     public void SetFrame(long timeNowMs, int frame)

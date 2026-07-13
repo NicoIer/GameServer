@@ -26,8 +26,12 @@ public sealed class CodeGenerationContext
     public string RoomDirectory { get; }
     public string RoomHandlersDirectory { get; }
     public string RoomGeneratedDirectory { get; }
+    public string UnityClientRoot { get; }
+    public string UnityClientGameDirectory { get; }
+    public string UnityClientGeneratedDirectory { get; }
+    public string UnityClientRpcHandlersDirectory { get; }
 
-    private CodeGenerationContext(string repositoryRoot)
+    private CodeGenerationContext(string repositoryRoot, string unityClientRoot)
     {
         RepositoryRoot = repositoryRoot;
         CoreDirectory = Path.Combine(repositoryRoot, "Game001.Core");
@@ -36,23 +40,61 @@ public sealed class CodeGenerationContext
         RoomDirectory = Path.Combine(repositoryRoot, "Game001.Room");
         RoomHandlersDirectory = Path.Combine(RoomDirectory, "Handlers");
         RoomGeneratedDirectory = Path.Combine(RoomDirectory, "Generated");
+        UnityClientRoot = unityClientRoot;
+        UnityClientGameDirectory = Path.Combine(unityClientRoot, "Assets", "Games", "Game001");
+        UnityClientGeneratedDirectory = Path.Combine(UnityClientGameDirectory, "Generated");
+        UnityClientRpcHandlersDirectory = Path.Combine(
+            UnityClientGameDirectory,
+            "RpcHandlers");
     }
 
     public static CodeGenerationContext Create(IReadOnlyList<string> args)
     {
-        string startPath = args.Count > 0 ? args[0] : Directory.GetCurrentDirectory();
+        string startPath = GetStartPath(args);
         DirectoryInfo? directory = new DirectoryInfo(Path.GetFullPath(startPath));
         while (directory != null)
         {
             if (File.Exists(Path.Combine(directory.FullName, "GameServer.slnx")))
             {
-                return new CodeGenerationContext(directory.FullName);
+                string unityClientRoot = GetOption(args, "--unity-root") ??
+                                         Path.Combine(directory.Parent!.FullName, "Game001");
+                return new CodeGenerationContext(
+                    directory.FullName,
+                    Path.GetFullPath(unityClientRoot));
             }
 
             directory = directory.Parent;
         }
 
         throw new DirectoryNotFoundException($"cannot find GameServer.slnx from {startPath}");
+    }
+
+    private static string GetStartPath(IReadOnlyList<string> args)
+    {
+        for (int i = 0; i < args.Count; i++)
+        {
+            if (!args[i].StartsWith("--", StringComparison.Ordinal))
+            {
+                return args[i];
+            }
+
+            i++;
+        }
+
+        return Directory.GetCurrentDirectory();
+    }
+
+    private static string? GetOption(IReadOnlyList<string> args, string option)
+    {
+        for (int i = 0; i < args.Count - 1; i++)
+        {
+            if (args[i] == option)
+            {
+                return args[i + 1];
+            }
+        }
+
+        return null;
     }
 }
 

@@ -16,7 +16,7 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
         : base(roomId, roomFrameRate, workerId)
     {
         _connections = connections;
-        _room = new Game001Room(roomId, pushHub);
+        _room = new Game001Room(roomId, connections, pushHub);
         if (!_room.Systems.TryGetSystem(out RoomLifecycleSystem? lifecycleSystem))
         {
             throw new InvalidOperationException("missing RoomLifecycleSystem");
@@ -34,6 +34,9 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
         NetworkReqRspInitializer.RegisterAll(reqRspCenter, handlers);
         var commandHandlers = new Game001RoomCommandHandlers();
         Game001RoomCommandRegistration.RegisterAll(commandCenter, commandHandlers);
+        commandCenter.SetRpcAuthority(new Game001RoomServerRpcAuthority(_connections, _room.State));
+        var rpcHandlers = new Game001RoomServerRpcHandlers(_connections, _room.State);
+        Game001RpcRegistration.RegisterServer(commandCenter, rpcHandlers);
     }
 
     protected override void OnRoomCreated()

@@ -9,9 +9,12 @@ namespace Game001.Room.Runtime;
 
 public sealed class Game001Room : IWorld
 {
-    public Game001Room(string roomId, RoomPushHub pushHub)
+    public Game001Room(
+        string roomId,
+        RoomConnectionRegistry connections,
+        RoomPushHub pushHub)
     {
-        State = new Game001RoomState(roomId);
+        State = new Game001RoomState(roomId, connections, pushHub);
         Game001RoomEcsSystems.Configure(State.EcsSystems);
         var syncSystem = new RoomSyncSystem(pushHub, State);
         var lifecycleSystem = new RoomLifecycleSystem(State);
