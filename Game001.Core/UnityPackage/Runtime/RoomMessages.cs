@@ -34,6 +34,8 @@ namespace Game001.Core
     }
 
     [MemoryPackable]
+    [NetworkRequest(typeof(ListRoomsRsp))]
+    [RoomRequestRoute(RoomRequestRouteKind.Worker)]
     public partial struct ListRoomsReq : INetworkReq
     {
     }
@@ -46,6 +48,12 @@ namespace Game001.Core
 
     [MemoryPackable]
     [NetworkRequest(typeof(CreateRoomRsp))]
+    [RoomRequestRoute(
+        RoomRequestRouteKind.Room,
+        RoomRequestRoomIdSource.MessageOrBoundConnectionOrDefault,
+        CanCreateRoom = true,
+        SuccessConnectionAction = RoomRequestConnectionAction.BindRoom,
+        DefaultRoomId = "room-001")]
     public partial struct CreateRoomReq : INetworkReq
     {
         public string RoomId;
@@ -58,6 +66,10 @@ namespace Game001.Core
 
     [MemoryPackable]
     [NetworkRequest(typeof(JoinRoomRsp))]
+    [RoomRequestRoute(
+        RoomRequestRouteKind.Room,
+        RoomRequestRoomIdSource.MessageOrBoundConnection,
+        SuccessConnectionAction = RoomRequestConnectionAction.BindRoom)]
     public partial struct JoinRoomReq : INetworkReq
     {
         public string RoomId;
@@ -70,6 +82,10 @@ namespace Game001.Core
 
     [MemoryPackable]
     [NetworkRequest(typeof(LeaveRoomRsp))]
+    [RoomRequestRoute(
+        RoomRequestRouteKind.Room,
+        RoomRequestRoomIdSource.MessageOrBoundConnection,
+        SuccessConnectionAction = RoomRequestConnectionAction.ClearRoom)]
     public partial struct LeaveRoomReq : INetworkReq
     {
         public string RoomId;
@@ -82,6 +98,7 @@ namespace Game001.Core
 
     [MemoryPackable]
     [NetworkRequest(typeof(RoomPingRsp))]
+    [RoomRequestRoute(RoomRequestRouteKind.Room, RoomRequestRoomIdSource.MessageOrBoundConnection)]
     public partial struct RoomPingReq : INetworkReq
     {
         public string RoomId;
@@ -95,6 +112,7 @@ namespace Game001.Core
 
     [MemoryPackable]
     [NetworkRequest(typeof(RoomResyncRsp))]
+    [RoomRequestRoute(RoomRequestRouteKind.Room, RoomRequestRoomIdSource.MessageOrBoundConnection)]
     public partial struct RoomResyncReq : INetworkReq
     {
         public string RoomId;
@@ -103,6 +121,17 @@ namespace Game001.Core
     [MemoryPackable]
     public partial struct RoomResyncRsp : INetworkRsp
     {
+    }
+
+    [MemoryPackable]
+    [RoomCommand]
+    public partial struct UploadPositionCommand : IRoomCommand
+    {
+        public int CharacterEntityId;
+        public uint Sequence;
+        public long ClientTimeMs;
+        public float PositionX;
+        public float PositionY;
     }
 
     [MemoryPackable]

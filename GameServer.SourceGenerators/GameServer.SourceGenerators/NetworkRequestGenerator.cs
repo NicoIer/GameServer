@@ -13,6 +13,7 @@ namespace GameServer.SourceGenerators;
 public sealed class NetworkRequestGenerator : IIncrementalGenerator
 {
     private const string NetworkRequestAttributeName = "GameServer.Core.Network.NetworkRequestAttribute";
+    private const string RoomRequestRouteAttributeName = "GameServer.Core.Rooms.RoomRequestRouteAttribute";
     private const string NetworkReqName = "Network.INetworkReq";
     private const string NetworkRspName = "Network.INetworkRsp";
     private const string ReqRspServerCenterName = "Network.ReqRspServerCenter";
@@ -80,6 +81,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         INamedTypeSymbol? rspType = compilation.GetTypeByMetadataName(NetworkRspName);
         INamedTypeSymbol? centerType = compilation.GetTypeByMetadataName(ReqRspServerCenterName);
         INamedTypeSymbol? errorCodeType = compilation.GetTypeByMetadataName(ErrorCodeName);
+        INamedTypeSymbol? roomRequestRouteAttributeType = compilation.GetTypeByMetadataName(RoomRequestRouteAttributeName);
 
         if (attributeType == null || reqType == null || rspType == null || centerType == null || errorCodeType == null)
         {
@@ -95,7 +97,14 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
             return;
         }
 
-        List<RequestPair> pairs = GetCurrentPairs(context, compilation, candidates, attributeType, reqType, rspType);
+        List<RequestPair> pairs = GetCurrentPairs(
+            context,
+            compilation,
+            candidates,
+            attributeType,
+            roomRequestRouteAttributeType,
+            reqType,
+            rspType);
         if (pairs.Count == 0)
         {
             return;
@@ -113,6 +122,7 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         Compilation compilation,
         ImmutableArray<TypeDeclarationSyntax> candidates,
         INamedTypeSymbol attributeType,
+        INamedTypeSymbol? roomRequestRouteAttributeType,
         INamedTypeSymbol reqType,
         INamedTypeSymbol rspType)
     {
@@ -150,6 +160,11 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
                 continue;
             }
 
+            if (IsWorkerRequest(requestSymbol, roomRequestRouteAttributeType))
+            {
+                continue;
+            }
+
             string requestName = requestSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (seenRequests.TryGetValue(requestName, out INamedTypeSymbol existingRequest))
             {
@@ -180,6 +195,25 @@ public sealed class NetworkRequestGenerator : IIncrementalGenerator
         }
 
         return pairs;
+    }
+
+    private static bool IsWorkerRequest(
+        INamedTypeSymbol requestSymbol,
+        INamedTypeSymbol? roomRequestRouteAttributeType)
+    {
+        if (roomRequestRouteAttributeType == null)
+        {
+            return false;
+        }
+
+        AttributeData? routeAttribute = requestSymbol.GetAttributes()
+            .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, roomRequestRouteAttributeType));
+        if (routeAttribute == null || routeAttribute.ConstructorArguments.Length == 0)
+        {
+            return false;
+        }
+
+        return Convert.ToInt32(routeAttribute.ConstructorArguments[0].Value) == 1;
     }
 
     private static string Generate(string generatedNamespace, string handlerInterfaceName, List<RequestPair> pairs)

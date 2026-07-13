@@ -23,7 +23,9 @@ public sealed class CodeGenerationContext
     public string CoreDirectory { get; }
     public string UnityRuntimeDirectory { get; }
     public string GeneratedRuntimeDirectory { get; }
+    public string RoomDirectory { get; }
     public string RoomHandlersDirectory { get; }
+    public string RoomGeneratedDirectory { get; }
 
     private CodeGenerationContext(string repositoryRoot)
     {
@@ -31,7 +33,9 @@ public sealed class CodeGenerationContext
         CoreDirectory = Path.Combine(repositoryRoot, "Game001.Core");
         UnityRuntimeDirectory = Path.Combine(CoreDirectory, "UnityPackage", "Runtime");
         GeneratedRuntimeDirectory = Path.Combine(UnityRuntimeDirectory, "Generated");
-        RoomHandlersDirectory = Path.Combine(repositoryRoot, "Game001.Room", "Handlers");
+        RoomDirectory = Path.Combine(repositoryRoot, "Game001.Room");
+        RoomHandlersDirectory = Path.Combine(RoomDirectory, "Handlers");
+        RoomGeneratedDirectory = Path.Combine(RoomDirectory, "Generated");
     }
 
     public static CodeGenerationContext Create(IReadOnlyList<string> args)

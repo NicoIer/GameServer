@@ -12,6 +12,7 @@ public interface IRoomWorker
     Task<int> AddConnectionAsync(long uid, string roomId);
     Task RemoveConnectionAsync(int connectionId);
     Task<RspHead> HandleRequestAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter);
+    void HandleCommand(int connectionId, RoomCommandHead command);
     void Update(long timeNowMs);
     void Stop();
     RoomWorkerMetrics GetMetrics();

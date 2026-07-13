@@ -106,6 +106,68 @@ public abstract class RoomWorkerBase<TRoomModule> : IRoomWorker, IDisposable
         }
     }
 
+    public void HandleCommand(int connectionId, RoomCommandHead command)
+    {
+        if (IsStopped)
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=worker_stopped connectionId={connectionId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        if (!Connections.TryGet(connectionId, out RoomConnectionContext context))
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=missing_connection connectionId={connectionId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(context.RoomId))
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=room_not_bound connectionId={connectionId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        if (!_rooms.TryGetValue(context.RoomId, out Lazy<Task<RoomRuntimeHandle>>? roomTask) ||
+            !roomTask.IsValueCreated ||
+            !roomTask.Value.IsCompletedSuccessfully)
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=room_not_found connectionId={connectionId} roomId={context.RoomId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        RoomRuntimeHandle room = roomTask.Value.Result;
+        if (room.Module.LifecycleState == RoomLifecycleState.Closing ||
+            room.Module.LifecycleState == RoomLifecycleState.Closed)
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=room_closing connectionId={connectionId} roomId={context.RoomId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        string roomId = context.RoomId;
+        room.Fiber.Post(() =>
+        {
+            if (!Connections.TryGet(connectionId, out RoomConnectionContext currentContext) ||
+                !string.Equals(currentContext.RoomId, roomId, StringComparison.Ordinal))
+            {
+                global::GameServer.Core.Log.Warning(
+                    "Room",
+                    $"event=room_command_dropped reason=room_binding_changed connectionId={connectionId} roomId={roomId} commandHash={command.CommandHash}");
+                return;
+            }
+
+            room.Module.HandleCommand(connectionId, command);
+        });
+    }
+
     private async Task<RspHead> HandleRequestCoreAsync(int connectionId, ReqHead request, NetworkBuffer responsePayloadWriter)
     {
         if (IsStopped)

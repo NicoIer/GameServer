@@ -60,6 +60,7 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
         _networkTickDeltaSeconds = networkTickIntervalMs / 1000f;
         _server = new NetworkServer(socket, 1000, false);
         _server.AddMsgHandler<ReqHead>(OnReqHead);
+        _server.AddMsgHandler<RoomCommandHead>(OnCommandHead);
         _server.socket.OnDisconnected += OnDisconnected;
 
         _connectCenter.Register<RoomHandshakeReq, RoomHandshakeRsp>(HandshakeAsync);
@@ -160,6 +161,19 @@ public sealed class UnityRoomTransportServer : IGameRoomTransportServer
     private void OnReqHead(in int connectionId, in ReqHead request)
     {
         _ = HandleReqHeadAsync(connectionId, request);
+    }
+
+    private void OnCommandHead(in int connectionId, in RoomCommandHead command)
+    {
+        if (!_workerConnectionIds.TryGetValue(connectionId, out int workerConnectionId))
+        {
+            global::GameServer.Core.Log.Warning(
+                "Room",
+                $"event=room_command_dropped reason=unauthenticated transportConnectionId={connectionId} commandHash={command.CommandHash}");
+            return;
+        }
+
+        _worker.HandleCommand(workerConnectionId, command);
     }
 
     private async Task HandleReqHeadAsync(int connectionId, ReqHead request)

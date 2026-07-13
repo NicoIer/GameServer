@@ -5,6 +5,7 @@ CSharpSourceCatalog coreSources = CSharpSourceCatalog.Load(context.CoreDirectory
 ICodeGenerationStep[] steps =
 {
     new EcsRegistrationGenerationStep(),
+    new RoomMessageRegistrationGenerationStep(),
     new RoomHandlerGenerationStep(),
 };
 

@@ -28,10 +28,12 @@ public sealed class Game001RoomFiberModule : RoomFiberModuleBase
     public override RoomLifecycleState LifecycleState => _room.LifecycleState;
     public override int PlayerCount => _room.State.PlayerCount;
 
-    protected override void RegisterHandlers(ReqRspServerCenter center)
+    protected override void RegisterHandlers(ReqRspServerCenter reqRspCenter, RoomCommandServerCenter commandCenter)
     {
         var handlers = new Game001RoomReqRspHandlers(_connections, _lifecycleSystem, _room.State);
-        NetworkReqRspInitializer.RegisterAll(center, handlers);
+        NetworkReqRspInitializer.RegisterAll(reqRspCenter, handlers);
+        var commandHandlers = new Game001RoomCommandHandlers();
+        Game001RoomCommandRegistration.RegisterAll(commandCenter, commandHandlers);
     }
 
     protected override void OnRoomCreated()

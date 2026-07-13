@@ -7,6 +7,7 @@ namespace GameServer.Core.Rooms;
 public abstract class RoomFiberModuleBase : IFiberModule
 {
     private readonly ReqRspServerCenter _reqRspCenter = new();
+    private readonly RoomCommandServerCenter _commandCenter = new();
     private readonly int _frameIntervalMs;
     private long _nextFrameTimeMs;
     private long _lastFrameElapsedTicks;
@@ -36,12 +37,13 @@ public abstract class RoomFiberModuleBase : IFiberModule
         {
             try
             {
+                RegisterHandlers(_reqRspCenter, _commandCenter);
                 OnRoomCreated();
-                RegisterHandlers(_reqRspCenter);
             }
             catch (Exception e)
             {
                 global::GameServer.Core.Log.Error("Room", e, "event=room_module_create_failed");
+                throw;
             }
         }
 
@@ -117,6 +119,38 @@ public abstract class RoomFiberModuleBase : IFiberModule
         }
     }
 
+    public void HandleCommand(int connectionId, RoomCommandHead command)
+    {
+        using (global::GameServer.Core.Log.PushMessagePrefix(LogPrefix))
+        {
+            if (LifecycleState == RoomLifecycleState.Closing ||
+                LifecycleState == RoomLifecycleState.Closed)
+            {
+                global::GameServer.Core.Log.Warning(
+                    "Room",
+                    $"event=room_command_dropped reason=room_closing connectionId={connectionId} commandHash={command.CommandHash}");
+                return;
+            }
+
+            try
+            {
+                if (!_commandCenter.TryHandle(connectionId, command))
+                {
+                    global::GameServer.Core.Log.Warning(
+                        "Room",
+                        $"event=room_command_dropped reason=unknown_command connectionId={connectionId} commandHash={command.CommandHash}");
+                }
+            }
+            catch (Exception e)
+            {
+                global::GameServer.Core.Log.Error(
+                    "Room",
+                    e,
+                    $"event=room_command_failed connectionId={connectionId} commandHash={command.CommandHash}");
+            }
+        }
+    }
+
     public virtual ValueTask HandleConnectionDisconnectedAsync(int connectionId, RoomConnectionContext context)
     {
         return ValueTask.CompletedTask;
@@ -134,7 +168,7 @@ public abstract class RoomFiberModuleBase : IFiberModule
     {
     }
 
-    protected abstract void RegisterHandlers(ReqRspServerCenter center);
+    protected abstract void RegisterHandlers(ReqRspServerCenter reqRspCenter, RoomCommandServerCenter commandCenter);
     protected virtual void OnRoomCreated()
     {
     }

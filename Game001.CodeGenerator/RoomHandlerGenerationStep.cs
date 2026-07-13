@@ -11,14 +11,17 @@ public sealed class RoomHandlerGenerationStep : ICodeGenerationStep
         CodeGenerationContext context,
         CSharpSourceCatalog coreSources)
     {
-        SortedDictionary<string, RoomHandlerInfo> requestHandlers = CollectRequests(coreSources);
-        HashSet<string> implementedMethods = CollectImplementedMethods(context.RoomHandlersDirectory);
+        RoomMessageCatalog messages = RoomMessageCatalog.Collect(coreSources);
+        Dictionary<string, HashSet<string>> implementedMethods = CollectImplementedMethods(context.RoomDirectory);
         int createdCount = 0;
         int skippedCount = 0;
 
-        foreach (KeyValuePair<string, RoomHandlerInfo> item in requestHandlers)
+        foreach (RoomRequestInfo request in messages.Requests)
         {
-            if (implementedMethods.Contains(item.Key))
+            string handlerType = request.Kind == "Worker"
+                ? "Game001RoomWorker"
+                : "Game001RoomReqRspHandlers";
+            if (HasMethod(implementedMethods, handlerType, request.HandlerName))
             {
                 skippedCount++;
                 continue;
@@ -26,72 +29,55 @@ public sealed class RoomHandlerGenerationStep : ICodeGenerationStep
 
             string handlerPath = GetNewHandlerPath(
                 context.RoomHandlersDirectory,
-                item.Key,
-                item.Value.BaseName);
-            GeneratedFileWriter.WriteNew(
-                handlerPath,
-                GenerateHandler(item.Key, item.Value.RequestType, item.Value.ResponseType));
+                handlerType,
+                request.BaseName,
+                request.HandlerName);
+            string content = request.Kind == "Worker"
+                ? GenerateWorkerHandler(request)
+                : GenerateRoomRequestHandler(request);
+            GeneratedFileWriter.WriteNew(handlerPath, content);
+            createdCount++;
+        }
+
+        foreach (RoomCommandInfo command in messages.Commands)
+        {
+            const string handlerType = "Game001RoomCommandHandlers";
+            if (HasMethod(implementedMethods, handlerType, command.HandlerName))
+            {
+                skippedCount++;
+                continue;
+            }
+
+            string handlerPath = GetNewHandlerPath(
+                context.RoomHandlersDirectory,
+                handlerType,
+                command.BaseName,
+                command.HandlerName);
+            GeneratedFileWriter.WriteNew(handlerPath, GenerateCommandHandler(command));
             createdCount++;
         }
 
         return new CodeGenerationResult(createdCount, 0, skippedCount);
     }
 
-    private static SortedDictionary<string, RoomHandlerInfo> CollectRequests(
-        CSharpSourceCatalog coreSources)
+    private static Dictionary<string, HashSet<string>> CollectImplementedMethods(string roomDirectory)
     {
-        var result = new SortedDictionary<string, RoomHandlerInfo>(StringComparer.Ordinal);
-        foreach (CSharpSourceFile sourceFile in coreSources.Files)
+        CSharpSourceCatalog roomSources = CSharpSourceCatalog.Load(roomDirectory);
+        var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (CSharpSourceFile sourceFile in roomSources.Files)
         {
-            foreach (TypeDeclarationSyntax declaration in sourceFile.Root
-                         .DescendantNodes()
-                         .OfType<TypeDeclarationSyntax>())
+            foreach (ClassDeclarationSyntax declaration in sourceFile.Root.DescendantNodes().OfType<ClassDeclarationSyntax>())
             {
-                AttributeSyntax? attribute = CSharpSyntax.FindAttribute(declaration, "NetworkRequest");
-                if (attribute == null)
+                string typeName = declaration.Identifier.ValueText;
+                if (!result.TryGetValue(typeName, out HashSet<string>? methods))
                 {
-                    continue;
-                }
-
-                if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression is not TypeOfExpressionSyntax typeOf)
-                {
-                    throw new InvalidOperationException(
-                        $"NetworkRequest must declare typeof(response): {declaration.Identifier.ValueText}");
-                }
-
-                string baseName = declaration.Identifier.ValueText.EndsWith("Req", StringComparison.Ordinal)
-                    ? declaration.Identifier.ValueText.Substring(0, declaration.Identifier.ValueText.Length - 3)
-                    : declaration.Identifier.ValueText;
-                string methodName = "Handle" + baseName;
-                result.Add(methodName, new RoomHandlerInfo(
-                    baseName,
-                    CSharpSyntax.GetTypeName(declaration),
-                    CSharpSyntax.GetReferencedTypeName(declaration, typeOf.Type)));
-            }
-        }
-
-        return result;
-    }
-
-    private static HashSet<string> CollectImplementedMethods(string handlersDirectory)
-    {
-        Directory.CreateDirectory(handlersDirectory);
-        CSharpSourceCatalog handlerSources = CSharpSourceCatalog.Load(handlersDirectory);
-        var result = new HashSet<string>(StringComparer.Ordinal);
-        foreach (CSharpSourceFile sourceFile in handlerSources.Files)
-        {
-            foreach (ClassDeclarationSyntax declaration in sourceFile.Root
-                         .DescendantNodes()
-                         .OfType<ClassDeclarationSyntax>())
-            {
-                if (declaration.Identifier.ValueText != "Game001RoomReqRspHandlers")
-                {
-                    continue;
+                    methods = new HashSet<string>(StringComparer.Ordinal);
+                    result.Add(typeName, methods);
                 }
 
                 foreach (MethodDeclarationSyntax method in declaration.Members.OfType<MethodDeclarationSyntax>())
                 {
-                    result.Add(method.Identifier.ValueText);
+                    methods.Add(method.Identifier.ValueText);
                 }
             }
         }
@@ -99,22 +85,29 @@ public sealed class RoomHandlerGenerationStep : ICodeGenerationStep
         return result;
     }
 
+    private static bool HasMethod(
+        Dictionary<string, HashSet<string>> implementedMethods,
+        string handlerType,
+        string methodName)
+    {
+        return implementedMethods.TryGetValue(handlerType, out HashSet<string>? methods) &&
+               methods.Contains(methodName);
+    }
+
     private static string GetNewHandlerPath(
         string handlersDirectory,
-        string methodName,
-        string baseName)
+        string handlerType,
+        string baseName,
+        string methodName)
     {
-        string handlerPath = Path.Combine(
-            handlersDirectory,
-            "Game001RoomReqRspHandlers." + baseName + ".cs");
+        Directory.CreateDirectory(handlersDirectory);
+        string handlerPath = Path.Combine(handlersDirectory, handlerType + "." + baseName + ".cs");
         if (!File.Exists(handlerPath))
         {
             return handlerPath;
         }
 
-        handlerPath = Path.Combine(
-            handlersDirectory,
-            "Game001RoomReqRspHandlers." + baseName + ".Generated.cs");
+        handlerPath = Path.Combine(handlersDirectory, handlerType + "." + baseName + ".Generated.cs");
         if (File.Exists(handlerPath))
         {
             throw new InvalidOperationException($"generated handler still misses {methodName}: {handlerPath}");
@@ -123,55 +116,91 @@ public sealed class RoomHandlerGenerationStep : ICodeGenerationStep
         return handlerPath;
     }
 
-    private static string GenerateHandler(
-        string methodName,
-        string requestType,
-        string responseType)
+    private static string GenerateRoomRequestHandler(RoomRequestInfo request)
     {
         var builder = new StringBuilder();
+        AppendRequestHeader(builder, "Game001RoomReqRspHandlers");
+        AppendRequestMethod(builder, request, false);
+        builder.AppendLine("}");
+        return builder.ToString();
+    }
+
+    private static string GenerateWorkerHandler(RoomRequestInfo request)
+    {
+        var builder = new StringBuilder();
+        AppendRequestHeader(builder, "Game001RoomWorker");
+        AppendRequestMethod(builder, request, true);
+        builder.AppendLine("}");
+        return builder.ToString();
+    }
+
+    private static void AppendRequestHeader(StringBuilder builder, string handlerType)
+    {
         builder.AppendLine("// Generated once by Game001.CodeGenerator. Replace the NotSupported body with room logic.");
         builder.AppendLine("using NetworkErrorCode = Network.ErrorCode;");
         builder.AppendLine();
         builder.AppendLine("namespace Game001.Room;");
         builder.AppendLine();
-        builder.AppendLine("public sealed partial class Game001RoomReqRspHandlers");
+        builder.Append("public sealed partial class ");
+        builder.AppendLine(handlerType);
         builder.AppendLine("{");
+    }
+
+    private static void AppendRequestMethod(
+        StringBuilder builder,
+        RoomRequestInfo request,
+        bool includeContext)
+    {
         builder.Append("    public global::System.Threading.Tasks.ValueTask<(global::");
-        builder.Append(responseType);
+        builder.Append(request.ResponseType);
         builder.AppendLine(" rsp, NetworkErrorCode errorCode, string errorMsg)>");
         builder.Append("        ");
-        builder.Append(methodName);
+        builder.Append(request.HandlerName);
         builder.AppendLine("(");
         builder.AppendLine("            int connectionId,");
         builder.Append("            global::");
-        builder.Append(requestType);
-        builder.AppendLine(" req)");
+        builder.Append(request.RequestType);
+        builder.Append(includeContext ? "," : ")");
+        builder.AppendLine();
+        if (includeContext)
+        {
+            builder.AppendLine("            global::GameServer.Core.Rooms.RoomConnectionContext context)");
+        }
+
         builder.AppendLine("    {");
         builder.Append("        global::");
-        builder.Append(responseType);
+        builder.Append(request.ResponseType);
         builder.AppendLine(" rsp = default!;");
         builder.Append("        return new global::System.Threading.Tasks.ValueTask<(global::");
-        builder.Append(responseType);
+        builder.Append(request.ResponseType);
         builder.AppendLine(", NetworkErrorCode, string)>(");
         builder.Append("            (rsp, NetworkErrorCode.NotSupported, \"");
-        builder.Append(methodName);
+        builder.Append(request.HandlerName);
         builder.AppendLine(" is not implemented\"));");
+        builder.AppendLine("    }");
+    }
+
+    private static string GenerateCommandHandler(RoomCommandInfo command)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("// Generated once by Game001.CodeGenerator. Replace the NotSupported body with room logic.");
+        builder.AppendLine("namespace Game001.Room;");
+        builder.AppendLine();
+        builder.AppendLine("public sealed partial class Game001RoomCommandHandlers");
+        builder.AppendLine("{");
+        builder.Append("    public void ");
+        builder.Append(command.HandlerName);
+        builder.AppendLine("(");
+        builder.AppendLine("        int connectionId,");
+        builder.Append("        global::");
+        builder.Append(command.CommandType);
+        builder.AppendLine(" command)");
+        builder.AppendLine("    {");
+        builder.Append("        throw new global::System.NotSupportedException(\"");
+        builder.Append(command.HandlerName);
+        builder.AppendLine(" is not implemented\");");
         builder.AppendLine("    }");
         builder.AppendLine("}");
         return builder.ToString();
-    }
-
-    private readonly struct RoomHandlerInfo
-    {
-        public string BaseName { get; }
-        public string RequestType { get; }
-        public string ResponseType { get; }
-
-        public RoomHandlerInfo(string baseName, string requestType, string responseType)
-        {
-            BaseName = baseName;
-            RequestType = requestType;
-            ResponseType = responseType;
-        }
     }
 }

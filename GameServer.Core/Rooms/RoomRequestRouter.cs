@@ -5,19 +5,6 @@ using NetworkErrorCode = Network.ErrorCode;
 
 namespace GameServer.Core.Rooms;
 
-public enum RoomRequestConnectionAction
-{
-    None,
-    BindRoom,
-    ClearRoom,
-}
-
-public enum RoomRequestRouteKind
-{
-    Room,
-    Worker,
-}
-
 public delegate ValueTask<(TRsp rsp, NetworkErrorCode errorCode, string errorMsg)> RoomWorkerRequestDelegate<TReq, TRsp>(
     int connectionId,
     TReq req,

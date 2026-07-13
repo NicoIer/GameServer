@@ -25,6 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Game001.CodeGenerator\Game001.CodeGenerator.csproj" />
         <ProjectReference Include="..\Game001.Core\Game001.Core.csproj" />
         <ProjectReference Include="..\Game001.Room\Game001.Room.csproj" />
         <ProjectReference Include="..\GameServer.Core\GameServer.Core.csproj" />
