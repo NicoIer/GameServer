@@ -6,6 +6,8 @@
     <Project Path="Game001.Startup.Debug\Game001.Startup.Debug.csproj" />
     <Project Path="Game001.Startup.Room/Game001.Startup.Room.csproj" />
   </Folder>
+  <Folder Name="/LockStepGame/" />
+  <Folder Name="/StateSyncGame/" />
   <Project Path="GameServer.Center/GameServer.Center.csproj" />
   <Project Path="GameServer.Config/GameServer.Config.csproj" />
   <Project Path="GameServer.Core\GameServer.Core.csproj" />

@@ -10,9 +10,9 @@ public static class Game001RoomRpcEntityResolver
         Entity current = entity;
         while (!current.IsNull)
         {
-            if (current.HasComponent<RoomPlayerComponent>())
+            if (current.HasComponent<UserComponent>())
             {
-                uid = current.GetComponent<RoomPlayerComponent>().Uid;
+                uid = current.GetComponent<UserComponent>().Uid;
                 return true;
             }
 

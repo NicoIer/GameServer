@@ -40,7 +40,7 @@ public sealed class RoomRpcTests
         int otherConnectionId = connections.Add(202, state.RoomId);
         state.ActiveConnectionIds.Add(ownerConnectionId);
         state.ActiveConnectionIds.Add(otherConnectionId);
-        Entity owner = state.Entities.CreateEntity(new RoomPlayerComponent { Uid = 101 });
+        Entity owner = state.Entities.CreateEntity(new UserComponent { Uid = 101 });
         Entity child = state.Entities.CreateEntity(new TestPositionComponent { X = 1 });
         owner.AddChild(child);
         Entity unowned = state.Entities.CreateEntity(new TestPositionComponent { X = 2 });
@@ -92,7 +92,7 @@ public sealed class RoomRpcTests
         state.ActiveConnectionIds.Add(pendingConnectionId);
         state.ActiveConnectionIds.Add(otherRoomConnectionId);
         state.PendingFullStateConnections.Add(pendingConnectionId);
-        Entity owner = state.Entities.CreateEntity(new RoomPlayerComponent { Uid = 101 });
+        Entity owner = state.Entities.CreateEntity(new UserComponent { Uid = 101 });
         Entity child = state.Entities.CreateEntity(new TestPositionComponent { X = 1 });
         owner.AddChild(child);
         var ownerValues = new List<int>();

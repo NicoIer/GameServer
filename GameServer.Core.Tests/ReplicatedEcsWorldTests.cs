@@ -107,7 +107,7 @@ public sealed class ReplicatedEcsWorldTests
         Assert.That(result, Is.EqualTo(EcsWorldApplyResult.Applied));
 
         var changedEntities = new HashSet<int>();
-        _world.EntityChanged += changedEntities.Add;
+        _world.EntityChanged += i => changedEntities.Add(i);
 
         ArraySegment<EcsEntityChange> entityChanges = Segment(
             EntityChange(5, EcsChangeKind.Create, 2),
@@ -367,14 +367,14 @@ public sealed class ReplicatedEcsWorldTests
         });
 
         EcsComponentRegistry gameRegistry = Game001EcsRegistration.CreateRegistry();
-        ushort roomPlayerTypeId = EcsComponentTypeId.Get<RoomPlayerComponent>();
+        ushort userTypeId = EcsComponentTypeId.Get<UserComponent>();
         ushort roomDisconnectedTypeId = EcsComponentTypeId.Get<RoomDisconnectedComponent>();
         Assert.Multiple(() =>
         {
             Assert.That(gameRegistry.Count, Is.EqualTo(2));
-            Assert.That(gameRegistry.Contains(roomPlayerTypeId), Is.True);
+            Assert.That(gameRegistry.Contains(userTypeId), Is.True);
             Assert.That(gameRegistry.Contains(roomDisconnectedTypeId), Is.True);
-            Assert.That(roomPlayerTypeId, Is.EqualTo(EcsReplicationSerializer.RoomPlayerComponentTypeId));
+            Assert.That(userTypeId, Is.EqualTo(EcsReplicationSerializer.UserComponentTypeId));
             Assert.That(roomDisconnectedTypeId,
                 Is.EqualTo(EcsReplicationSerializer.RoomDisconnectedComponentTypeId));
         });

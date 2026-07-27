@@ -62,7 +62,7 @@ public sealed class Game001RoomState
             return entity;
         }
 
-        var player = new RoomPlayerComponent
+        var player = new UserComponent
         {
             Uid = uid,
         };

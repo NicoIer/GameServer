@@ -14,7 +14,7 @@ namespace Game001.Core.Generated
         public static void RegisterAll(global::GameServer.Core.Ecs.EcsComponentRegistry registry)
         {
             registry.Register<global::Game001.Core.Ecs.RoomDisconnectedComponent>();
-            registry.Register<global::Game001.Core.Ecs.RoomPlayerComponent>();
+            registry.Register<global::Game001.Core.Ecs.UserComponent>();
         }
     }
 }

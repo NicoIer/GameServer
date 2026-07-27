@@ -80,7 +80,7 @@ public sealed class EcsDirtyTrackerTests
         using var tracker = new EcsDirtyTracker(store);
 
         Entity transient = store.CreateEntity(2);
-        transient.AddComponent(new RoomPlayerComponent { Uid = 2 });
+        transient.AddComponent(new UserComponent { Uid = 2 });
         transient.DeleteEntity();
 
         Assert.That(tracker.HasChanges, Is.False);
@@ -92,7 +92,7 @@ public sealed class EcsDirtyTrackerTests
             Assert.That(cancelled.ComponentChanges.Count, Is.Zero);
         });
 
-        existing.AddComponent(new RoomPlayerComponent { Uid = 1 });
+        existing.AddComponent(new UserComponent { Uid = 1 });
         existing.DeleteEntity();
 
         EcsDirtySet deleted = Flush(tracker, 2, 3);

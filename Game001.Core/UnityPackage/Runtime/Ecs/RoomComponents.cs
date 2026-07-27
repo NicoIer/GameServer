@@ -6,7 +6,7 @@ namespace Game001.Core.Ecs
 {
     [MemoryPackable]
     [EcsReplicatedComponent]
-    public partial struct RoomPlayerComponent : IComponent
+    public partial struct UserComponent : IComponent
     {
         public long Uid;
     }
