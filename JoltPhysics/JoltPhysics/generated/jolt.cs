@@ -1550,7 +1550,7 @@ namespace JoltPhysics
         public byte canReceiveImpulses;
     }
 
-    internal unsafe partial struct JPH_CharacterVirtualContact
+    internal unsafe partial struct JPH_CharacterContact
     {
         [NativeTypeName("uint64_t")]
         public ulong hash;
@@ -1815,26 +1815,26 @@ namespace JoltPhysics
         [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_Body *, JPH_Vec3 *, JPH_Vec3 *)")]
         public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_Body*, JPH_Vec3*, JPH_Vec3*, void> OnAdjustBodyVelocity;
 
-        [NativeTypeName("bool (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, byte> OnContactValidate;
+        [NativeTypeName("bool (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, byte> OnContactValidate;
 
-        [NativeTypeName("bool (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, byte> OnCharacterContactValidate;
+        [NativeTypeName("bool (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, byte> OnCharacterContactValidate;
 
-        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *, JPH_CharacterContactSettings *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, JPH_CharacterContactSettings*, void> OnContactAdded;
+        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *, JPH_CharacterContactSettings *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, JPH_CharacterContactSettings*, void> OnContactAdded;
 
-        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *, JPH_CharacterContactSettings *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, JPH_CharacterContactSettings*, void> OnContactPersisted;
+        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *, JPH_CharacterContactSettings *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, JPH_CharacterContactSettings*, void> OnContactPersisted;
 
         [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_BodyID, const JPH_SubShapeID)")]
         public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, uint, uint, void> OnContactRemoved;
 
-        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *, JPH_CharacterContactSettings *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, JPH_CharacterContactSettings*, void> OnCharacterContactAdded;
+        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *, JPH_CharacterContactSettings *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, JPH_CharacterContactSettings*, void> OnCharacterContactAdded;
 
-        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterVirtualContact *, JPH_CharacterContactSettings *)")]
-        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterVirtualContact*, JPH_CharacterContactSettings*, void> OnCharacterContactPersisted;
+        [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterContact *, JPH_CharacterContactSettings *)")]
+        public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, JPH_CharacterContact*, JPH_CharacterContactSettings*, void> OnCharacterContactPersisted;
 
         [NativeTypeName("void (*)(void *, const JPH_CharacterVirtual *, const JPH_CharacterID, const JPH_SubShapeID)")]
         public delegate* unmanaged[Cdecl]<void*, JPH_CharacterVirtual*, uint, uint, void> OnCharacterContactRemoved;
@@ -4920,7 +4920,7 @@ namespace JoltPhysics
         public static extern uint JPH_CharacterVirtual_GetNumActiveContacts(JPH_CharacterVirtual* character);
 
         [DllImport(jolt_dll.DLL_NAME, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void JPH_CharacterVirtual_GetActiveContact(JPH_CharacterVirtual* character, [NativeTypeName("uint32_t")] uint index, JPH_CharacterVirtualContact* result);
+        public static extern void JPH_CharacterVirtual_GetActiveContact(JPH_CharacterVirtual* character, [NativeTypeName("uint32_t")] uint index, JPH_CharacterContact* result);
 
         [DllImport(jolt_dll.DLL_NAME, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("bool")]

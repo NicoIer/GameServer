@@ -471,7 +471,10 @@ typedef struct JPH_Plane {
 } JPH_Plane;
 
 typedef struct JPH_Mat4 {
-	JPH_Vec4 column[4];
+	JPH_Vec4 Column0;
+	JPH_Vec4 Column1;
+	JPH_Vec4 Column2;
+	JPH_Vec4 Column3;
 } JPH_Mat4;
 
 typedef struct JPH_Point {
@@ -487,8 +490,10 @@ typedef struct JPH_RVec3 {
 } JPH_RVec3;
 
 typedef struct JPH_RMat4 {
-	JPH_Vec4 column[3];
-	JPH_RVec3 column3;
+	JPH_Vec4 Column0;
+	JPH_Vec4 Column1;
+	JPH_Vec4 Column2;
+	JPH_RVec3 Column3;
 } JPH_RMat4;
 #else
 typedef JPH_Vec3 JPH_RVec3;
@@ -980,7 +985,7 @@ typedef struct JPH_CharacterContactSettings {
 	bool canReceiveImpulses;
 } JPH_CharacterContactSettings;
 
-typedef struct JPH_CharacterVirtualContact {
+typedef struct JPH_CharacterContact {
 	uint64_t						hash;
 	JPH_BodyID						bodyB;
 	JPH_CharacterID					characterIDB;
@@ -1000,7 +1005,7 @@ typedef struct JPH_CharacterVirtualContact {
 	bool							wasDiscarded;
 	bool							canPushCharacter;
 	bool							isBackFacingContact;
-} JPH_CharacterVirtualContact;
+} JPH_CharacterContact;
 
 typedef void(JPH_API_CALL* JPH_TraceFunc)(const char* message);
 typedef bool(JPH_API_CALL* JPH_AssertFailureFunc)(const char* expression, const char* message, const char* file, uint32_t line);
@@ -2505,7 +2510,7 @@ JPH_CAPI bool JPH_CharacterVirtual_SetShape(JPH_CharacterVirtual* character, con
 JPH_CAPI void JPH_CharacterVirtual_SetInnerBodyShape(JPH_CharacterVirtual* character, const JPH_Shape* shape);
 
 JPH_CAPI uint32_t JPH_CharacterVirtual_GetNumActiveContacts(JPH_CharacterVirtual* character);
-JPH_CAPI void JPH_CharacterVirtual_GetActiveContact(JPH_CharacterVirtual* character, uint32_t index, JPH_CharacterVirtualContact* result);
+JPH_CAPI void JPH_CharacterVirtual_GetActiveContact(JPH_CharacterVirtual* character, uint32_t index, JPH_CharacterContact* result);
 
 JPH_CAPI bool JPH_CharacterVirtual_HasCollidedWithBody(JPH_CharacterVirtual* character, const JPH_BodyID body);
 JPH_CAPI bool JPH_CharacterVirtual_HasCollidedWith(JPH_CharacterVirtual* character, const JPH_CharacterID other);
@@ -2521,20 +2526,20 @@ typedef struct JPH_CharacterContactListener_Procs {
 
 	bool(JPH_API_CALL* OnContactValidate)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact);
+		const JPH_CharacterContact* contact);
 
 	bool(JPH_API_CALL* OnCharacterContactValidate)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact);
+		const JPH_CharacterContact* contact);
 
 	void(JPH_API_CALL* OnContactAdded)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact,
+		const JPH_CharacterContact* contact,
 		JPH_CharacterContactSettings* ioSettings);
 
 	void(JPH_API_CALL* OnContactPersisted)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact,
+		const JPH_CharacterContact* contact,
 		JPH_CharacterContactSettings* ioSettings);
 
 	void(JPH_API_CALL* OnContactRemoved)(void* userData,
@@ -2544,12 +2549,12 @@ typedef struct JPH_CharacterContactListener_Procs {
 
 	void(JPH_API_CALL* OnCharacterContactAdded)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact,
+		const JPH_CharacterContact* contact,
 		JPH_CharacterContactSettings* ioSettings);
 
 	void(JPH_API_CALL* OnCharacterContactPersisted)(void* userData,
 		const JPH_CharacterVirtual* character,
-		const JPH_CharacterVirtualContact* contact,
+		const JPH_CharacterContact* contact,
 		JPH_CharacterContactSettings* ioSettings);
 
 	void(JPH_API_CALL* OnCharacterContactRemoved)(void* userData,
