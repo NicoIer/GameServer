@@ -1,7 +1,5 @@
 # GameServer
 
-![GameServer 多人游戏服务端架构概念图](Docs/images/game-server-banner.png)
-
 一个面向 Unity 客户端的多人游戏服务端框架示例。项目基于 .NET 10，按 `Center`、`Gate`、`Room` 拆分服务，使用 gRPC 完成服务间通信与入口请求，使用 TCP/KCP 承载客户端与房间服之间的实时通信，并提供房间 Fiber、ECS 状态同步、协议与业务代码生成等基础能力。
 
 当前仓库内的 `Game001` 是一套可运行的示例游戏实现。
